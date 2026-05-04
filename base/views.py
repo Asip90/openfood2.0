@@ -74,7 +74,7 @@ def check_new_orders(request):
             })
 
         data = {
-            'id': latest_order_in_db.id,
+            'latest_order_id': latest_order_in_db.id,
             'customer_name': latest_order_in_db.customer_name or "Client",
             'table': {'number': latest_order_in_db.table.number} if latest_order_in_db.table else None,
             'total': str(latest_order_in_db.total), # Convertir Decimal en string
@@ -85,7 +85,7 @@ def check_new_orders(request):
         }
     else:
         # Aucune commande pour ce restaurant
-        data = {'id': None}
+        data = {'latest_order_id': None}
 
     return JsonResponse(data)
 
@@ -95,6 +95,7 @@ def create_restaurant(request):
         form = RestaurantCreateForm(request.POST, request.FILES)
         if form.is_valid():
             restaurant = form.save(commit=False)
+            restaurant.owner = request.user
             restaurant.slug = slugify(restaurant.name)
             restaurant.subdomain = generate_unique_subdomain(restaurant.name)
 
