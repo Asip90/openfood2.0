@@ -24,14 +24,13 @@
         </div>
 
         <!-- Headline -->
-        <h1 class="font-display font-black text-slate-900 leading-[1.0] tracking-tight mb-6"
-            style="font-size: clamp(2.6rem, 5.5vw, 4.2rem);">
-          Digitalisez votre<br>
-          restaurant en<br>
+        <h1 class="font-display font-black text-slate-900 mb-6"
+            style="font-size: clamp(1.9rem, 3.6vw, 3rem); line-height: 1.12; letter-spacing: -0.02em; text-wrap: balance;">
+          Digitalisez votre restaurant en
           <span class="relative inline-block">
             <span class="text-primary relative z-10">5 minutes.</span>
-            <svg class="absolute -bottom-2 left-0 w-full" height="8" viewBox="0 0 200 8" preserveAspectRatio="none" fill="none">
-              <path d="M2 6 Q50 1 100 5 Q150 9 198 3" stroke="#f97316" stroke-width="3" stroke-linecap="round" opacity="0.4"/>
+            <svg class="absolute -bottom-1 left-0 w-full" height="6" viewBox="0 0 200 6" preserveAspectRatio="none" fill="none">
+              <path d="M2 5 Q50 1 100 4 Q150 7 198 2" stroke="#f97316" stroke-width="2.5" stroke-linecap="round" opacity="0.45"/>
             </svg>
           </span>
         </h1>
@@ -82,14 +81,14 @@
       </div>
 
       <!-- ── Right: Phone mockup ─────────────────── -->
-      <div class="relative flex justify-center lg:justify-end pb-0 pt-4 lg:pt-0">
+      <div class="relative flex justify-center lg:justify-end pb-0 pt-6 lg:pt-0 overflow-visible">
 
         <!-- Decorative blob behind phone -->
         <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] rounded-full pointer-events-none"
              style="background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%);"></div>
 
         <!-- Phone frame -->
-        <div class="relative z-10 animate-float" style="width:290px;">
+        <div class="relative z-10 animate-float mx-auto" style="width: min(290px, 78vw);">
           <div class="relative bg-white rounded-[44px] overflow-hidden" style="box-shadow: 0 40px 100px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.06), inset 0 0 0 2px rgba(255,255,255,0.8);">
 
             <!-- Notch -->
@@ -167,8 +166,8 @@
             </div>
           </div>
 
-          <!-- Floating badge — new order -->
-          <div class="absolute -top-3 -right-10 animate-float-delay bg-white rounded-2xl px-3 py-2.5 flex items-center gap-2.5 shadow-card border border-slate-100">
+              <!-- Floating badge — new order (hidden on small screens) -->
+          <div class="hidden sm:flex absolute -top-3 -right-10 animate-float-delay bg-white rounded-2xl px-3 py-2.5 items-center gap-2.5 shadow-card border border-slate-100">
             <div class="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
               <i class="ri-notification-3-fill text-green-600 text-sm"></i>
             </div>
@@ -178,8 +177,8 @@
             </div>
           </div>
 
-          <!-- Floating badge — QR -->
-          <div class="absolute -bottom-4 -left-10 bg-white rounded-2xl px-3 py-2.5 flex items-center gap-2.5 shadow-card border border-slate-100 animate-float" style="animation-delay:1s">
+          <!-- Floating badge — QR (hidden on small screens) -->
+          <div class="hidden sm:flex absolute -bottom-4 -left-10 bg-white rounded-2xl px-3 py-2.5 items-center gap-2.5 shadow-card border border-slate-100 animate-float" style="animation-delay:1s">
             <div class="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
               <i class="ri-qr-code-line text-primary text-sm"></i>
             </div>

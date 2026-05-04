@@ -7,17 +7,19 @@
       <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-4">
         <span class="w-6 h-px bg-primary"></span> Témoignages <span class="w-6 h-px bg-primary"></span>
       </span>
-      <h2 class="font-display font-black text-slate-900 text-4xl md:text-5xl leading-tight mb-4">
+      <h2 class="font-display font-black text-slate-900 text-3xl md:text-[2.4rem] mb-4"
+          style="line-height:1.15; text-wrap:balance;">
         Les restaurateurs parlent d'OpenFood.
       </h2>
       <p class="text-slate-500 text-lg">Des centaines de restaurants font confiance à OpenFood au quotidien.</p>
     </div>
 
-    <!-- Cards grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-4">
+    <!-- Cards — swipeable on mobile, grid on desktop -->
+    <div class="flex gap-4 overflow-x-auto snap-x snap-mandatory pb-4 -mx-5 px-5 scrollbar-none
+                md:grid md:grid-cols-3 md:gap-5 md:overflow-visible md:mx-0 md:px-0 md:pb-0">
 
       <!-- Card 1 -->
-      <div class="group bg-white rounded-3xl p-7 border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal">
+      <div class="group bg-white rounded-3xl p-7 border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal flex-shrink-0 w-[85vw] md:w-auto snap-start">
         <!-- Stars -->
         <div class="flex gap-1 mb-5">
           <i class="ri-star-fill text-amber-400"></i>
@@ -41,7 +43,7 @@
       </div>
 
       <!-- Card 2 — highlighted -->
-      <div class="group relative rounded-3xl p-7 overflow-hidden border border-primary/15 hover:border-primary/30 hover:shadow-[0_12px_40px_rgba(249,115,22,0.12)] transition-all duration-300 reveal delay-2"
+      <div class="group relative rounded-3xl p-7 overflow-hidden border border-primary/15 hover:border-primary/30 hover:shadow-[0_12px_40px_rgba(249,115,22,0.12)] transition-all duration-300 reveal delay-2 flex-shrink-0 w-[85vw] md:w-auto snap-start"
            style="background: linear-gradient(145deg, #fff7ed 0%, #fffbf7 100%);">
         <div class="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); transform: translate(30%, -30%);"></div>
         <div class="relative z-10">
@@ -66,7 +68,7 @@
       </div>
 
       <!-- Card 3 -->
-      <div class="group bg-white rounded-3xl p-7 border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal delay-4">
+      <div class="group bg-white rounded-3xl p-7 border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal delay-4 flex-shrink-0 w-[85vw] md:w-auto snap-start">
         <div class="flex gap-1 mb-5">
           <i class="ri-star-fill text-amber-400"></i>
           <i class="ri-star-fill text-amber-400"></i>
@@ -86,6 +88,12 @@
         </div>
       </div>
 
+    </div>
+
+    <!-- Swipe hint — mobile only -->
+    <div class="flex items-center justify-center gap-2 mt-5 md:hidden">
+      <span class="text-slate-400 text-xs">Glissez pour voir plus</span>
+      <i class="ri-arrow-right-line text-slate-400 text-xs"></i>
     </div>
 
     <!-- Trust bar -->

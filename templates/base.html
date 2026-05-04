@@ -68,6 +68,11 @@
     .reveal.visible { opacity: 1; transform: translateY(0); }
     /* Font utility */
     .font-display { font-family: 'Syne', system-ui, sans-serif; }
+    /* Hide scrollbar (testimonials swipe) */
+    .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+    .scrollbar-none::-webkit-scrollbar { display: none; }
+    /* iPhone safe area bottom */
+    .safe-bottom { padding-bottom: max(0.75rem, env(safe-area-inset-bottom)); }
   </style>
 
   {% block extra_css %}{% endblock %}

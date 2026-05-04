@@ -61,6 +61,34 @@
 
 {% block navbar %}{% include 'home/header.html' %}{% endblock %}
 
+{% block extra_js %}
+<!-- Mobile sticky CTA bar -->
+<div id="mobile-cta-bar"
+     class="fixed bottom-0 left-0 right-0 z-40 md:hidden translate-y-full transition-transform duration-300 ease-out"
+     aria-hidden="true">
+  <div class="bg-white/95 backdrop-blur-md border-t border-slate-100 shadow-[0_-4px_24px_rgba(0,0,0,0.08)] px-4 py-3 safe-bottom">
+    <a href="{% url 'inscription' %}"
+       class="flex items-center justify-center gap-2 w-full py-3.5 rounded-2xl bg-primary text-white font-bold text-base shadow-glow active:scale-[0.98] transition-transform">
+      Commencer gratuitement →
+    </a>
+  </div>
+</div>
+<script>
+  (function(){
+    var bar = document.getElementById('mobile-cta-bar');
+    var shown = false;
+    window.addEventListener('scroll', function(){
+      var show = window.scrollY > 380;
+      if(show !== shown){
+        shown = show;
+        bar.style.transform = show ? 'translateY(0)' : 'translateY(100%)';
+        bar.setAttribute('aria-hidden', !show);
+      }
+    }, { passive: true });
+  })();
+</script>
+{% endblock %}
+
 {% block content %}
 {% include 'home/hero.html' %}
 {% include 'home/Solution.html' %}
