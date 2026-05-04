@@ -56,7 +56,7 @@ def check_new_orders(request):
     restaurant = Restaurant.objects.filter(owner=request.user).first()
 
     if not restaurant:
-        return JsonResponse({"id": None, "error": "Restaurant not found for user"}, status=404)
+        return JsonResponse({"latest_order_id": None, "error": "Restaurant not found for user"}, status=404)
 
     # Récupérer la dernière commande du restaurant, triée par created_at décroissant
     # et ensuite par id décroissant pour une cohérence en cas de même created_at
