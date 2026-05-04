@@ -1,0 +1,75 @@
+<!-- ══ HOW IT WORKS ═══════════════════════════════════════════════════ -->
+<section id="how-it-works" class="py-24 md:py-32" style="background: linear-gradient(180deg, #fff7ed 0%, #fffbf7 50%, #ffffff 100%);">
+  <div class="max-w-6xl mx-auto px-5 md:px-8">
+
+    <!-- Header -->
+    <div class="text-center max-w-xl mx-auto mb-16 reveal">
+      <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-4">
+        <span class="w-6 h-px bg-primary"></span> Simple & rapide <span class="w-6 h-px bg-primary"></span>
+      </span>
+      <h2 class="font-display font-black text-slate-900 text-4xl md:text-5xl leading-tight mb-4">
+        Démarrez en 3 étapes.
+      </h2>
+      <p class="text-slate-500 text-lg">
+        De zéro à votre premier menu digital en moins de 5 minutes. Vraiment.
+      </p>
+    </div>
+
+    <!-- Steps -->
+    <div class="relative grid grid-cols-1 md:grid-cols-3 gap-8 md:gap-6">
+
+      <!-- Connecting line (desktop only) -->
+      <div class="hidden md:block absolute top-12 left-[calc(16.67%+2rem)] right-[calc(16.67%+2rem)] h-px border-t-2 border-dashed border-primary/25 z-0"></div>
+
+      <!-- Step 1 -->
+      <div class="relative z-10 text-center reveal">
+        <div class="inline-flex w-24 h-24 rounded-3xl bg-white border-2 border-primary/15 items-center justify-center mb-6 shadow-soft mx-auto"
+             style="box-shadow: 0 8px 32px rgba(249,115,22,0.10);">
+          <i class="ri-user-add-line text-primary text-4xl"></i>
+        </div>
+        <div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white text-xs font-black mb-4">1</div>
+        <h3 class="font-display font-black text-slate-900 text-xl mb-3">Créez votre compte</h3>
+        <p class="text-slate-500 text-base leading-relaxed max-w-xs mx-auto">
+          Inscription gratuite en 30 secondes. Renseignez le nom de votre restaurant, c'est tout.
+        </p>
+      </div>
+
+      <!-- Step 2 -->
+      <div class="relative z-10 text-center reveal delay-2">
+        <div class="inline-flex w-24 h-24 rounded-3xl bg-white border-2 border-primary/15 items-center justify-center mb-6 shadow-soft mx-auto"
+             style="box-shadow: 0 8px 32px rgba(249,115,22,0.10);">
+          <i class="ri-restaurant-2-line text-primary text-4xl"></i>
+        </div>
+        <div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white text-xs font-black mb-4">2</div>
+        <h3 class="font-display font-black text-slate-900 text-xl mb-3">Configurez votre menu</h3>
+        <p class="text-slate-500 text-base leading-relaxed max-w-xs mx-auto">
+          Ajoutez vos catégories, plats, photos et prix depuis votre tableau de bord intuitif.
+        </p>
+      </div>
+
+      <!-- Step 3 -->
+      <div class="relative z-10 text-center reveal delay-4">
+        <div class="inline-flex w-24 h-24 rounded-3xl bg-white border-2 border-primary/15 items-center justify-center mb-6 shadow-soft mx-auto"
+             style="box-shadow: 0 8px 32px rgba(249,115,22,0.10);">
+          <i class="ri-qr-code-line text-primary text-4xl"></i>
+        </div>
+        <div class="inline-flex items-center justify-center w-7 h-7 rounded-full bg-primary text-white text-xs font-black mb-4">3</div>
+        <h3 class="font-display font-black text-slate-900 text-xl mb-3">Partagez votre QR Code</h3>
+        <p class="text-slate-500 text-base leading-relaxed max-w-xs mx-auto">
+          Imprimez le QR code généré automatiquement pour chaque table. Vos clients scannent et commandent.
+        </p>
+      </div>
+
+    </div>
+
+    <!-- Bottom CTA -->
+    <div class="text-center mt-14 reveal">
+      <a href="{% url 'inscription' %}" class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-primary text-white font-bold text-lg hover:bg-primary-dark transition-all shadow-glow hover:shadow-[0_0_0_4px_rgba(249,115,22,0.15),0_12px_40px_rgba(249,115,22,0.3)]">
+        Je me lance maintenant
+        <i class="ri-arrow-right-line text-xl"></i>
+      </a>
+      <p class="text-slate-400 text-sm mt-4">Gratuit pour démarrer · Pas de carte bancaire</p>
+    </div>
+
+  </div>
+</section>

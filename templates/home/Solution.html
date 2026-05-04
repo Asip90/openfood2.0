@@ -1,115 +1,111 @@
+<!-- ══ FEATURES ══════════════════════════════════════════════════════ -->
 <section id="solution" class="bg-white py-24 md:py-32">
-  <div class="max-w-7xl mx-auto px-5 md:px-8">
+  <div class="max-w-6xl mx-auto px-5 md:px-8">
 
-    <!-- Header -->
-    <div class="max-w-2xl mb-16 md:mb-20">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-200 bg-orange-50 text-orange-600 text-xs font-bold uppercase tracking-widest mb-5">
-        <i class="ri-flashlight-line"></i> Notre solution
-      </div>
-      <h2 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-5">
-        Tout ce dont votre restaurant<br class="hidden md:block"> a besoin, au même endroit.
+    <!-- Section header -->
+    <div class="max-w-xl mb-14 reveal">
+      <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-4">
+        <span class="w-6 h-px bg-primary"></span> Notre solution
+      </span>
+      <h2 class="font-display font-black text-slate-900 text-4xl md:text-5xl leading-tight mb-4">
+        Tout ce dont votre restaurant a besoin.
       </h2>
       <p class="text-slate-500 text-lg leading-relaxed">
-        OpenFood regroupe tous les outils essentiels pour digitaliser votre restaurant,
-        améliorer l'expérience client et augmenter vos ventes.
+        Une plateforme complète pour digitaliser votre restaurant, améliorer l'expérience client et vendre plus.
       </p>
     </div>
 
-    <!-- Features grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+    <!-- Bento grid -->
+    <div class="grid grid-cols-1 md:grid-cols-6 gap-4">
 
-      <!-- Feature 1 — large card -->
-      <div class="lg:col-span-2 group relative bg-slate-950 rounded-3xl p-8 md:p-10 overflow-hidden border border-white/5 hover:border-orange-500/30 transition-all duration-300">
-        <div class="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] group-hover:bg-orange-500/20 transition-all duration-500"></div>
+      <!-- Card 1 — large (md:col-span-4) -->
+      <div class="md:col-span-4 group relative rounded-3xl p-8 md:p-10 overflow-hidden border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal"
+           style="background: linear-gradient(135deg, #fff7ed 0%, #fffbf7 60%, #ffffff 100%);">
+        <div class="absolute top-0 right-0 w-48 h-48 rounded-full pointer-events-none"
+             style="background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); transform: translate(20%, -20%);"></div>
         <div class="relative z-10">
-          <div class="w-12 h-12 rounded-2xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center mb-6">
-            <i class="ri-qr-code-line text-orange-400 text-2xl"></i>
+          <div class="inline-flex w-13 h-13 w-12 h-12 rounded-2xl bg-primary/10 border border-primary/15 items-center justify-center mb-6">
+            <i class="ri-qr-code-line text-primary text-2xl"></i>
           </div>
-          <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">01</span>
-          <h3 class="text-2xl md:text-3xl font-black text-white mt-2 mb-3">Menu digital par QR Code</h3>
-          <p class="text-slate-400 text-base leading-relaxed max-w-lg">
-            Proposez un menu moderne, rapide et accessible via QR Code — aucune application à installer.
-            Vos clients scannent, commandent et paient en quelques secondes.
+          <div class="text-xs font-bold text-primary uppercase tracking-widest mb-3">01</div>
+          <h3 class="font-display font-black text-slate-900 text-2xl md:text-3xl mb-4">Menu digital par QR Code</h3>
+          <p class="text-slate-500 leading-relaxed max-w-md">
+            Vos clients scannent, consultent votre menu enrichi de photos et commandent directement depuis leur téléphone.
+            Aucune application à télécharger. Zéro friction.
           </p>
-        </div>
-      </div>
-
-      <!-- Feature 2 -->
-      <div class="group bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
-        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
-          <i class="ri-image-line text-orange-500 text-2xl"></i>
-        </div>
-        <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">02</span>
-        <h3 class="text-xl font-black text-slate-900 mt-2 mb-3">Menus visuels & interactifs</h3>
-        <p class="text-slate-500 leading-relaxed">
-          Photos appétissantes, descriptions détaillées et prix clairs pour guider le choix de vos clients.
-        </p>
-      </div>
-
-      <!-- Feature 3 -->
-      <div class="group bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
-        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
-          <i class="ri-shopping-cart-line text-orange-500 text-2xl"></i>
-        </div>
-        <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">03</span>
-        <h3 class="text-xl font-black text-slate-900 mt-2 mb-3">Commandes simplifiées</h3>
-        <p class="text-slate-500 leading-relaxed">
-          Les clients commandent plus vite, avec moins d'hésitation — ce qui augmente naturellement le panier moyen.
-        </p>
-      </div>
-
-      <!-- Feature 4 -->
-      <div class="group bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
-        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
-          <i class="ri-translate-2 text-orange-500 text-2xl"></i>
-        </div>
-        <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">04</span>
-        <h3 class="text-xl font-black text-slate-900 mt-2 mb-3">Menu multilingue</h3>
-        <p class="text-slate-500 leading-relaxed">
-          Changement de langue en un clic pour accueillir vos clients étrangers et touristes.
-        </p>
-      </div>
-
-      <!-- Feature 5 -->
-      <div class="group bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
-        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
-          <i class="ri-star-line text-orange-500 text-2xl"></i>
-        </div>
-        <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">05</span>
-        <h3 class="text-xl font-black text-slate-900 mt-2 mb-3">Avis clients intégrés</h3>
-        <p class="text-slate-500 leading-relaxed">
-          Collectez des avis directement depuis le menu QR et renforcez votre réputation en ligne.
-        </p>
-      </div>
-
-      <!-- Feature 6 — dark accent -->
-      <div class="group relative bg-slate-950 rounded-3xl p-8 overflow-hidden border border-white/5 hover:border-orange-500/30 transition-all duration-300">
-        <div class="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/10 rounded-full blur-[60px] group-hover:bg-orange-500/20 transition-all duration-500"></div>
-        <div class="relative z-10">
-          <div class="w-12 h-12 rounded-2xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center mb-6">
-            <i class="ri-line-chart-line text-orange-400 text-2xl"></i>
+          <div class="flex flex-wrap gap-2 mt-6">
+            <span class="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium">Sans téléchargement</span>
+            <span class="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium">Photos HD</span>
+            <span class="px-3 py-1.5 rounded-full bg-white border border-slate-200 text-slate-600 text-xs font-medium">Mise à jour instantanée</span>
           </div>
-          <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">06</span>
-          <h3 class="text-xl font-black text-white mt-2 mb-3">Statistiques & performance</h3>
-          <p class="text-slate-400 leading-relaxed">
-            Analysez les plats les plus consultés et optimisez votre menu pour vendre plus intelligemment.
-          </p>
+        </div>
+      </div>
+
+      <!-- Card 2 — small -->
+      <div class="md:col-span-2 group rounded-3xl p-7 bg-slate-950 border border-slate-800 hover:border-primary/40 hover:shadow-card transition-all duration-300 reveal delay-1">
+        <div class="w-12 h-12 rounded-2xl bg-primary/15 border border-primary/25 flex items-center justify-center mb-5">
+          <i class="ri-line-chart-line text-primary text-xl"></i>
+        </div>
+        <div class="text-xs font-bold text-primary uppercase tracking-widest mb-3">02</div>
+        <h3 class="font-display font-black text-white text-xl mb-3">Statistiques & performance</h3>
+        <p class="text-slate-400 text-sm leading-relaxed">
+          Analysez les plats les plus commandés. Optimisez votre menu. Vendre plus intelligemment.
+        </p>
+      </div>
+
+      <!-- Card 3 -->
+      <div class="md:col-span-2 group rounded-3xl p-7 bg-white border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal">
+        <div class="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-5">
+          <i class="ri-shopping-cart-2-line text-primary text-xl"></i>
+        </div>
+        <div class="text-xs font-bold text-primary uppercase tracking-widest mb-3">03</div>
+        <h3 class="font-display font-black text-slate-900 text-xl mb-3">Commandes simplifiées</h3>
+        <p class="text-slate-500 text-sm leading-relaxed">
+          Les clients commandent plus vite. Le panier moyen augmente naturellement.
+        </p>
+      </div>
+
+      <!-- Card 4 -->
+      <div class="md:col-span-2 group rounded-3xl p-7 bg-white border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal delay-1">
+        <div class="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-5">
+          <i class="ri-image-line text-primary text-xl"></i>
+        </div>
+        <div class="text-xs font-bold text-primary uppercase tracking-widest mb-3">04</div>
+        <h3 class="font-display font-black text-slate-900 text-xl mb-3">Menus visuels</h3>
+        <p class="text-slate-500 text-sm leading-relaxed">
+          Photos appétissantes, descriptions et prix clairs pour chaque plat.
+        </p>
+      </div>
+
+      <!-- Card 5 — wide -->
+      <div class="md:col-span-2 group rounded-3xl p-7 bg-white border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal delay-2">
+        <div class="w-12 h-12 rounded-2xl bg-orange-50 flex items-center justify-center mb-5">
+          <i class="ri-star-line text-primary text-xl"></i>
+        </div>
+        <div class="text-xs font-bold text-primary uppercase tracking-widest mb-3">05</div>
+        <h3 class="font-display font-black text-slate-900 text-xl mb-3">Avis clients</h3>
+        <p class="text-slate-500 text-sm leading-relaxed">
+          Collectez des avis depuis le menu QR. Renforcez votre réputation en ligne.
+        </p>
+      </div>
+
+      <!-- Card 6 — accent stat -->
+      <div class="md:col-span-6 group relative rounded-3xl p-8 md:p-10 overflow-hidden reveal"
+           style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
+        <div class="absolute inset-0 pointer-events-none" style="background: url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.04'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\");"></div>
+        <div class="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-8">
+          <div>
+            <h3 class="font-display font-black text-white text-2xl md:text-3xl mb-2">Prêt à commencer ?</h3>
+            <p class="text-orange-100 text-base">Configuration en 5 minutes. Aucune carte bancaire requise.</p>
+          </div>
+          <div class="flex flex-col sm:flex-row gap-3 flex-shrink-0">
+            <a href="{% url 'inscription' %}" class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl bg-white text-primary font-bold text-base hover:bg-orange-50 transition-all whitespace-nowrap shadow-[0_4px_20px_rgba(0,0,0,0.15)]">
+              Démarrer gratuitement <i class="ri-arrow-right-line"></i>
+            </a>
+          </div>
         </div>
       </div>
 
     </div>
-
-    <!-- Bottom CTA -->
-    <div class="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 p-6 md:p-8 rounded-3xl bg-slate-950 border border-white/5">
-      <div>
-        <p class="text-white font-bold text-lg">Prêt à digitaliser votre restaurant ?</p>
-        <p class="text-slate-400 text-sm mt-1">Configuration en 5 minutes. Aucune carte bancaire requise.</p>
-      </div>
-      <a href="{% url 'inscription' %}" class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-dark transition-all shadow-glow hover:shadow-glow-lg whitespace-nowrap">
-        Commencer gratuitement
-        <i class="ri-arrow-right-line"></i>
-      </a>
-    </div>
-
   </div>
 </section>

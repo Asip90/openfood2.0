@@ -1,98 +1,91 @@
-<section id="why-us" class="bg-[#09090b] py-24 md:py-32">
-  <div class="max-w-7xl mx-auto px-5 md:px-8">
+<!-- ══ STATS + WHY US ═════════════════════════════════════════════════ -->
+<section id="why-us" class="bg-white py-24 md:py-32">
+  <div class="max-w-6xl mx-auto px-5 md:px-8">
 
-    <!-- Header -->
-    <div class="max-w-2xl mb-16 md:mb-20">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-500/25 bg-orange-500/8 text-orange-400 text-xs font-bold uppercase tracking-widest mb-5">
-        <i class="ri-award-line"></i> Pourquoi nous choisir
-      </div>
-      <h2 class="text-4xl md:text-5xl font-black text-white leading-tight mb-5">
-        Conçu pour les restaurateurs<br class="hidden md:block">
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-400 to-orange-600">de l'Afrique de l'Ouest.</span>
-      </h2>
-      <p class="text-slate-400 text-lg leading-relaxed">
-        Une solution pensée pour votre marché, votre clientèle et vos contraintes locales.
-      </p>
-    </div>
+    <!-- 2-col layout: stats left, feature list right -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 gap-16 lg:gap-20 items-center">
 
-    <!-- Benefits grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+      <!-- Left: large stats -->
+      <div class="reveal">
+        <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-6">
+          <span class="w-6 h-px bg-primary"></span> Nos chiffres
+        </span>
+        <h2 class="font-display font-black text-slate-900 text-4xl md:text-5xl leading-tight mb-12">
+          Des résultats concrets pour vos restaurateurs.
+        </h2>
 
-      <!-- Benefit 1 -->
-      <div class="group relative bg-[#111113] rounded-3xl p-8 md:p-10 border border-white/5 hover:border-orange-500/25 transition-all duration-300 overflow-hidden">
-        <div class="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full blur-[60px] group-hover:bg-orange-500/10 transition-all"></div>
-        <div class="relative">
-          <div class="text-6xl font-black text-orange-500/20 group-hover:text-orange-500/30 transition-all leading-none mb-4">01</div>
-          <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-5">
-            <i class="ri-flashlight-line text-orange-400 text-lg"></i>
+        <div class="grid grid-cols-2 gap-6">
+          <div class="p-6 rounded-3xl border border-slate-100 bg-slate-50 hover:border-primary/20 hover:bg-primary/5 transition-all duration-300 group">
+            <div class="font-display font-black text-primary text-5xl leading-none mb-2">+300</div>
+            <div class="text-slate-600 font-medium text-base">Restaurants actifs</div>
+            <div class="text-slate-400 text-sm mt-1">en Afrique de l'Ouest</div>
           </div>
-          <h3 class="text-xl font-black text-white mb-3">Expérience client améliorée</h3>
-          <p class="text-slate-400 leading-relaxed">
-            Menu digital plus rapide, plus clair et plus informatif. Vos clients trouvent ce qu'ils veulent
-            en quelques secondes — sans attendre un serveur.
-          </p>
+          <div class="p-6 rounded-3xl border border-slate-100 bg-slate-50 hover:border-primary/20 hover:bg-primary/5 transition-all duration-300 group">
+            <div class="font-display font-black text-primary text-5xl leading-none mb-2">5 min</div>
+            <div class="text-slate-600 font-medium text-base">Pour démarrer</div>
+            <div class="text-slate-400 text-sm mt-1">de zéro à votre QR code</div>
+          </div>
+          <div class="p-6 rounded-3xl border border-slate-100 bg-slate-50 hover:border-primary/20 hover:bg-primary/5 transition-all duration-300 group">
+            <div class="font-display font-black text-primary text-5xl leading-none mb-2">+40%</div>
+            <div class="text-slate-600 font-medium text-base">Revenus en moyenne</div>
+            <div class="text-slate-400 text-sm mt-1">dans les 3 premiers mois</div>
+          </div>
+          <div class="p-6 rounded-3xl border border-slate-100 bg-slate-50 hover:border-primary/20 hover:bg-primary/5 transition-all duration-300 group">
+            <div class="font-display font-black text-primary text-5xl leading-none mb-2">24/7</div>
+            <div class="text-slate-600 font-medium text-base">Support disponible</div>
+            <div class="text-slate-400 text-sm mt-1">par WhatsApp & email</div>
+          </div>
         </div>
       </div>
 
-      <!-- Benefit 2 -->
-      <div class="group relative bg-[#111113] rounded-3xl p-8 md:p-10 border border-white/5 hover:border-orange-500/25 transition-all duration-300 overflow-hidden">
-        <div class="absolute top-0 right-0 w-48 h-48 bg-orange-500/5 rounded-full blur-[60px] group-hover:bg-orange-500/10 transition-all"></div>
-        <div class="relative">
-          <div class="text-6xl font-black text-orange-500/20 group-hover:text-orange-500/30 transition-all leading-none mb-4">02</div>
-          <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-5">
-            <i class="ri-team-line text-orange-400 text-lg"></i>
+      <!-- Right: feature checklist -->
+      <div class="reveal delay-2">
+        <div class="space-y-5">
+          <div class="flex gap-4 items-start group">
+            <div class="w-10 h-10 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-green-100 transition-colors">
+              <i class="ri-check-line text-green-600 text-lg font-bold"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-black text-slate-900 text-lg mb-1">Aucune application à télécharger</h4>
+              <p class="text-slate-500 text-sm leading-relaxed">Vos clients accèdent au menu directement depuis leur navigateur. Pas de friction, pas d'abandon.</p>
+            </div>
           </div>
-          <h3 class="text-xl font-black text-white mb-3">Attirez de nouveaux clients</h3>
-          <p class="text-slate-400 leading-relaxed">
-            Vos clients laissent des avis directement depuis le menu QR.
-            Plus d'avis positifs = plus de visibilité = plus de clients.
-          </p>
-        </div>
-      </div>
-
-    </div>
-
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-
-      <!-- Benefit 3 -->
-      <div class="group relative bg-[#111113] rounded-3xl p-8 border border-white/5 hover:border-orange-500/25 transition-all duration-300 overflow-hidden">
-        <div class="relative">
-          <div class="text-5xl font-black text-orange-500/20 group-hover:text-orange-500/30 transition-all leading-none mb-4">03</div>
-          <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-5">
-            <i class="ri-translate-2 text-orange-400 text-lg"></i>
+          <div class="flex gap-4 items-start group">
+            <div class="w-10 h-10 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-green-100 transition-colors">
+              <i class="ri-check-line text-green-600 text-lg font-bold"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-black text-slate-900 text-lg mb-1">PWA mobile-first</h4>
+              <p class="text-slate-500 text-sm leading-relaxed">L'interface s'adapte parfaitement à tous les téléphones, même les plus anciens. Optimisé pour les réseaux lents.</p>
+            </div>
           </div>
-          <h3 class="text-xl font-black text-white mb-3">Menu multilingue</h3>
-          <p class="text-slate-400 leading-relaxed text-sm">
-            Changez la langue en un clic. Idéal pour les clients étrangers et les zones touristiques.
-          </p>
-        </div>
-      </div>
-
-      <!-- Benefit 4 -->
-      <div class="group relative bg-[#111113] rounded-3xl p-8 border border-white/5 hover:border-orange-500/25 transition-all duration-300 overflow-hidden">
-        <div class="relative">
-          <div class="text-5xl font-black text-orange-500/20 group-hover:text-orange-500/30 transition-all leading-none mb-4">04</div>
-          <div class="w-10 h-10 rounded-xl bg-orange-500/10 border border-orange-500/20 flex items-center justify-center mb-5">
-            <i class="ri-line-chart-line text-orange-400 text-lg"></i>
+          <div class="flex gap-4 items-start group">
+            <div class="w-10 h-10 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-green-100 transition-colors">
+              <i class="ri-check-line text-green-600 text-lg font-bold"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-black text-slate-900 text-lg mb-1">Adapté au marché africain</h4>
+              <p class="text-slate-500 text-sm leading-relaxed">Paiement en FCFA, interface en français, support WhatsApp et numéros locaux. Conçu pour vous.</p>
+            </div>
           </div>
-          <h3 class="text-xl font-black text-white mb-3">Augmentez vos ventes</h3>
-          <p class="text-slate-400 leading-relaxed text-sm">
-            Les photos ouvrent l'appétit. Commander devient plus simple, plus rapide — le panier moyen augmente.
-          </p>
-        </div>
-      </div>
-
-      <!-- Stat highlight card -->
-      <div class="relative bg-gradient-to-br from-orange-500 to-orange-600 rounded-3xl p-8 overflow-hidden">
-        <div class="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full blur-[40px]"></div>
-        <div class="absolute bottom-0 left-0 w-24 h-24 bg-orange-900/30 rounded-full blur-[30px]"></div>
-        <div class="relative">
-          <i class="ri-rocket-line text-white/60 text-4xl mb-4 block"></i>
-          <div class="text-5xl font-black text-white mb-2">+40%</div>
-          <div class="text-orange-100 font-bold text-lg mb-3">de revenus en moyenne</div>
-          <p class="text-orange-100/80 text-sm leading-relaxed">
-            Nos restaurateurs observent en moyenne +40% de revenus dans les 3 premiers mois d'utilisation.
-          </p>
+          <div class="flex gap-4 items-start group">
+            <div class="w-10 h-10 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-green-100 transition-colors">
+              <i class="ri-check-line text-green-600 text-lg font-bold"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-black text-slate-900 text-lg mb-1">Fidélisation intégrée</h4>
+              <p class="text-slate-500 text-sm leading-relaxed">Ticket digital et parrainage automatique via WhatsApp après chaque commande. Vos clients reviennent.</p>
+            </div>
+          </div>
+          <div class="flex gap-4 items-start group">
+            <div class="w-10 h-10 rounded-2xl bg-green-50 border border-green-100 flex items-center justify-center flex-shrink-0 mt-0.5 group-hover:bg-green-100 transition-colors">
+              <i class="ri-check-line text-green-600 text-lg font-bold"></i>
+            </div>
+            <div>
+              <h4 class="font-display font-black text-slate-900 text-lg mb-1">Mise à jour du menu en temps réel</h4>
+              <p class="text-slate-500 text-sm leading-relaxed">Plat du jour épuisé ? Modifiez votre menu depuis votre téléphone. Les clients voient le changement instantanément.</p>
+            </div>
+          </div>
         </div>
       </div>
 

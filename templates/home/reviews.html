@@ -1,106 +1,111 @@
-<section id="reviews" class="bg-white py-24 md:py-32">
-  <div class="max-w-7xl mx-auto px-5 md:px-8">
+<!-- ══ TESTIMONIALS ═══════════════════════════════════════════════════ -->
+<section id="reviews" class="py-24 md:py-32" style="background: linear-gradient(180deg, #fffbf7 0%, #ffffff 100%);">
+  <div class="max-w-6xl mx-auto px-5 md:px-8">
 
     <!-- Header -->
-    <div class="text-center max-w-2xl mx-auto mb-16 md:mb-20">
-      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-200 bg-orange-50 text-orange-600 text-xs font-bold uppercase tracking-widest mb-5">
-        <i class="ri-star-fill"></i> Avis clients
-      </div>
-      <h2 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-4">
-        Les restaurateurs adorent<br>
-        <span class="text-transparent bg-clip-text bg-gradient-to-r from-orange-500 to-orange-600">OpenFood</span>
+    <div class="text-center max-w-2xl mx-auto mb-14 reveal">
+      <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-4">
+        <span class="w-6 h-px bg-primary"></span> Témoignages <span class="w-6 h-px bg-primary"></span>
+      </span>
+      <h2 class="font-display font-black text-slate-900 text-4xl md:text-5xl leading-tight mb-4">
+        Les restaurateurs parlent d'OpenFood.
       </h2>
-      <p class="text-slate-500 text-lg">
-        Des centaines de restaurants utilisent OpenFood chaque jour pour vendre plus et mieux servir leurs clients.
-      </p>
+      <p class="text-slate-500 text-lg">Des centaines de restaurants font confiance à OpenFood au quotidien.</p>
     </div>
 
-    <!-- Reviews grid -->
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <!-- Cards grid -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-5 md:gap-4">
 
-      <!-- Review 1 -->
-      <div class="group relative bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
-        <!-- Quote mark -->
-        <div class="text-7xl font-black text-orange-100 group-hover:text-orange-200 leading-none mb-4 transition-colors select-none">"</div>
+      <!-- Card 1 -->
+      <div class="group bg-white rounded-3xl p-7 border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal">
         <!-- Stars -->
-        <div class="flex gap-1 mb-4">
-          <i class="ri-star-fill text-orange-400 text-base"></i>
-          <i class="ri-star-fill text-orange-400 text-base"></i>
-          <i class="ri-star-fill text-orange-400 text-base"></i>
-          <i class="ri-star-fill text-orange-400 text-base"></i>
-          <i class="ri-star-fill text-orange-400 text-base"></i>
+        <div class="flex gap-1 mb-5">
+          <i class="ri-star-fill text-amber-400"></i>
+          <i class="ri-star-fill text-amber-400"></i>
+          <i class="ri-star-fill text-amber-400"></i>
+          <i class="ri-star-fill text-amber-400"></i>
+          <i class="ri-star-fill text-amber-400"></i>
         </div>
-        <p class="text-slate-700 leading-relaxed mb-8">
-          Depuis qu'on utilise OpenFood, nos clients commandent plus vite
-          et le panier moyen a clairement augmenté. Simple et efficace.
+        <!-- Quote -->
+        <p class="text-slate-700 leading-relaxed text-base mb-7">
+          "Depuis OpenFood, nos clients commandent en autonomie. On fait moins d'erreurs, le service est plus rapide et le panier moyen a augmenté de 30%."
         </p>
+        <!-- Author -->
         <div class="flex items-center gap-3 pt-5 border-t border-slate-100">
           <img src="https://i.pravatar.cc/80?img=12" class="w-11 h-11 rounded-full object-cover ring-2 ring-orange-100" alt="Jean Kouassi">
           <div>
-            <div class="font-bold text-slate-900 text-sm">Jean Kouassi</div>
-            <div class="text-slate-500 text-xs mt-0.5">Restaurant Le Gourmet, Abidjan</div>
+            <div class="font-display font-black text-slate-900 text-sm">Jean Kouassi</div>
+            <div class="text-slate-400 text-xs mt-0.5">Restaurant Le Gourmet · Abidjan</div>
           </div>
         </div>
       </div>
 
-      <!-- Review 2 — highlighted -->
-      <div class="group relative bg-slate-950 rounded-3xl p-8 border border-white/5 hover:border-orange-500/30 transition-all duration-300">
-        <div class="absolute top-0 right-0 w-40 h-40 bg-orange-500/10 rounded-full blur-[60px] group-hover:bg-orange-500/20 transition-all"></div>
-        <div class="relative">
-          <div class="text-7xl font-black text-orange-500/20 group-hover:text-orange-500/30 leading-none mb-4 transition-colors select-none">"</div>
-          <div class="flex gap-1 mb-4">
-            <i class="ri-star-fill text-orange-400 text-base"></i>
-            <i class="ri-star-fill text-orange-400 text-base"></i>
-            <i class="ri-star-fill text-orange-400 text-base"></i>
-            <i class="ri-star-fill text-orange-400 text-base"></i>
-            <i class="ri-star-half-fill text-orange-400 text-base"></i>
+      <!-- Card 2 — highlighted -->
+      <div class="group relative rounded-3xl p-7 overflow-hidden border border-primary/15 hover:border-primary/30 hover:shadow-[0_12px_40px_rgba(249,115,22,0.12)] transition-all duration-300 reveal delay-2"
+           style="background: linear-gradient(145deg, #fff7ed 0%, #fffbf7 100%);">
+        <div class="absolute top-0 right-0 w-40 h-40 rounded-full pointer-events-none" style="background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%); transform: translate(30%, -30%);"></div>
+        <div class="relative z-10">
+          <div class="flex gap-1 mb-5">
+            <i class="ri-star-fill text-amber-400"></i>
+            <i class="ri-star-fill text-amber-400"></i>
+            <i class="ri-star-fill text-amber-400"></i>
+            <i class="ri-star-fill text-amber-400"></i>
+            <i class="ri-star-half-fill text-amber-400"></i>
           </div>
-          <p class="text-slate-300 leading-relaxed mb-8">
-            Le menu QR multilingue est parfait pour nos clients étrangers.
-            On gagne du temps et l'image du restaurant est bien plus moderne.
+          <p class="text-slate-700 leading-relaxed text-base mb-7">
+            "Le menu QR multilingue est parfait pour nos clients étrangers. L'image de notre restaurant est bien plus moderne et professionnelle."
           </p>
-          <div class="flex items-center gap-3 pt-5 border-t border-white/5">
-            <img src="https://i.pravatar.cc/80?img=32" class="w-11 h-11 rounded-full object-cover ring-2 ring-orange-500/30" alt="Amina Diallo">
+          <div class="flex items-center gap-3 pt-5 border-t border-primary/10">
+            <img src="https://i.pravatar.cc/80?img=32" class="w-11 h-11 rounded-full object-cover ring-2 ring-orange-200" alt="Amina Diallo">
             <div>
-              <div class="font-bold text-white text-sm">Amina Diallo</div>
-              <div class="text-slate-500 text-xs mt-0.5">Café Urban, Dakar</div>
+              <div class="font-display font-black text-slate-900 text-sm">Amina Diallo</div>
+              <div class="text-slate-500 text-xs mt-0.5">Café Urban · Dakar</div>
             </div>
           </div>
         </div>
       </div>
 
-      <!-- Review 3 -->
-      <div class="group relative bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
-        <div class="text-7xl font-black text-orange-100 group-hover:text-orange-200 leading-none mb-4 transition-colors select-none">"</div>
-        <div class="flex gap-1 mb-4">
-          <i class="ri-star-fill text-orange-400 text-base"></i>
-          <i class="ri-star-fill text-orange-400 text-base"></i>
-          <i class="ri-star-fill text-orange-400 text-base"></i>
-          <i class="ri-star-fill text-orange-400 text-base"></i>
-          <i class="ri-star-fill text-orange-400 text-base"></i>
+      <!-- Card 3 -->
+      <div class="group bg-white rounded-3xl p-7 border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all duration-300 reveal delay-4">
+        <div class="flex gap-1 mb-5">
+          <i class="ri-star-fill text-amber-400"></i>
+          <i class="ri-star-fill text-amber-400"></i>
+          <i class="ri-star-fill text-amber-400"></i>
+          <i class="ri-star-fill text-amber-400"></i>
+          <i class="ri-star-fill text-amber-400"></i>
         </div>
-        <p class="text-slate-700 leading-relaxed mb-8">
-          Mise en place rapide, interface claire et support réactif.
-          OpenFood est devenu indispensable pour notre restaurant.
+        <p class="text-slate-700 leading-relaxed text-base mb-7">
+          "Configuration rapide, interface intuitive et support réactif. OpenFood est devenu indispensable pour notre fast food."
         </p>
         <div class="flex items-center gap-3 pt-5 border-t border-slate-100">
           <img src="https://i.pravatar.cc/80?img=45" class="w-11 h-11 rounded-full object-cover ring-2 ring-orange-100" alt="Patrick Mensah">
           <div>
-            <div class="font-bold text-slate-900 text-sm">Patrick Mensah</div>
-            <div class="text-slate-500 text-xs mt-0.5">Fast Food Express, Cotonou</div>
+            <div class="font-display font-black text-slate-900 text-sm">Patrick Mensah</div>
+            <div class="text-slate-400 text-xs mt-0.5">Fast Food Express · Cotonou</div>
           </div>
         </div>
       </div>
 
     </div>
 
-    <!-- CTA -->
-    <div class="text-center mt-14">
-      <a href="{% url 'inscription' %}"
-         class="inline-flex items-center gap-2 px-7 py-3.5 rounded-xl bg-slate-950 text-white font-bold hover:bg-slate-800 transition-all shadow-float">
-        Rejoindre les restaurateurs
-        <i class="ri-arrow-right-line"></i>
-      </a>
+    <!-- Trust bar -->
+    <div class="mt-12 flex flex-col sm:flex-row items-center justify-center gap-6 reveal">
+      <div class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-50 border border-slate-100">
+        <i class="ri-shield-check-fill text-green-500 text-lg"></i>
+        <span class="text-slate-700 text-sm font-semibold">Données sécurisées</span>
+      </div>
+      <div class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-50 border border-slate-100">
+        <i class="ri-time-fill text-primary text-lg"></i>
+        <span class="text-slate-700 text-sm font-semibold">Disponible 24/7</span>
+      </div>
+      <div class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-50 border border-slate-100">
+        <i class="ri-customer-service-2-fill text-blue-500 text-lg"></i>
+        <span class="text-slate-700 text-sm font-semibold">Support WhatsApp</span>
+      </div>
+      <div class="flex items-center gap-2 px-5 py-3 rounded-2xl bg-slate-50 border border-slate-100">
+        <i class="ri-gift-fill text-purple-500 text-lg"></i>
+        <span class="text-slate-700 text-sm font-semibold">Gratuit pour démarrer</span>
+      </div>
     </div>
 
   </div>

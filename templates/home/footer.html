@@ -1,83 +1,113 @@
 {% load static %}
 
-<footer class="bg-[#09090b] border-t border-white/5">
-  <div class="max-w-7xl mx-auto px-5 md:px-8 py-16 md:py-20">
+<!-- ══ CTA SECTION ════════════════════════════════════════════════════ -->
+<section class="py-20 md:py-28 overflow-hidden relative"
+         style="background: linear-gradient(135deg, #f97316 0%, #ea580c 100%);">
+  <!-- Pattern overlay -->
+  <div class="absolute inset-0 pointer-events-none opacity-5"
+       style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 32px 32px;"></div>
+  <!-- Glow orbs -->
+  <div class="absolute top-0 left-1/4 w-80 h-80 bg-white/10 rounded-full blur-[80px] pointer-events-none"></div>
+  <div class="absolute bottom-0 right-1/4 w-60 h-60 bg-orange-900/20 rounded-full blur-[60px] pointer-events-none"></div>
+
+  <div class="relative max-w-3xl mx-auto px-5 md:px-8 text-center">
+    <div class="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/15 border border-white/20 text-white text-sm font-semibold mb-8">
+      <i class="ri-rocket-line"></i> Lancez-vous aujourd'hui
+    </div>
+    <h2 class="font-display font-black text-white leading-tight mb-6"
+        style="font-size: clamp(2rem, 5vw, 3.5rem);">
+      Votre menu digital vous attend.
+    </h2>
+    <p class="text-orange-100 text-lg leading-relaxed mb-10 max-w-xl mx-auto">
+      Rejoignez +300 restaurants qui ont déjà digitalisé leur expérience client avec OpenFood.
+      Configuration gratuite, en 5 minutes chrono.
+    </p>
+    <div class="flex flex-col sm:flex-row items-center justify-center gap-3">
+      <a href="{% url 'inscription' %}"
+         class="inline-flex items-center gap-2 px-8 py-4 rounded-2xl bg-white text-primary font-bold text-lg hover:bg-orange-50 transition-all shadow-[0_8px_40px_rgba(0,0,0,0.2)] hover:shadow-[0_12px_60px_rgba(0,0,0,0.25)] whitespace-nowrap">
+        Créer mon menu gratuitement
+        <i class="ri-arrow-right-line text-xl"></i>
+      </a>
+      <a href="{% url 'connexion' %}"
+         class="inline-flex items-center gap-2 px-6 py-4 rounded-2xl border border-white/25 text-white font-semibold hover:bg-white/10 transition-all whitespace-nowrap">
+        Déjà inscrit ? Connexion
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FOOTER ═════════════════════════════════════════════════════════ -->
+<footer class="bg-slate-950">
+  <div class="max-w-6xl mx-auto px-5 md:px-8 py-14 md:py-16">
 
     <!-- Top grid -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-12 mb-14">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 mb-12">
 
-      <!-- Brand col -->
+      <!-- Brand -->
       <div class="lg:col-span-2">
         <a href="/" class="inline-flex items-center gap-2.5 mb-5">
-          <div class="w-8 h-8 rounded-lg bg-primary flex items-center justify-center">
-            <i class="ri-restaurant-line text-white text-base"></i>
+          <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+            <i class="ri-restaurant-2-line text-white text-lg"></i>
           </div>
-          <span class="font-extrabold text-white text-lg tracking-tight">Open<span class="text-primary">Food</span></span>
+          <span class="font-display font-black text-white text-xl tracking-tight">Open<span class="text-primary">Food</span></span>
         </a>
-        <p class="text-slate-500 text-sm leading-relaxed max-w-xs">
-          La plateforme SaaS qui aide les restaurants d'Afrique de l'Ouest à digitaliser leurs menus,
-          améliorer l'expérience client et augmenter leurs ventes.
+        <p class="text-slate-500 text-sm leading-relaxed max-w-xs mb-6">
+          La plateforme SaaS de menu digital pour les restaurants d'Afrique de l'Ouest. Digitalisez, gérez et augmentez vos ventes.
         </p>
-        <!-- Social -->
-        <div class="flex gap-3 mt-6">
-          <a href="#" class="w-9 h-9 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-white/25 hover:bg-white/5 transition-all" aria-label="Facebook">
+        <div class="flex gap-2">
+          <a href="#" aria-label="Facebook" class="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all">
             <i class="ri-facebook-fill text-sm"></i>
           </a>
-          <a href="#" class="w-9 h-9 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-white/25 hover:bg-white/5 transition-all" aria-label="Instagram">
+          <a href="#" aria-label="Instagram" class="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all">
             <i class="ri-instagram-line text-sm"></i>
           </a>
-          <a href="#" class="w-9 h-9 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-white/25 hover:bg-white/5 transition-all" aria-label="LinkedIn">
+          <a href="#" aria-label="LinkedIn" class="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all">
             <i class="ri-linkedin-fill text-sm"></i>
           </a>
-          <a href="#" class="w-9 h-9 rounded-xl border border-white/10 flex items-center justify-center text-slate-400 hover:text-white hover:border-white/25 hover:bg-white/5 transition-all" aria-label="Twitter/X">
-            <i class="ri-twitter-x-line text-sm"></i>
+          <a href="#" aria-label="WhatsApp" class="w-9 h-9 rounded-xl bg-white/5 border border-white/8 flex items-center justify-center text-slate-400 hover:text-white hover:bg-white/10 hover:border-white/15 transition-all">
+            <i class="ri-whatsapp-line text-sm"></i>
           </a>
         </div>
       </div>
 
-      <!-- Solution -->
+      <!-- Links -->
       <div>
         <h4 class="text-white font-bold text-sm mb-5">Solution</h4>
         <ul class="space-y-3">
           <li><a href="#solution" class="text-slate-500 text-sm hover:text-white transition-colors">Menu QR Code</a></li>
-          <li><a href="#solution" class="text-slate-500 text-sm hover:text-white transition-colors">Commandes digitales</a></li>
+          <li><a href="#solution" class="text-slate-500 text-sm hover:text-white transition-colors">Commandes en ligne</a></li>
           <li><a href="#solution" class="text-slate-500 text-sm hover:text-white transition-colors">Menu multilingue</a></li>
           <li><a href="#solution" class="text-slate-500 text-sm hover:text-white transition-colors">Statistiques</a></li>
         </ul>
       </div>
 
-      <!-- Utilisateurs -->
       <div>
-        <h4 class="text-white font-bold text-sm mb-5">Utilisateurs</h4>
+        <h4 class="text-white font-bold text-sm mb-5">Restaurateurs</h4>
         <ul class="space-y-3">
           <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Restaurants</a></li>
-          <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Chaînes & franchises</a></li>
+          <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Fast foods</a></li>
           <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Hôtels & bars</a></li>
-          <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Food trucks</a></li>
+          <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Franchises</a></li>
         </ul>
       </div>
 
-      <!-- Ressources -->
       <div>
         <h4 class="text-white font-bold text-sm mb-5">Ressources</h4>
         <ul class="space-y-3">
           <li><a href="#faq" class="text-slate-500 text-sm hover:text-white transition-colors">FAQ</a></li>
           <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Centre d'aide</a></li>
           <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Blog</a></li>
-          <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Nous contacter</a></li>
+          <li><a href="#" class="text-slate-500 text-sm hover:text-white transition-colors">Contact</a></li>
         </ul>
       </div>
-
     </div>
 
     <!-- Bottom bar -->
     <div class="flex flex-col md:flex-row items-center justify-between gap-4 pt-8 border-t border-white/5">
-      <p class="text-slate-600 text-sm">
-        &copy; 2025 OpenFood. Tous droits réservés.
-      </p>
+      <p class="text-slate-600 text-sm">&copy; 2025 OpenFood — Tous droits réservés.</p>
       <div class="flex items-center gap-5">
         <a href="#" class="text-slate-600 text-xs hover:text-slate-400 transition-colors">Confidentialité</a>
-        <a href="#" class="text-slate-600 text-xs hover:text-slate-400 transition-colors">Conditions d'utilisation</a>
+        <a href="#" class="text-slate-600 text-xs hover:text-slate-400 transition-colors">Conditions</a>
         <a href="#" class="text-slate-600 text-xs hover:text-slate-400 transition-colors">Mentions légales</a>
       </div>
     </div>
