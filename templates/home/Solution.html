@@ -1,113 +1,115 @@
-<section id="solution" class="bg-white py-24">
-  <div class="container mx-auto px-6 md:px-12">
+<section id="solution" class="bg-white py-24 md:py-32">
+  <div class="max-w-7xl mx-auto px-5 md:px-8">
 
-    <!-- Titre -->
-    <div class="max-w-3xl mb-16">
-      <span class="text-primary font-bold text-sm uppercase tracking-wider">
-        Notre solution
-      </span>
-      <h2 class="text-4xl font-extrabold text-gray-900 mt-3 mb-4">
-        Une plateforme complète pour digitaliser votre restaurant
+    <!-- Header -->
+    <div class="max-w-2xl mb-16 md:mb-20">
+      <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-orange-200 bg-orange-50 text-orange-600 text-xs font-bold uppercase tracking-widest mb-5">
+        <i class="ri-flashlight-line"></i> Notre solution
+      </div>
+      <h2 class="text-4xl md:text-5xl font-black text-slate-900 leading-tight mb-5">
+        Tout ce dont votre restaurant<br class="hidden md:block"> a besoin, au même endroit.
       </h2>
-      <p class="text-gray-600 text-lg">
-        OpenFood regroupe tous les outils essentiels pour gérer votre restaurant,
-        améliorer l’expérience client et augmenter vos ventes.
+      <p class="text-slate-500 text-lg leading-relaxed">
+        OpenFood regroupe tous les outils essentiels pour digitaliser votre restaurant,
+        améliorer l'expérience client et augmenter vos ventes.
       </p>
     </div>
 
-    <!-- Solutions -->
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
+    <!-- Features grid -->
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
 
-      <!-- Solution 1 -->
-      <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition">
-        <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6 text-primary">
-          <i class="fa-solid fa-qrcode text-primary text-2xl"></i>
+      <!-- Feature 1 — large card -->
+      <div class="lg:col-span-2 group relative bg-slate-950 rounded-3xl p-8 md:p-10 overflow-hidden border border-white/5 hover:border-orange-500/30 transition-all duration-300">
+        <div class="absolute top-0 right-0 w-64 h-64 bg-orange-500/10 rounded-full blur-[80px] group-hover:bg-orange-500/20 transition-all duration-500"></div>
+        <div class="relative z-10">
+          <div class="w-12 h-12 rounded-2xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center mb-6">
+            <i class="ri-qr-code-line text-orange-400 text-2xl"></i>
+          </div>
+          <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">01</span>
+          <h3 class="text-2xl md:text-3xl font-black text-white mt-2 mb-3">Menu digital par QR Code</h3>
+          <p class="text-slate-400 text-base leading-relaxed max-w-lg">
+            Proposez un menu moderne, rapide et accessible via QR Code — aucune application à installer.
+            Vos clients scannent, commandent et paient en quelques secondes.
+          </p>
         </div>
+      </div>
 
-        <h3 class="text-xl font-bold text-gray-900 mb-3">
-          Menu digital par QR Code
-        </h3>
-        <p class="text-gray-600">
-          Proposez un menu moderne, rapide et accessible via QR Code,
-          sans application à installer.
+      <!-- Feature 2 -->
+      <div class="group bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
+        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
+          <i class="ri-image-line text-orange-500 text-2xl"></i>
+        </div>
+        <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">02</span>
+        <h3 class="text-xl font-black text-slate-900 mt-2 mb-3">Menus visuels & interactifs</h3>
+        <p class="text-slate-500 leading-relaxed">
+          Photos appétissantes, descriptions détaillées et prix clairs pour guider le choix de vos clients.
         </p>
       </div>
 
-      <!-- Solution 2 -->
-      <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition">
-        <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-          <i class="fa-solid fa-image text-primary text-2xl"></i>
+      <!-- Feature 3 -->
+      <div class="group bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
+        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
+          <i class="ri-shopping-cart-line text-orange-500 text-2xl"></i>
         </div>
-
-        <h3 class="text-xl font-bold text-gray-900 mb-3">
-          Menus visuels & interactifs
-        </h3>
-        <p class="text-gray-600">
-          Ajoutez des photos appétissantes, descriptions détaillées et prix clairs
-          pour guider le choix de vos clients.
+        <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">03</span>
+        <h3 class="text-xl font-black text-slate-900 mt-2 mb-3">Commandes simplifiées</h3>
+        <p class="text-slate-500 leading-relaxed">
+          Les clients commandent plus vite, avec moins d'hésitation — ce qui augmente naturellement le panier moyen.
         </p>
       </div>
 
-      <!-- Solution 3 -->
-      <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition">
-        <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-          <i class="fa-solid fa-cart-shopping text-primary text-2xl"></i>
+      <!-- Feature 4 -->
+      <div class="group bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
+        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
+          <i class="ri-translate-2 text-orange-500 text-2xl"></i>
         </div>
-
-        <h3 class="text-xl font-bold text-gray-900 mb-3">
-          Commandes simplifiées
-        </h3>
-        <p class="text-gray-600">
-          Les clients commandent plus rapidement, avec moins d’hésitation,
-          ce qui augmente le panier moyen.
+        <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">04</span>
+        <h3 class="text-xl font-black text-slate-900 mt-2 mb-3">Menu multilingue</h3>
+        <p class="text-slate-500 leading-relaxed">
+          Changement de langue en un clic pour accueillir vos clients étrangers et touristes.
         </p>
       </div>
 
-      <!-- Solution 4 -->
-      <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition">
-        <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-          <i class="fa-solid fa-language text-primary text-2xl"></i>
+      <!-- Feature 5 -->
+      <div class="group bg-slate-50 rounded-3xl p-8 border border-slate-100 hover:border-orange-200 hover:shadow-card transition-all duration-300">
+        <div class="w-12 h-12 rounded-2xl bg-orange-100 flex items-center justify-center mb-6">
+          <i class="ri-star-line text-orange-500 text-2xl"></i>
         </div>
-
-        <h3 class="text-xl font-bold text-gray-900 mb-3">
-          Menu multilingue
-        </h3>
-        <p class="text-gray-600">
-          Un changement de langue en un clic pour accueillir les clients étrangers
-          et touristes.
+        <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">05</span>
+        <h3 class="text-xl font-black text-slate-900 mt-2 mb-3">Avis clients intégrés</h3>
+        <p class="text-slate-500 leading-relaxed">
+          Collectez des avis directement depuis le menu QR et renforcez votre réputation en ligne.
         </p>
       </div>
 
-      <!-- Solution 5 -->
-      <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition">
-        <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-          <i class="fa-solid fa-star text-primary text-2xl"></i>
+      <!-- Feature 6 — dark accent -->
+      <div class="group relative bg-slate-950 rounded-3xl p-8 overflow-hidden border border-white/5 hover:border-orange-500/30 transition-all duration-300">
+        <div class="absolute bottom-0 left-0 w-48 h-48 bg-orange-500/10 rounded-full blur-[60px] group-hover:bg-orange-500/20 transition-all duration-500"></div>
+        <div class="relative z-10">
+          <div class="w-12 h-12 rounded-2xl bg-orange-500/15 border border-orange-500/25 flex items-center justify-center mb-6">
+            <i class="ri-line-chart-line text-orange-400 text-2xl"></i>
+          </div>
+          <span class="text-xs font-bold text-orange-500 uppercase tracking-widest">06</span>
+          <h3 class="text-xl font-black text-white mt-2 mb-3">Statistiques & performance</h3>
+          <p class="text-slate-400 leading-relaxed">
+            Analysez les plats les plus consultés et optimisez votre menu pour vendre plus intelligemment.
+          </p>
         </div>
-
-        <h3 class="text-xl font-bold text-gray-900 mb-3">
-          Avis clients intégrés
-        </h3>
-        <p class="text-gray-600">
-          Collectez des avis directement depuis le menu QR et améliorez
-          votre réputation en ligne.
-        </p>
-      </div>
-
-      <!-- Solution 6 -->
-      <div class="bg-gray-50 rounded-2xl p-8 hover:shadow-lg transition">
-        <div class="w-14 h-14 rounded-xl bg-primary/10 flex items-center justify-center mb-6">
-          <i class="fa-solid fa-chart-line text-primary text-2xl"></i>
-        </div>
-
-        <h3 class="text-xl font-bold text-gray-900 mb-3">
-          Statistiques & performance
-        </h3>
-        <p class="text-gray-600">
-          Analysez les plats les plus consultés et optimisez votre menu
-          pour vendre plus intelligemment.
-        </p>
       </div>
 
     </div>
+
+    <!-- Bottom CTA -->
+    <div class="mt-12 flex flex-col sm:flex-row items-center justify-between gap-4 p-6 md:p-8 rounded-3xl bg-slate-950 border border-white/5">
+      <div>
+        <p class="text-white font-bold text-lg">Prêt à digitaliser votre restaurant ?</p>
+        <p class="text-slate-400 text-sm mt-1">Configuration en 5 minutes. Aucune carte bancaire requise.</p>
+      </div>
+      <a href="{% url 'inscription' %}" class="flex-shrink-0 inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-primary text-white font-bold hover:bg-primary-dark transition-all shadow-glow hover:shadow-glow-lg whitespace-nowrap">
+        Commencer gratuitement
+        <i class="ri-arrow-right-line"></i>
+      </a>
+    </div>
+
   </div>
 </section>
