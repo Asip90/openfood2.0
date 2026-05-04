@@ -1,0 +1,192 @@
+{% extends 'customer/base.html' %}
+{% load static %}
+
+{% block title %}Menu — {{ restaurant.name }}{% endblock %}
+
+{% block schema_org %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Restaurant",
+  "name": "{{ restaurant.name }}",
+  "description": "{{ restaurant.description|default:''|escapejs }}",
+  "hasMenu": {
+    "@type": "Menu",
+    "name": "Menu {{ restaurant.name }}",
+    "hasMenuSection": [
+      {% for category in categories %}
+      {
+        "@type": "MenuSection",
+        "name": "{{ category.name|escapejs }}",
+        "hasMenuItem": [
+          {% for item in category.items.all %}
+          {
+            "@type": "MenuItem",
+            "name": "{{ item.name|escapejs }}",
+            "description": "{{ item.description|default:''|escapejs }}",
+            "offers": { "@type": "Offer", "price": "{{ item.discount_price|default:item.price }}", "priceCurrency": "XOF" }
+          }{% if not forloop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }{% if not forloop.last %},{% endif %}
+      {% endfor %}
+    ]
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- Hero Cover Restaurant -->
+{% if restaurant.cover_image %}
+<div class="relative h-44 overflow-hidden">
+  <img src="{{ restaurant.cover_image.url }}" alt="{{ restaurant.name }}" class="w-full h-full object-cover">
+  <div class="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent"></div>
+  <div class="absolute bottom-4 left-4 text-white">
+    <h1 class="text-xl font-bold">{{ restaurant.name }}</h1>
+    {% if restaurant.description %}
+      <p class="text-sm text-white/80 mt-0.5">{{ restaurant.description|truncatechars:60 }}</p>
+    {% endif %}
+  </div>
+</div>
+{% else %}
+<div class="bg-gradient-to-br from-primary to-primary-dark h-32 flex items-end px-4 pb-4">
+  <h1 class="text-white text-xl font-bold">{{ restaurant.name }}</h1>
+</div>
+{% endif %}
+
+<!-- Sticky Category Tabs -->
+<div class="sticky top-14 z-30 bg-white border-b border-slate-100 shadow-soft">
+  <div class="max-w-2xl mx-auto overflow-x-auto" style="scrollbar-width:none;-ms-overflow-style:none;">
+    <div class="flex gap-1 py-3 px-4 w-max" id="category-tabs">
+      {% for category in categories %}
+      <button onclick="scrollToCategory('cat-{{ category.id }}')"
+              id="tab-{{ category.id }}"
+              class="category-tab px-4 py-1.5 rounded-full text-sm font-medium whitespace-nowrap transition-colors text-slate-600 hover:bg-slate-100">
+        {{ category.name }}
+      </button>
+      {% endfor %}
+    </div>
+  </div>
+</div>
+
+<!-- Menu Content -->
+<div class="max-w-2xl mx-auto px-4 py-4 space-y-8">
+  {% for category in categories %}
+  <section id="cat-{{ category.id }}" class="category-section">
+    <div class="flex items-center gap-3 mb-4">
+      {% if category.image %}
+        <img src="{{ category.image.url }}" alt="{{ category.name }}" class="h-8 w-8 rounded-lg object-cover">
+      {% endif %}
+      <h2 class="text-lg font-bold text-slate-900">{{ category.name }}</h2>
+      <div class="flex-1 h-px bg-slate-100"></div>
+    </div>
+
+    <div class="space-y-3">
+      {% for item in category.items.all %}
+      <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden active:scale-[0.99] transition-transform cursor-pointer"
+           @click="openModal({
+             id: {{ item.id }},
+             name: '{{ item.name|escapejs }}',
+             price: {{ item.discount_price|default:item.price }},
+             {% if item.discount_price %}original_price: {{ item.price }},{% endif %}
+             {% if item.image %}image: '{{ item.image.url }}',{% endif %}
+             description: '{{ item.description|default:''|escapejs }}',
+             is_vegetarian: {{ item.is_vegetarian|yesno:'true,false' }},
+             is_vegan: {{ item.is_vegan|yesno:'true,false' }},
+             is_spicy: {{ item.is_spicy|yesno:'true,false' }}{% if item.preparation_time %},
+             preparation_time: {{ item.preparation_time }}{% endif %}{% if item.allergens %},
+             allergens: '{{ item.allergens|escapejs }}'{% endif %}
+           })">
+        <div class="flex gap-3 p-3">
+          <div class="flex-1 min-w-0">
+            <div class="flex items-start gap-1.5 mb-1">
+              <h3 class="font-semibold text-slate-900 text-sm leading-tight">{{ item.name }}</h3>
+              {% if item.is_vegetarian %}
+                <span class="flex-shrink-0 w-4 h-4 rounded-full bg-green-500 border-2 border-white shadow-sm mt-0.5" title="Végétarien"></span>
+              {% endif %}
+              {% if item.is_spicy %}
+                <span class="flex-shrink-0 text-xs mt-0.5" title="Épicé">🌶️</span>
+              {% endif %}
+            </div>
+            {% if item.description %}
+              <p class="text-xs text-slate-500 leading-relaxed"
+                 style="-webkit-line-clamp:2;display:-webkit-box;-webkit-box-orient:vertical;overflow:hidden;">{{ item.description }}</p>
+            {% endif %}
+            {% if item.preparation_time %}
+              <span class="text-xs text-slate-400 flex items-center gap-1 mt-1.5">
+                <i class="ri-time-line"></i>{{ item.preparation_time }} min
+              </span>
+            {% endif %}
+            <div class="flex items-center gap-2 mt-2">
+              {% if item.discount_price %}
+                <span class="font-bold text-primary text-base">{{ item.discount_price|floatformat:0 }} FCFA</span>
+                <span class="text-xs text-slate-400 line-through">{{ item.price|floatformat:0 }}</span>
+              {% else %}
+                <span class="font-bold text-slate-900 text-base">{{ item.price|floatformat:0 }} FCFA</span>
+              {% endif %}
+            </div>
+          </div>
+
+          <div class="relative flex-shrink-0">
+            {% if item.image %}
+              <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-24 h-24 rounded-xl object-cover">
+            {% else %}
+              <div class="w-24 h-24 rounded-xl bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+                <i class="ri-restaurant-line text-2xl text-slate-400"></i>
+              </div>
+            {% endif %}
+            <button @click.stop="addToCart({
+                        id: {{ item.id }},
+                        name: '{{ item.name|escapejs }}',
+                        price: {{ item.discount_price|default:item.price }}{% if item.image %},
+                        image: '{{ item.image.url }}'{% endif %}
+                      })"
+                    aria-label="Ajouter {{ item.name }} au panier"
+                    class="absolute -bottom-2 -right-2 w-8 h-8 bg-primary text-white rounded-xl shadow-float flex items-center justify-center font-bold text-lg active:scale-90 transition-transform hover:bg-primary-dark">
+              +
+            </button>
+          </div>
+        </div>
+      </div>
+      {% empty %}
+      <p class="text-slate-400 text-sm text-center py-4">Aucun article disponible dans cette catégorie.</p>
+      {% endfor %}
+    </div>
+  </section>
+  {% empty %}
+  <div class="text-center py-16">
+    <i class="ri-restaurant-line text-4xl text-slate-300 block mb-3"></i>
+    <p class="text-slate-500 font-medium">Le menu n'est pas encore disponible.</p>
+  </div>
+  {% endfor %}
+</div>
+
+<script>
+  function scrollToCategory(id) {
+    const el = document.getElementById(id);
+    if (!el) return;
+    window.scrollTo({ top: el.getBoundingClientRect().top + window.scrollY - 120, behavior: 'smooth' });
+  }
+
+  const tabObserver = new IntersectionObserver((entries) => {
+    entries.forEach(entry => {
+      if (entry.isIntersecting) {
+        const id = entry.target.id.replace('cat-', '');
+        document.querySelectorAll('.category-tab').forEach(t => {
+          t.classList.remove('bg-primary', 'text-white');
+          t.classList.add('text-slate-600');
+        });
+        const tab = document.getElementById('tab-' + id);
+        if (tab) {
+          tab.classList.add('bg-primary', 'text-white');
+          tab.classList.remove('text-slate-600');
+          tab.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+        }
+      }
+    });
+  }, { rootMargin: '-25% 0px -65% 0px', threshold: 0 });
+
+  document.querySelectorAll('.category-section').forEach(s => tabObserver.observe(s));
+</script>
+{% endblock %}

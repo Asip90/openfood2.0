@@ -1,0 +1,85 @@
+<div x-show="modalOpen" x-cloak @click.self="closeModal()"
+     x-transition:enter="transition ease-out duration-200"
+     x-transition:enter-start="opacity-0"
+     x-transition:enter-end="opacity-100"
+     x-transition:leave="transition ease-in duration-150"
+     x-transition:leave-start="opacity-100"
+     x-transition:leave-end="opacity-0"
+     class="fixed inset-0 z-[60] bg-black/60 flex items-end sm:items-center justify-center"
+     role="dialog" aria-modal="true" :aria-label="modalItem ? modalItem.name : 'Détail produit'">
+
+  <div x-show="modalOpen" x-cloak
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="translate-y-full sm:translate-y-0 sm:scale-95 sm:opacity-0"
+       x-transition:enter-end="translate-y-0 sm:scale-100 sm:opacity-100"
+       x-transition:leave="transition ease-in duration-200"
+       x-transition:leave-start="translate-y-0 sm:scale-100 sm:opacity-100"
+       x-transition:leave-end="translate-y-full sm:translate-y-0 sm:scale-95 sm:opacity-0"
+       class="bg-white w-full max-w-md rounded-t-3xl sm:rounded-3xl overflow-hidden max-h-[90vh] flex flex-col"
+       @click.stop>
+
+    <!-- Image -->
+    <div class="relative flex-shrink-0">
+      <template x-if="modalItem && modalItem.image">
+        <img :src="modalItem.image" :alt="modalItem ? modalItem.name : ''" class="w-full h-52 object-cover">
+      </template>
+      <template x-if="!modalItem || !modalItem.image">
+        <div class="w-full h-52 bg-gradient-to-br from-slate-100 to-slate-200 flex items-center justify-center">
+          <i class="ri-restaurant-line text-5xl text-slate-300"></i>
+        </div>
+      </template>
+      <button @click="closeModal()" aria-label="Fermer"
+              class="absolute top-3 right-3 w-9 h-9 bg-white/90 backdrop-blur-sm rounded-xl flex items-center justify-center shadow-soft">
+        <i class="ri-close-line text-lg text-slate-700"></i>
+      </button>
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto px-5 py-4">
+      <template x-if="modalItem">
+        <div>
+          <h2 class="font-bold text-xl text-slate-900" x-text="modalItem.name"></h2>
+          <div class="flex items-center gap-2 mt-1">
+            <span class="font-bold text-primary text-xl" x-text="formatPrice(modalItem.price)"></span>
+            <template x-if="modalItem.original_price">
+              <span class="text-slate-400 text-sm line-through" x-text="formatPrice(modalItem.original_price)"></span>
+            </template>
+          </div>
+          <template x-if="modalItem.description">
+            <p class="text-slate-600 text-sm leading-relaxed mt-3" x-text="modalItem.description"></p>
+          </template>
+          <div class="flex flex-wrap gap-2 mt-3">
+            <template x-if="modalItem.is_vegetarian">
+              <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-100">🌿 Végétarien</span>
+            </template>
+            <template x-if="modalItem.is_vegan">
+              <span class="px-3 py-1 bg-green-50 text-green-700 text-xs font-medium rounded-full border border-green-100">🌱 Vegan</span>
+            </template>
+            <template x-if="modalItem.is_spicy">
+              <span class="px-3 py-1 bg-red-50 text-red-700 text-xs font-medium rounded-full border border-red-100">🌶️ Épicé</span>
+            </template>
+            <template x-if="modalItem.preparation_time">
+              <span class="px-3 py-1 bg-slate-50 text-slate-600 text-xs font-medium rounded-full border border-slate-100">
+                ⏱ <span x-text="modalItem.preparation_time + ' min'"></span>
+              </span>
+            </template>
+          </div>
+          <template x-if="modalItem.allergens">
+            <div class="mt-4 p-3 bg-amber-50 rounded-xl border border-amber-100">
+              <p class="text-xs font-semibold text-amber-800 mb-1">⚠️ Allergènes</p>
+              <p class="text-xs text-amber-700" x-text="modalItem.allergens"></p>
+            </div>
+          </template>
+        </div>
+      </template>
+    </div>
+
+    <!-- Footer CTA -->
+    <div class="flex-shrink-0 px-5 pb-8 pt-3 border-t border-slate-100">
+      <button @click="addToCart(modalItem); closeModal()"
+              class="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-float active:scale-[0.98] transition-transform text-base">
+        Ajouter au panier — <span x-text="formatPrice(modalItem ? modalItem.price : 0)"></span>
+      </button>
+    </div>
+  </div>
+</div>

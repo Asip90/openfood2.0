@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>{% block title %}{{ restaurant.name }} — Menu{% endblock %}</title>
+  <meta name="description" content="{{ restaurant.description|default:'Découvrez notre menu digital' }}">
+  {% if restaurant %}<link rel="manifest" href="{% url 'pwa_manifest' restaurant.slug %}">{% endif %}
+  <meta name="theme-color" content="{{ customization.primary_color|default:'#f97316' }}">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="{{ restaurant.name }}">
+  {% block schema_org %}{% endblock %}
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: {
+              DEFAULT: '{{ customization.primary_color|default:"#f97316"|cut:"'"|cut:'"'|truncatechars:7 }}',
+              dark: '{{ customization.secondary_color|default:"#ea580c"|cut:"'"|cut:'"'|truncatechars:7 }}',
+            },
+            surface: { DEFAULT: '#ffffff', muted: '#f8fafc' },
+          },
+          fontFamily: { sans: ['{{ customization.font_family|default:"Inter" }}', 'system-ui', 'sans-serif'] },
+          boxShadow: {
+            soft: '0 2px 8px rgba(0,0,0,0.06)',
+            card: '0 4px 16px rgba(0,0,0,0.08)',
+            float: '0 8px 32px rgba(0,0,0,0.15)',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="font-sans bg-surface-muted min-h-full antialiased"
+      x-data="cartStore()"
+      x-init="initCart()">
+
+  {% block navbar %}{% include 'customer/navbar.html' %}{% endblock %}
+
+  <main class="pb-24">{% block content %}{% endblock %}</main>
+
+  {% block cart_fab %}
+  <div x-show="cartCount > 0" x-cloak
+       x-transition:enter="transition ease-out duration-300"
+       x-transition:enter-start="opacity-0 translate-y-4"
+       x-transition:enter-end="opacity-100 translate-y-0"
+       class="fixed bottom-6 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-3rem)] max-w-sm">
+    <button @click="cartOpen = true"
+            class="w-full flex items-center justify-between bg-primary text-white px-5 py-4 rounded-2xl shadow-float font-semibold text-base active:scale-95 transition-transform">
+      <span class="flex items-center gap-2">
+        <span class="bg-white text-primary rounded-lg w-7 h-7 flex items-center justify-center text-sm font-bold" x-text="cartCount"></span>
+        <span>Voir mon panier</span>
+      </span>
+      <span x-text="formatPrice(cartTotal)"></span>
+    </button>
+  </div>
+  {% endblock %}
+
+  {% include 'customer/cart_sidebar.html' %}
+  {% include 'customer/menu_detail_modal.html' %}
+
+  <script>
+    const CART_KEY = "cart_{% if table %}{{ table.token }}{% else %}guest{% endif %}";
+    const UPDATE_CART_URL = {% if table %}"{% url 'update_cart' table.token %}"{% else %}null{% endif %};
+  </script>
+  <script>
+    function cartStore() {
+      return {
+        cartOpen: false,
+        modalOpen: false,
+        modalItem: null,
+        cart: JSON.parse(localStorage.getItem(CART_KEY) || '[]'),
+        get cartCount() { return this.cart.reduce((s, i) => s + i.quantity, 0); },
+        get cartTotal() { return this.cart.reduce((s, i) => s + (i.price * i.quantity), 0); },
+        formatPrice(amount) {
+          return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'XOF', minimumFractionDigits: 0 }).format(amount);
+        },
+        initCart() {
+          this.$watch('cart', val => localStorage.setItem(CART_KEY, JSON.stringify(val)));
+          window.addEventListener('popstate', () => {
+            this.modalOpen = false;
+            document.body.classList.remove('overflow-hidden');
+          });
+        },
+        addToCart(item) {
+          const ex = this.cart.find(i => i.id === item.id);
+          if (ex) { ex.quantity += 1; this.cart = [...this.cart]; }
+          else { this.cart = [...this.cart, { ...item, quantity: 1 }]; }
+          this.syncCartToServer();
+        },
+        removeFromCart(itemId) {
+          this.cart = this.cart.filter(i => i.id !== itemId);
+          this.syncCartToServer();
+        },
+        updateQuantity(itemId, qty) {
+          if (qty <= 0) { this.removeFromCart(itemId); return; }
+          this.cart = this.cart.map(i => i.id === itemId ? { ...i, quantity: qty } : i);
+          this.syncCartToServer();
+        },
+        syncCartToServer() {
+          if (!UPDATE_CART_URL) return;
+          fetch(UPDATE_CART_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'X-CSRFToken': '{{ csrf_token }}' },
+            body: JSON.stringify({ cart: this.cart })
+          }).catch(() => {});
+        },
+        openModal(item) {
+          this.modalItem = item;
+          this.modalOpen = true;
+          document.body.classList.add('overflow-hidden');
+        },
+        closeModal() {
+          this.modalOpen = false;
+          this.modalItem = null;
+          document.body.classList.remove('overflow-hidden');
+        }
+      }
+    }
+  </script>
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', () => navigator.serviceWorker.register('/static/js/sw.js').catch(() => {}));
+    }
+  </script>
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

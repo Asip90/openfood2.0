@@ -1,0 +1,80 @@
+{% extends 'customer/base.html' %}
+{% load static %}
+
+{% block title %}Commander — {{ restaurant.name }}{% endblock %}
+
+{% block cart_fab %}{% endblock %}
+
+{% block content %}
+<div class="max-w-xl mx-auto px-4 py-6">
+  <a href="javascript:history.back()"
+     class="flex items-center gap-2 text-slate-600 text-sm font-medium mb-6 hover:text-slate-900">
+    <i class="ri-arrow-left-line text-lg"></i>
+    Retour au menu
+  </a>
+
+  <h1 class="text-2xl font-bold text-slate-900 mb-6">Votre commande</h1>
+
+  <!-- Récapitulatif panier -->
+  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-4 mb-4">
+    <h2 class="font-semibold text-slate-700 mb-3 text-sm uppercase tracking-wide">Récapitulatif</h2>
+    <div class="space-y-2">
+      {% for item_id, item in cart.items %}
+      <div class="flex justify-between items-center text-sm">
+        <span class="text-slate-700">
+          <span class="font-semibold text-slate-900">{{ item.quantity }}×</span>
+          {{ item.name }}
+        </span>
+        <span class="font-semibold text-slate-900">
+          {% widthratio item.price 1 item.quantity %} FCFA
+        </span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="border-t border-slate-100 mt-3 pt-3 flex justify-between">
+      <span class="font-bold text-slate-900">Total</span>
+      <span class="font-bold text-xl text-primary">
+        {% for item_id, item in cart.items %}{% endfor %}
+        {{ cart_total|floatformat:0 }} FCFA
+      </span>
+    </div>
+  </div>
+
+  <!-- Formulaire client -->
+  <form method="post" class="space-y-4">
+    {% csrf_token %}
+
+    <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-4 space-y-4">
+      <h2 class="font-semibold text-slate-700 text-sm uppercase tracking-wide">Vos informations</h2>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Prénom (optionnel)</label>
+        <input type="text" name="customer_name" placeholder="Jean"
+               class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Téléphone (optionnel)</label>
+        <input type="tel" name="customer_phone" placeholder="+229 97 00 00 00"
+               class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-colors">
+      </div>
+
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Note pour le restaurant</label>
+        <textarea name="notes" rows="2" placeholder="Sans oignons, allergie aux noix..."
+                  class="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary resize-none transition-colors"></textarea>
+      </div>
+    </div>
+
+    <!-- CTA Commander -->
+    <button type="submit"
+            class="w-full bg-primary text-white font-bold py-4 rounded-2xl shadow-float active:scale-[0.98] transition-transform text-base mt-2">
+      Confirmer ma commande — {{ cart_total|floatformat:0 }} FCFA
+    </button>
+
+    <p class="text-center text-xs text-slate-400">
+      En confirmant, vous acceptez que votre commande soit préparée par {{ restaurant.name }}.
+    </p>
+  </form>
+</div>
+{% endblock %}

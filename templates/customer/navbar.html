@@ -1,0 +1,22 @@
+<nav class="sticky top-0 z-40 bg-white border-b border-slate-100 shadow-soft">
+  <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      {% if restaurant.logo %}
+        <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }}" class="h-9 w-9 rounded-xl object-cover">
+      {% else %}
+        <div class="h-9 w-9 rounded-xl bg-primary flex items-center justify-center">
+          <i class="ri-restaurant-line text-white"></i>
+        </div>
+      {% endif %}
+      <div>
+        <p class="font-semibold text-sm text-slate-900 leading-tight">{{ restaurant.name }}</p>
+        {% if table %}<p class="text-xs text-slate-500">Table {{ table.number }}</p>{% endif %}
+      </div>
+    </div>
+    <div class="flex items-center gap-2">
+      <button class="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-600" aria-label="Rechercher">
+        <i class="ri-search-line text-lg"></i>
+      </button>
+    </div>
+  </div>
+</nav>

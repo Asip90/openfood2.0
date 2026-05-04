@@ -1,0 +1,153 @@
+{% extends "admin_user/base.html" %}
+{% load static %}
+
+{% block page_title %}Tableau de bord{% endblock %}
+
+{% block content %}
+<!-- Stats cards -->
+<div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+
+  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+        <i class="ri-shopping-bag-line text-primary text-xl"></i>
+      </div>
+      <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Aujourd'hui</span>
+    </div>
+    <p class="text-2xl font-bold text-slate-900">{{ today_orders|default:"0" }}</p>
+    <p class="text-sm text-slate-500 mt-0.5">Commandes</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
+        <i class="ri-file-list-3-line text-amber-500 text-xl"></i>
+      </div>
+      <span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Total</span>
+    </div>
+    <p class="text-2xl font-bold text-slate-900">{{ total_orders|default:"0" }}</p>
+    <p class="text-sm text-slate-500 mt-0.5">Toutes commandes</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
+        <i class="ri-money-franc-circle-line text-green-500 text-xl"></i>
+      </div>
+    </div>
+    <p class="text-2xl font-bold text-slate-900">{{ total_revenue|default:"0"|floatformat:0 }}</p>
+    <p class="text-sm text-slate-500 mt-0.5">Revenus (FCFA)</p>
+  </div>
+
+  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
+    <div class="flex items-center justify-between mb-3">
+      <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
+        <i class="ri-restaurant-line text-blue-500 text-xl"></i>
+      </div>
+    </div>
+    <p class="text-2xl font-bold text-slate-900">{{ active_menu_items|default:"0" }}</p>
+    <p class="text-sm text-slate-500 mt-0.5">Plats actifs</p>
+  </div>
+
+</div>
+
+<!-- Graphique 7 jours + Tables actives -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+  <!-- Graphique commandes 7 jours -->
+  <div class="lg:col-span-2 bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
+    <div class="flex items-center justify-between mb-4">
+      <h2 class="font-semibold text-slate-900">Commandes — 7 derniers jours</h2>
+    </div>
+    <canvas id="ordersChart" height="120"></canvas>
+  </div>
+
+  <!-- Tables actives -->
+  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
+    <h2 class="font-semibold text-slate-900 mb-4">Aperçu</h2>
+    <div class="space-y-4">
+      <div class="flex items-center justify-between py-3 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
+            <i class="ri-table-line text-blue-500 text-sm"></i>
+          </div>
+          <span class="text-sm text-slate-700">Tables actives</span>
+        </div>
+        <span class="font-bold text-slate-900">{{ active_tables|default:"0" }}</span>
+      </div>
+      <div class="flex items-center justify-between py-3 border-b border-slate-100">
+        <div class="flex items-center gap-3">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <i class="ri-restaurant-line text-primary text-sm"></i>
+          </div>
+          <span class="text-sm text-slate-700">Plats au menu</span>
+        </div>
+        <span class="font-bold text-slate-900">{{ active_menu_items|default:"0" }}</span>
+      </div>
+      <div class="pt-2">
+        <a href="{% url 'orders_list' %}"
+           class="block w-full text-center bg-primary text-white text-sm font-semibold py-2.5 rounded-xl hover:bg-primary-dark transition-colors">
+          Voir les commandes
+        </a>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<script>
+  const ctx = document.getElementById('ordersChart');
+  if (ctx) {
+    new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: {{ days|safe }},
+        datasets: [{
+          label: 'Commandes',
+          data: {{ orders_count|safe }},
+          backgroundColor: 'rgba(249,115,22,0.15)',
+          borderColor: '#f97316',
+          borderWidth: 2,
+          borderRadius: 8,
+          borderSkipped: false,
+        }]
+      },
+      options: {
+        responsive: true,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: { stepSize: 1, color: '#94a3b8', font: { size: 11 } },
+            grid: { color: '#f1f5f9' }
+          },
+          x: {
+            ticks: { color: '#94a3b8', font: { size: 11 } },
+            grid: { display: false }
+          }
+        }
+      }
+    });
+  }
+
+  // Polling nouvelles commandes (son + refresh)
+  const orderSound = new Audio('{% static "sounds/new-order.mp3" %}');
+  let lastCount = {{ today_orders|default:0 }};
+
+  async function checkNewOrders() {
+    try {
+      const r = await fetch('{% url "check_new_orders" %}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const d = await r.json();
+      if (d.new_count > lastCount) {
+        orderSound.play().catch(() => {});
+        lastCount = d.new_count;
+        location.reload();
+      }
+    } catch(e) {}
+  }
+  setInterval(checkNewOrders, 15000);
+</script>
+{% endblock %}

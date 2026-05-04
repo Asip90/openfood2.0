@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Dashboard{% endblock %} — Open Food</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#f97316', dark: '#ea580c', light: '#fff7ed' },
+            sidebar: { DEFAULT: '#0f172a', hover: '#1e293b' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="font-sans bg-slate-50 h-full" x-data="{ sidebarOpen: true, mobileMenuOpen: false }">
+<div class="flex h-full">
+  <!-- Sidebar Desktop -->
+  <aside class="hidden lg:flex flex-col bg-sidebar text-white fixed inset-y-0 z-50 transition-all duration-300"
+         :class="sidebarOpen ? 'w-64' : 'w-16'">
+    <div class="flex items-center h-16 px-4 border-b border-slate-700/50">
+      <div class="flex items-center gap-3 overflow-hidden">
+        {% if restaurant.logo %}
+          <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }}" class="h-8 w-8 rounded-lg object-cover flex-shrink-0">
+        {% else %}
+          <div class="h-8 w-8 rounded-lg bg-primary flex items-center justify-center flex-shrink-0">
+            <i class="ri-restaurant-line text-white text-sm"></i>
+          </div>
+        {% endif %}
+        <span class="font-semibold text-sm truncate" x-show="sidebarOpen">{{ restaurant.name|default:"Open Food" }}</span>
+      </div>
+    </div>
+    <nav class="flex-1 py-4 overflow-y-auto">
+      <div class="px-2 space-y-1">{% include 'admin_user/sidebar.html' %}</div>
+    </nav>
+    <div class="p-4 border-t border-slate-700/50">
+      <div class="flex items-center gap-3 overflow-hidden">
+        <div class="h-8 w-8 rounded-full bg-primary flex items-center justify-center flex-shrink-0 text-white text-xs font-bold">
+          {{ request.user.first_name|first|upper|default:request.user.email|first|upper }}{{ request.user.last_name|first|upper }}
+        </div>
+        <div class="overflow-hidden" x-show="sidebarOpen">
+          <p class="text-xs font-medium truncate">{{ request.user.get_full_name }}</p>
+          <p class="text-xs text-slate-400 truncate">{{ request.user.email }}</p>
+        </div>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Mobile overlay -->
+  <div x-show="mobileMenuOpen" x-cloak @click="mobileMenuOpen = false"
+       class="fixed inset-0 bg-black/50 z-40 lg:hidden"></div>
+
+  <!-- Mobile Sidebar -->
+  <aside x-show="mobileMenuOpen" x-cloak
+         x-transition:enter="transition ease-out duration-300"
+         x-transition:enter-start="-translate-x-full"
+         x-transition:enter-end="translate-x-0"
+         x-transition:leave="transition ease-in duration-200"
+         x-transition:leave-start="translate-x-0"
+         x-transition:leave-end="-translate-x-full"
+         class="fixed inset-y-0 left-0 w-72 bg-sidebar text-white z-50 flex flex-col lg:hidden">
+    <div class="flex items-center justify-between h-16 px-4 border-b border-slate-700/50">
+      <span class="font-semibold">{{ restaurant.name|default:"Open Food" }}</span>
+      <button @click="mobileMenuOpen = false"
+              aria-label="Fermer le menu de navigation"
+              class="p-2 rounded-lg hover:bg-slate-700">
+        <i class="ri-close-line text-xl"></i>
+      </button>
+    </div>
+    <nav class="flex-1 py-4 overflow-y-auto px-2">{% include 'admin_user/sidebar.html' %}</nav>
+  </aside>
+
+  <!-- Main content -->
+  <div class="flex-1 flex flex-col min-h-full" :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-16'">
+    <header class="sticky top-0 z-30 bg-white border-b border-slate-200 h-16 flex items-center justify-between px-4 lg:px-6">
+      <div class="flex items-center gap-3">
+        <button @click="mobileMenuOpen = true"
+                aria-label="Ouvrir le menu de navigation"
+                class="p-2 rounded-lg hover:bg-slate-100 lg:hidden">
+          <i class="ri-menu-line text-xl text-slate-600"></i>
+        </button>
+        <button @click="sidebarOpen = !sidebarOpen"
+                :aria-label="sidebarOpen ? 'Réduire la sidebar' : 'Agrandir la sidebar'"
+                class="hidden lg:flex p-2 rounded-lg hover:bg-slate-100">
+          <i class="ri-menu-fold-line text-xl text-slate-600"></i>
+        </button>
+        <h1 class="text-lg font-semibold text-slate-900">{% block page_title %}Dashboard{% endblock %}</h1>
+      </div>
+      <div class="flex items-center gap-2">
+        {% block header_actions %}{% endblock %}
+        <form method="post" action="{% url 'log_out' %}" class="inline">
+          {% csrf_token %}
+          <button type="submit" class="flex items-center gap-2 px-3 py-2 text-sm text-slate-600 hover:bg-slate-100 rounded-xl transition-colors">
+            <i class="ri-logout-circle-r-line"></i>
+            <span class="hidden sm:block">Déconnexion</span>
+          </button>
+        </form>
+      </div>
+    </header>
+    <main class="flex-1 p-4 lg:p-6">
+      {% if messages %}
+        {% for message in messages %}
+          <div class="mb-4 px-4 py-3 rounded-xl text-sm font-medium
+            {% if message.tags == 'success' %}bg-green-50 text-green-800 border border-green-200
+            {% elif message.tags == 'error' %}bg-red-50 text-red-800 border border-red-200
+            {% else %}bg-blue-50 text-blue-800 border border-blue-200{% endif %}">
+            {{ message }}
+          </div>
+        {% endfor %}
+      {% endif %}
+      {% block content %}{% endblock %}
+    </main>
+  </div>
+</div>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

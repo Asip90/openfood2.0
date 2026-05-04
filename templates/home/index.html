@@ -1,0 +1,69 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Open Food — Menu Digital QR Code pour Restaurants | Créez votre menu en 5 min{% endblock %}
+
+{% block meta_description %}Open Food : créez votre menu digital par QR Code en 5 minutes. Solution SaaS pour restaurateurs en Afrique de l'Ouest. Commandes en ligne, tableau de bord temps réel. Gratuit pour démarrer.{% endblock %}
+
+{% block og_title %}Open Food — Menu Digital QR Code pour Restaurants{% endblock %}
+{% block og_description %}La solution SaaS pour digitaliser votre restaurant en Afrique. Menu QR Code, commandes en ligne, dashboard temps réel. Démarrez gratuitement.{% endblock %}
+
+{% block schema_org %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "Open Food",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "{% if canonical_url %}{{ canonical_url }}{% endif %}",
+  "description": "Solution SaaS de menu digital par QR Code pour les restaurateurs en Afrique de l'Ouest. Créez votre menu, recevez des commandes et gérez votre restaurant depuis un tableau de bord.",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "XOF",
+    "description": "Plan gratuit disponible — aucune carte bancaire requise"
+  },
+  "featureList": [
+    "Menu digital QR Code sans application",
+    "Commandes en temps réel",
+    "Tableau de bord restaurateur",
+    "PWA mobile-first",
+    "Personnalisation couleurs et logo",
+    "Génération QR code automatique"
+  ],
+  "provider": {
+    "@type": "Organization",
+    "name": "Open Food",
+    "url": "{% if canonical_url %}{{ canonical_url }}{% endif %}"
+  }
+}
+</script>
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {% for faq in faqs %}
+    {
+      "@type": "Question",
+      "name": "{{ faq.question|escapejs }}",
+      "acceptedAnswer": {
+        "@type": "Answer",
+        "text": "{{ faq.answer|escapejs }}"
+      }
+    }{% if not forloop.last %},{% endif %}
+    {% endfor %}
+  ]
+}
+</script>
+{% endblock %}
+
+{% block content %}
+{% include 'home/hero.html' %}
+{% include 'home/Solution.html' %}
+{% include 'home/why-us.html' %}
+{% include 'home/reviews.html' %}
+{% include 'home/faq.html' %}
+{% include 'home/footer.html' %}
+{% endblock %}

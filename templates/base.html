@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="fr" class="scroll-smooth">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{% block title %}Open Food — Menu Digital par QR Code{% endblock %}</title>
+  {% block meta %}
+  <meta name="description" content="{% block meta_description %}Créez votre menu digital QR Code en 5 minutes. Solution SaaS pour restaurateurs.{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}Open Food{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Menu digital QR Code pour restaurants{% endblock %}">
+  <meta property="og:type" content="website">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
+  {% endblock %}
+  {% block schema_org %}{% endblock %}
+
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: {
+            primary: { DEFAULT: '#f97316', dark: '#ea580c', light: '#fed7aa' },
+            surface: { DEFAULT: '#ffffff', muted: '#f8fafc' },
+          },
+          fontFamily: { sans: ['Inter', 'system-ui', 'sans-serif'] },
+          borderRadius: { xl: '0.75rem', '2xl': '1rem', '3xl': '1.5rem' },
+          boxShadow: {
+            soft: '0 2px 8px rgba(0,0,0,0.06)',
+            card: '0 4px 16px rgba(0,0,0,0.08)',
+            float: '0 8px 32px rgba(0,0,0,0.12)',
+          }
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+  {% block extra_css %}{% endblock %}
+</head>
+<body class="font-sans bg-surface-muted text-slate-900 antialiased">
+  {% block navbar %}{% endblock %}
+  <main id="main-content">{% block content %}{% endblock %}</main>
+  {% block footer %}{% endblock %}
+  {% block extra_js %}{% endblock %}
+</body>
+</html>

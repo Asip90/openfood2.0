@@ -1,0 +1,37 @@
+{% url 'dashboard' as url_dashboard %}
+{% url 'orders_list' as url_orders %}
+{% url 'menus_list' as url_menus %}
+{% url 'tables_list' as url_tables %}
+{% url 'customization' as url_custom %}
+{% url 'restaurant_settings' as url_settings %}
+
+<a href="{{ url_dashboard }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_dashboard %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+  <i class="ri-dashboard-line text-lg flex-shrink-0"></i>
+  <span x-show="sidebarOpen !== false">Tableau de bord</span>
+</a>
+<a href="{{ url_orders }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_orders %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+  <i class="ri-shopping-bag-line text-lg flex-shrink-0"></i>
+  <span x-show="sidebarOpen !== false">Commandes</span>
+</a>
+<a href="{{ url_menus }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_menus %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+  <i class="ri-restaurant-line text-lg flex-shrink-0"></i>
+  <span x-show="sidebarOpen !== false">Menu</span>
+</a>
+<a href="{{ url_tables }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_tables %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+  <i class="ri-table-line text-lg flex-shrink-0"></i>
+  <span x-show="sidebarOpen !== false">Tables</span>
+</a>
+<a href="{{ url_custom }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_custom %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+  <i class="ri-palette-line text-lg flex-shrink-0"></i>
+  <span x-show="sidebarOpen !== false">Personnalisation</span>
+</a>
+<a href="{{ url_settings }}"
+   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_settings %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+  <i class="ri-settings-3-line text-lg flex-shrink-0"></i>
+  <span x-show="sidebarOpen !== false">Paramètres</span>
+</a>

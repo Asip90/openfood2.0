@@ -1,0 +1,142 @@
+{% extends "admin_user/base.html" %}
+{% load static %}
+
+{% block title %}Commandes{% endblock %}
+{% block page_title %}Commandes{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'create_manual_order' %}"
+   class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors">
+  <i class="ri-add-line"></i>
+  <span class="hidden sm:block">Commande manuelle</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<!-- Filtres statut -->
+<div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+  <a href="{% url 'orders_list' %}"
+     class="px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors
+       {% if not current_status %}bg-primary text-white{% else %}bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary{% endif %}">
+    Toutes
+  </a>
+  {% for value, label in status_choices %}
+  <a href="?status={{ value }}"
+     class="px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors flex items-center gap-1.5
+       {% if current_status == value %}bg-primary text-white{% else %}bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary{% endif %}">
+    {{ label }}
+    {% if value == 'pending' and pending_count %}
+      <span class="{% if current_status == value %}bg-white text-primary{% else %}bg-red-500 text-white{% endif %} text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">
+        {{ pending_count }}
+      </span>
+    {% endif %}
+  </a>
+  {% endfor %}
+</div>
+
+<!-- Liste commandes -->
+<div class="space-y-3">
+  {% for order in orders %}
+  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden hover:shadow-card transition-shadow">
+    <div class="flex items-center gap-4 p-4">
+
+      <!-- Icône statut -->
+      <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
+        {% if order.status == 'pending' %}bg-amber-50 text-amber-600
+        {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-600
+        {% elif order.status == 'preparing' %}bg-indigo-50 text-indigo-600
+        {% elif order.status == 'ready' %}bg-green-50 text-green-600
+        {% else %}bg-slate-100 text-slate-500{% endif %}">
+        <i class="ri-shopping-bag-line text-xl"></i>
+      </div>
+
+      <!-- Infos -->
+      <div class="flex-1 min-w-0">
+        <div class="flex items-center gap-2 flex-wrap">
+          <span class="font-bold text-slate-900 text-sm">#{{ order.order_number|slice:"-6:" }}</span>
+          <span class="text-xs font-medium px-2 py-0.5 rounded-full
+            {% if order.status == 'pending' %}bg-amber-50 text-amber-700
+            {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-700
+            {% elif order.status == 'preparing' %}bg-indigo-50 text-indigo-700
+            {% elif order.status == 'ready' %}bg-green-50 text-green-700
+            {% elif order.status == 'delivered' %}bg-slate-100 text-slate-600
+            {% else %}bg-red-50 text-red-700{% endif %}">
+            {{ order.get_status_display }}
+          </span>
+        </div>
+        <p class="text-xs text-slate-500 mt-0.5">
+          {% if order.table %}Table {{ order.table.number }}{% else %}À emporter{% endif %}
+          · {{ order.created_at|timesince }} ago
+          {% if order.customer_name %} · {{ order.customer_name }}{% endif %}
+        </p>
+        <p class="text-xs text-slate-600 mt-1 truncate">
+          {% for item in order.items.all|slice:":3" %}{{ item.quantity }}× {{ item.menu_item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+          {% if order.items.count > 3 %} +{{ order.items.count|add:"-3" }} autres{% endif %}
+        </p>
+      </div>
+
+      <!-- Montant + Actions -->
+      <div class="flex-shrink-0 text-right">
+        <p class="font-bold text-slate-900 text-sm">{{ order.total|floatformat:0 }} FCFA</p>
+        <div class="flex items-center gap-1 mt-2 justify-end">
+          <a href="{% url 'order_detail' order.pk %}"
+             class="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors" title="Détails">
+            <i class="ri-eye-line text-sm"></i>
+          </a>
+          <a href="{% url 'order_change_status' order.pk %}"
+             class="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors" title="Changer statut">
+            <i class="ri-refresh-line text-sm"></i>
+          </a>
+        </div>
+      </div>
+    </div>
+  </div>
+  {% empty %}
+  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 py-16 text-center">
+    <i class="ri-shopping-bag-line text-4xl text-slate-300 block mb-3"></i>
+    <p class="text-slate-500 font-medium">Aucune commande{% if current_status %} avec ce statut{% endif %}</p>
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Pagination -->
+{% if orders.has_other_pages %}
+<div class="flex justify-center gap-2 mt-6">
+  {% if orders.has_previous %}
+  <a href="?page={{ orders.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}"
+     class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:border-primary hover:text-primary transition-colors">
+    ← Précédent
+  </a>
+  {% endif %}
+  <span class="px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium">
+    {{ orders.number }} / {{ orders.paginator.num_pages }}
+  </span>
+  {% if orders.has_next %}
+  <a href="?page={{ orders.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}"
+     class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:border-primary hover:text-primary transition-colors">
+    Suivant →
+  </a>
+  {% endif %}
+</div>
+{% endif %}
+
+<!-- Polling nouvelles commandes -->
+<script>
+  const audio = new Audio('{% static "sounds/new-order.mp3" %}');
+  let knownCount = {{ pending_count|default:0 }};
+
+  setInterval(async () => {
+    try {
+      const r = await fetch('{% url "check_new_orders" %}', {
+        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+      });
+      const d = await r.json();
+      if (d.new_count > knownCount) {
+        audio.play().catch(() => {});
+        knownCount = d.new_count;
+        location.reload();
+      }
+    } catch(e) {}
+  }, 10000);
+</script>
+{% endblock %}

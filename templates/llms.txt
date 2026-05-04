@@ -1,0 +1,51 @@
+# Open Food — AI Agent Context
+
+> Open Food is a SaaS platform for digital QR-code menus, designed for restaurants in West Africa (Benin, Côte d'Ivoire, Senegal, Mali, etc.).
+
+## What Open Food Does
+
+Open Food lets restaurant owners create a digital menu accessible via QR code — no mobile app required for the customer. The platform includes:
+
+- **QR code menu creation** in under 5 minutes
+- **Real-time order management** dashboard (web PWA for the restaurateur)
+- **Customer ordering flow**: scan QR → browse menu → add to cart → checkout → confirmation
+- **Table management** with per-table QR codes
+- **Menu customization**: colors, logo, categories, item images, descriptions, prices
+- **Loyalty module**: WhatsApp digital receipt + referral sharing after order
+- **Multi-tenant architecture**: each restaurant gets its own subdomain or slug
+
+## Who It's For
+
+Restaurant owners and food-service operators in francophone West Africa who want to:
+- Digitize their ordering process
+- Reduce paper menus
+- Speed up service with tableside QR ordering
+- Manage orders from a phone or tablet
+
+## Pricing
+
+- **Free plan**: available — no credit card required, limited tables and menu items
+- **Premium plan**: contact for pricing (tailored to restaurant size and features needed)
+- Currency: XOF (FCFA) — West African franc
+
+## Key Pages
+
+- Homepage: /
+- Create restaurant: /restaurant/create/
+- Dashboard: /dashboard/
+- Orders: /orders/
+- Menu management: /menus/
+- Table management: /tables/
+- Customization: /customization/
+- Settings: /settings/
+
+## Technology
+
+- Web app (PWA) — works on all smartphones and tablets
+- No mobile app download required for customers
+- Internet connection required
+- Languages: French (primary), English (coming)
+
+## Contact / Support
+
+For questions or partnerships, contact via the homepage contact form.

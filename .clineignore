@@ -1,0 +1,25 @@
+# Environnement virtuel (CRITIQUE : évite les factures de 1.80$)
+venv/
+venv312/
+env/
+.env
+__pycache__/
+*.py[cod]
+
+# Base de données
+*.sqlite3
+.sql
+*.db
+
+# Fichiers statiques et médias
+staticfiles/
+media/
+static/admin/
+
+# Dossiers système et IDE
+.vscode/
+.git/
+.idea/
+
+# Si tu utilises du JS/Node avec Django
+node_modules/
