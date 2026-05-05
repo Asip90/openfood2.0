@@ -200,7 +200,10 @@ def dashboard(request):
     for o in order_types:
         type_labels.append(o['order_type'])
         type_values.append(o['count'])
-    
+
+    latest_order = Order.objects.filter(restaurant=restaurant).order_by('-created_at', '-id').first()
+    latest_order_id = latest_order.id if latest_order else None
+
     context = {
         "restaurant": restaurant,
         "total_orders": total_orders,
@@ -212,6 +215,7 @@ def dashboard(request):
         "orders_count": orders_count,
         "type_labels": type_labels,
         "type_values": type_values,
+        "latest_order_id": latest_order_id,
     }
     
     return render(request, "admin_user/index.html", context)
