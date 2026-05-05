@@ -151,3 +151,52 @@ class DecoratorsTest(TestCase):
         response = self.client.get('/staff/commandes/')
         self.assertEqual(response.status_code, 302)
         self.assertIn('/staff/connexion/', response['Location'])
+
+
+class StaffAuthViewsTest(TestCase):
+
+    def setUp(self):
+        self.owner = make_owner()
+        self.restaurant = make_restaurant(self.owner)
+        self.staff = StaffMember(
+            restaurant=self.restaurant,
+            first_name='Chef', last_name='Test',
+            username='chef', role='cuisinier', is_active=True,
+        )
+        self.staff.set_password('secret')
+        self.staff.save()
+
+    def test_staff_login_page_loads(self):
+        response = self.client.get('/staff/connexion/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_staff_login_success(self):
+        response = self.client.post('/staff/connexion/', {
+            'username': 'chef', 'password': 'secret',
+        })
+        self.assertRedirects(response, '/staff/commandes/', fetch_redirect_response=False)
+        self.assertIn('staff_id', self.client.session)
+
+    def test_staff_login_wrong_password(self):
+        response = self.client.post('/staff/connexion/', {
+            'username': 'chef', 'password': 'wrong',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('staff_id', self.client.session)
+
+    def test_staff_login_inactive_account(self):
+        self.staff.is_active = False
+        self.staff.save()
+        response = self.client.post('/staff/connexion/', {
+            'username': 'chef', 'password': 'secret',
+        })
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('staff_id', self.client.session)
+
+    def test_staff_logout_clears_session(self):
+        session = self.client.session
+        session['staff_id'] = self.staff.id
+        session['staff_role'] = self.staff.role
+        session.save()
+        self.client.get('/staff/deconnexion/')
+        self.assertNotIn('staff_id', self.client.session)
