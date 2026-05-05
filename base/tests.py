@@ -3,6 +3,7 @@ from django.contrib.auth.hashers import check_password
 from django.db import IntegrityError
 from accounts.models import User
 from base.models import Restaurant, Order, StaffMember, SubscriptionPlan
+from base.staff_forms import StaffLoginForm, StaffMemberForm
 
 
 def make_owner():
@@ -78,3 +79,36 @@ class StaffMemberModelTest(TestCase):
         )
         order.save()
         self.assertEqual(Order.objects.get(pk=order.pk).preparing_by_name, 'Jean Dupont')
+
+
+class StaffFormsTest(TestCase):
+
+    def setUp(self):
+        self.owner = make_owner()
+        self.restaurant = make_restaurant(self.owner)
+
+    def test_login_form_valid(self):
+        form = StaffLoginForm(data={'username': 'jean', 'password': 'pass'})
+        self.assertTrue(form.is_valid())
+
+    def test_login_form_missing_fields(self):
+        form = StaffLoginForm(data={'username': ''})
+        self.assertFalse(form.is_valid())
+
+    def test_staff_member_form_valid(self):
+        form = StaffMemberForm(data={
+            'first_name': 'Marie', 'last_name': 'Martin',
+            'username': 'marie', 'role': 'serveur',
+            'password': 'secret', 'confirm_password': 'secret',
+            'is_active': True,
+        })
+        self.assertTrue(form.is_valid())
+
+    def test_staff_member_form_password_mismatch(self):
+        form = StaffMemberForm(data={
+            'first_name': 'A', 'last_name': 'B', 'username': 'ab',
+            'role': 'cuisinier', 'password': 'abc', 'confirm_password': 'xyz',
+            'is_active': True,
+        })
+        self.assertFalse(form.is_valid())
+        self.assertIn('confirm_password', form.errors)
