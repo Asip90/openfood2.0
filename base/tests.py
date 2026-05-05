@@ -1,5 +1,6 @@
 from django.test import TestCase
 from django.contrib.auth.hashers import check_password
+from django.db import IntegrityError
 from accounts.models import User
 from base.models import Restaurant, Order, StaffMember, SubscriptionPlan
 
@@ -45,15 +46,28 @@ class StaffMemberModelTest(TestCase):
         self.assertFalse(fresh.check_password('wrongpassword'))
 
     def test_username_unique_per_restaurant(self):
-        StaffMember.objects.create(
+        s = StaffMember(
             restaurant=self.restaurant, first_name='A', last_name='B',
-            username='chef', role='cuisinier', password='x'
+            username='chef', role='cuisinier',
         )
-        with self.assertRaises(Exception):
+        s.set_password('x')
+        s.save()
+        with self.assertRaises(IntegrityError):
             StaffMember.objects.create(
                 restaurant=self.restaurant, first_name='C', last_name='D',
                 username='chef', role='serveur', password='y'
             )
+
+    def test_str_representation(self):
+        staff = StaffMember(
+            restaurant=self.restaurant,
+            first_name='Jean', last_name='Dupont', role='cuisinier',
+            username='jean',
+        )
+        staff.set_password('pass')
+        staff.save()
+        self.assertIn('Jean Dupont', str(staff))
+        self.assertIn(self.restaurant.name, str(staff))
 
     def test_order_has_preparing_by_name(self):
         order = Order(

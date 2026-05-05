@@ -3,6 +3,7 @@
 from django.db import models
 from django.contrib.auth.models import AbstractUser
 from django.utils.text import slugify
+from django.core.validators import MinLengthValidator
 import qrcode
 from io import BytesIO
 from django.core.files import File
@@ -327,7 +328,7 @@ class StaffMember(models.Model):
     )
     first_name = models.CharField(max_length=100)
     last_name = models.CharField(max_length=100)
-    username = models.CharField(max_length=50)
+    username = models.CharField(max_length=50, validators=[MinLengthValidator(1)])
     password = models.CharField(max_length=255)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     is_active = models.BooleanField(default=True)
@@ -340,6 +341,7 @@ class StaffMember(models.Model):
         return f"{self.first_name} {self.last_name}"
 
     def set_password(self, raw_password):
+        """Hash and set password. Caller must call save() to persist."""
         from django.contrib.auth.hashers import make_password
         self.password = make_password(raw_password)
 
