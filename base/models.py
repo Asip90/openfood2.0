@@ -273,10 +273,11 @@ class Order(models.Model):
     total = models.DecimalField(max_digits=10, decimal_places=2, default=0)
     
     notes = models.TextField(blank=True)
-    
+    preparing_by_name = models.CharField(max_length=150, blank=True, default='')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     def save(self, *args, **kwargs):
         if not self.order_number:
             self.order_number = f"ORD-{uuid.uuid4().hex[:8].upper()}"
@@ -313,6 +314,42 @@ class OrderItem(models.Model):
     
     def __str__(self):
         return f"{self.menu_item.name} x{self.quantity}"
+
+class StaffMember(models.Model):
+    ROLE_CHOICES = [
+        ('coadmin', 'Co-administrateur'),
+        ('cuisinier', 'Cuisinier'),
+        ('serveur', 'Serveur'),
+    ]
+
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='staff'
+    )
+    first_name = models.CharField(max_length=100)
+    last_name = models.CharField(max_length=100)
+    username = models.CharField(max_length=50)
+    password = models.CharField(max_length=255)
+    role = models.CharField(max_length=20, choices=ROLE_CHOICES)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('restaurant', 'username')
+
+    def get_full_name(self):
+        return f"{self.first_name} {self.last_name}"
+
+    def set_password(self, raw_password):
+        from django.contrib.auth.hashers import make_password
+        self.password = make_password(raw_password)
+
+    def check_password(self, raw_password):
+        from django.contrib.auth.hashers import check_password as _check
+        return _check(raw_password, self.password)
+
+    def __str__(self):
+        return f"{self.get_full_name()} ({self.get_role_display()}) — {self.restaurant.name}"
+
 
 class Payment(models.Model):
     PAYMENT_METHOD = [
