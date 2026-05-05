@@ -5,12 +5,14 @@ from django import forms
 class StaffLoginForm(forms.Form):
     username = forms.CharField(
         max_length=50,
+        label='Identifiant',
         widget=forms.TextInput(attrs={
             'placeholder': "Nom d'utilisateur",
             'autocomplete': 'username',
         }),
     )
     password = forms.CharField(
+        label='Mot de passe',
         widget=forms.PasswordInput(attrs={
             'placeholder': 'Mot de passe',
             'autocomplete': 'current-password',
