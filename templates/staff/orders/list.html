@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head><meta charset="UTF-8"><title>Commandes – Staff</title></head>
+<body>
+  <p>Staff: {{ staff.get_full_name }} ({{ staff.get_role_display }})</p>
+  <a href="{% url 'staff_logout' %}">Déconnexion</a>
+  {% for order in orders %}
+  <div>
+    <b>#{{ order.order_number }}</b> — {{ order.get_status_display }}
+    {% if order.preparing_by_name %} par {{ order.preparing_by_name }}{% endif %}
+    <form method="post" action="{% url 'staff_change_status' order.pk %}" style="display:inline">
+      {% csrf_token %}
+      {% if staff.role == 'cuisinier' or staff.role == 'coadmin' %}
+        {% if order.status == 'pending' or order.status == 'confirmed' %}
+          <button name="status" value="preparing">En préparation</button>
+        {% endif %}
+        {% if order.status == 'preparing' %}
+          <button name="status" value="ready">Prête</button>
+        {% endif %}
+      {% endif %}
+      {% if staff.role == 'serveur' or staff.role == 'coadmin' %}
+        {% if order.status == 'ready' %}
+          <button name="status" value="delivered">Servie</button>
+        {% endif %}
+      {% endif %}
+    </form>
+  </div>
+  {% empty %}
+  <p>Aucune commande active.</p>
+  {% endfor %}
+</body>
+</html>

@@ -200,3 +200,80 @@ class StaffAuthViewsTest(TestCase):
         session.save()
         self.client.get('/staff/deconnexion/')
         self.assertNotIn('staff_id', self.client.session)
+
+
+class StaffOrdersViewsTest(TestCase):
+
+    def setUp(self):
+        self.owner = make_owner()
+        self.restaurant = make_restaurant(self.owner)
+        self.cook = StaffMember(
+            restaurant=self.restaurant, first_name='Jean', last_name='Chef',
+            username='jean', role='cuisinier', is_active=True,
+        )
+        self.cook.set_password('pass')
+        self.cook.save()
+
+        self.server = StaffMember(
+            restaurant=self.restaurant, first_name='Marie', last_name='Serv',
+            username='marie', role='serveur', is_active=True,
+        )
+        self.server.set_password('pass')
+        self.server.save()
+
+        self.order = Order.objects.create(
+            restaurant=self.restaurant, status='pending', order_type='dine_in'
+        )
+
+    def _login_staff(self, staff):
+        session = self.client.session
+        session['staff_id'] = staff.id
+        session['staff_role'] = staff.role
+        session.save()
+
+    def test_orders_list_requires_staff_session(self):
+        response = self.client.get('/staff/commandes/')
+        self.assertEqual(response.status_code, 302)
+
+    def test_orders_list_accessible_to_cook(self):
+        self._login_staff(self.cook)
+        response = self.client.get('/staff/commandes/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_cook_can_set_preparing(self):
+        self._login_staff(self.cook)
+        self.client.post(
+            f'/staff/commandes/{self.order.pk}/statut/',
+            {'status': 'preparing'},
+        )
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'preparing')
+        self.assertEqual(self.order.preparing_by_name, 'Jean Chef')
+
+    def test_server_cannot_set_preparing(self):
+        self._login_staff(self.server)
+        self.client.post(
+            f'/staff/commandes/{self.order.pk}/statut/',
+            {'status': 'preparing'},
+        )
+        self.order.refresh_from_db()
+        self.assertNotEqual(self.order.status, 'preparing')
+
+    def test_server_can_set_delivered(self):
+        self.order.status = 'ready'
+        self.order.save()
+        self._login_staff(self.server)
+        self.client.post(
+            f'/staff/commandes/{self.order.pk}/statut/',
+            {'status': 'delivered'},
+        )
+        self.order.refresh_from_db()
+        self.assertEqual(self.order.status, 'delivered')
+
+    def test_check_updates_returns_json(self):
+        self._login_staff(self.cook)
+        response = self.client.get('/staff/commandes/check/?last_id=0')
+        self.assertEqual(response.status_code, 200)
+        data = response.json()
+        self.assertIn('orders', data)
+        self.assertIn('ready_count', data)
