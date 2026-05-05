@@ -429,12 +429,16 @@ def orders_list(request):
     paginator = Paginator(orders_qs, 15)
     orders = paginator.get_page(request.GET.get("page"))
 
+    latest_order = Order.objects.filter(restaurant=restaurant).order_by('-created_at', '-id').first()
+    latest_order_id = latest_order.id if latest_order else None
+
     return render(request, "admin_user/orders/list_orders.html", {
         "restaurant": restaurant,
         "orders": orders,
         "current_status": status_filter,
         "status_choices": Order.STATUS_CHOICES,
         "pending_count": Order.objects.filter(restaurant=restaurant, status="pending").count(),
+        "latest_order_id": latest_order_id,
     })
 
 @login_required
