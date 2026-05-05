@@ -1,6 +1,7 @@
 from django import views
 from django.urls import path
 from base.views import *
+from base import staff_admin_views
 
 
 urlpatterns = [
@@ -48,4 +49,10 @@ urlpatterns = [
 
     # PWA
     path("manifest/<slug:slug>.json", pwa_manifest, name="pwa_manifest"),
+
+    # Équipe (staff management)
+    path('equipe/',                 staff_admin_views.staff_list,   name='staff_list'),
+    path('equipe/create/',          staff_admin_views.staff_create, name='staff_create'),
+    path('equipe/<int:pk>/update/', staff_admin_views.staff_update, name='staff_update'),
+    path('equipe/<int:pk>/delete/', staff_admin_views.staff_delete, name='staff_delete'),
 ]

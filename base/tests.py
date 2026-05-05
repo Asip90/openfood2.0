@@ -277,3 +277,76 @@ class StaffOrdersViewsTest(TestCase):
         data = response.json()
         self.assertIn('orders', data)
         self.assertIn('ready_count', data)
+
+
+class StaffAdminViewsTest(TestCase):
+
+    def setUp(self):
+        self.owner = make_owner()
+        self.restaurant = make_restaurant(self.owner)
+        self.coadmin = StaffMember(
+            restaurant=self.restaurant, first_name='Co', last_name='Admin',
+            username='coadmin', role='coadmin', is_active=True,
+        )
+        self.coadmin.set_password('pass')
+        self.coadmin.save()
+
+        self.cook = StaffMember(
+            restaurant=self.restaurant, first_name='Chef', last_name='Two',
+            username='chef2', role='cuisinier', is_active=True,
+        )
+        self.cook.set_password('pass')
+        self.cook.save()
+
+    def _login_owner(self):
+        self.client.force_login(self.owner)
+
+    def _login_coadmin(self):
+        session = self.client.session
+        session['staff_id'] = self.coadmin.id
+        session['staff_role'] = 'coadmin'
+        session.save()
+
+    def test_staff_list_requires_auth(self):
+        response = self.client.get('/equipe/')
+        self.assertEqual(response.status_code, 302)
+
+    def test_staff_list_accessible_by_owner(self):
+        self._login_owner()
+        response = self.client.get('/equipe/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_staff_list_accessible_by_coadmin(self):
+        self._login_coadmin()
+        response = self.client.get('/equipe/')
+        self.assertEqual(response.status_code, 200)
+
+    def test_owner_can_create_coadmin(self):
+        self._login_owner()
+        self.client.post('/equipe/create/', {
+            'first_name': 'New', 'last_name': 'Coadmin',
+            'username': 'newco', 'role': 'coadmin',
+            'password': 'abc123', 'confirm_password': 'abc123',
+            'is_active': 'on',
+        })
+        self.assertEqual(StaffMember.objects.filter(role='coadmin').count(), 2)
+
+    def test_coadmin_cannot_create_coadmin(self):
+        self._login_coadmin()
+        self.client.post('/equipe/create/', {
+            'first_name': 'Bad', 'last_name': 'Actor',
+            'username': 'bad', 'role': 'coadmin',
+            'password': 'abc123', 'confirm_password': 'abc123',
+            'is_active': 'on',
+        })
+        self.assertEqual(StaffMember.objects.filter(role='coadmin').count(), 1)
+
+    def test_coadmin_cannot_delete_another_coadmin(self):
+        self._login_coadmin()
+        self.client.post(f'/equipe/{self.coadmin.pk}/delete/')
+        self.assertEqual(StaffMember.objects.filter(role='coadmin').count(), 1)
+
+    def test_owner_can_delete_coadmin(self):
+        self._login_owner()
+        self.client.post(f'/equipe/{self.coadmin.pk}/delete/')
+        self.assertEqual(StaffMember.objects.filter(role='coadmin').count(), 0)

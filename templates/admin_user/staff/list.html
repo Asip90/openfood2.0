@@ -1,0 +1,13 @@
+{% extends "admin_user/base.html" %}
+{% block content %}
+<h1>Équipe</h1>
+<a href="{% url 'staff_create' %}">+ Ajouter</a>
+{% for m in members %}
+<div>{{ m.get_full_name }} ({{ m.get_role_display }}) — @{{ m.username }}
+  <a href="{% url 'staff_update' m.pk %}">Éditer</a>
+  <form method="post" action="{% url 'staff_delete' m.pk %}" style="display:inline">
+    {% csrf_token %}<button type="submit">Supprimer</button>
+  </form>
+</div>
+{% endfor %}
+{% endblock %}
