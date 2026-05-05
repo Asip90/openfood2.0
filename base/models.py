@@ -323,34 +323,50 @@ class StaffMember(models.Model):
         ('serveur', 'Serveur'),
     ]
 
+    user = models.OneToOneField(
+        'accounts.User',
+        on_delete=models.CASCADE,
+        related_name='staff_profile',
+    )
     restaurant = models.ForeignKey(
         Restaurant, on_delete=models.CASCADE, related_name='staff'
     )
-    first_name = models.CharField(max_length=100)
-    last_name = models.CharField(max_length=100)
-    username = models.CharField(max_length=50, validators=[MinLengthValidator(1)])
-    password = models.CharField(max_length=255)
     role = models.CharField(max_length=20, choices=ROLE_CHOICES)
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ('restaurant', 'username')
+        unique_together = ('user', 'restaurant')
 
     def get_full_name(self):
-        return f"{self.first_name} {self.last_name}"
+        return f"{self.user.first_name} {self.user.last_name}".strip()
 
-    def set_password(self, raw_password):
-        """Hash and set password. Caller must call save() to persist."""
-        from django.contrib.auth.hashers import make_password
-        self.password = make_password(raw_password)
-
-    def check_password(self, raw_password):
-        from django.contrib.auth.hashers import check_password as _check
-        return _check(raw_password, self.password)
+    def get_role_display(self):
+        return dict(self.ROLE_CHOICES).get(self.role, self.role)
 
     def __str__(self):
         return f"{self.get_full_name()} ({self.get_role_display()}) — {self.restaurant.name}"
+
+
+class StaffInvitation(models.Model):
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='invitations'
+    )
+    email = models.EmailField()
+    role = models.CharField(max_length=20, choices=StaffMember.ROLE_CHOICES)
+    token = models.UUIDField(default=uuid.uuid4, unique=True)
+    created_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL, null=True, related_name='sent_invitations'
+    )
+    accepted = models.BooleanField(default=False)
+    expires_at = models.DateTimeField()
+
+    def is_valid(self):
+        from django.utils import timezone
+        return not self.accepted and self.expires_at > timezone.now()
+
+    def __str__(self):
+        return f"Invitation {self.email} → {self.restaurant.name} ({self.role})"
 
 
 class Payment(models.Model):

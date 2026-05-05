@@ -1,352 +1,321 @@
-from django.test import TestCase
-from django.contrib.auth.hashers import check_password
+# base/tests.py
+import uuid
+from django.test import TestCase, Client, override_settings
+from django.utils import timezone
 from django.db import IntegrityError
+from django.urls import reverse
+from django.core import mail as django_mail
 from accounts.models import User
-from base.models import Restaurant, Order, StaffMember, SubscriptionPlan
-from base.staff_forms import StaffLoginForm, StaffMemberForm
-from base.decorators import get_staff_from_session, staff_required, admin_or_coadmin_required
+from base.models import Restaurant, StaffMember, StaffInvitation
 
 
-def make_owner():
-    return User.objects.create_user(email='owner@test.com', password='pass', first_name='Admin', last_name='Owner')
+def make_user(email='user@test.com', first='A', last='B'):
+    return User.objects.create_user(
+        email=email, password='pass123', first_name=first, last_name=last,
+        email_verified=True,
+    )
 
 
 def make_restaurant(owner):
     return Restaurant.objects.create(
-        owner=owner, name='TestResto', slug='testResto', subdomain='testresto'
+        owner=owner, name='TestResto', slug='testresto', subdomain='testresto',
+        address='123 rue test', phone='0600000000', email='resto@test.com',
     )
 
+
+# ─── Task 1: Model tests ───────────────────────────────────────────────────────
 
 class StaffMemberModelTest(TestCase):
 
     def setUp(self):
-        self.owner = make_owner()
+        self.owner = make_user('owner@test.com', 'Owner', 'Admin')
         self.restaurant = make_restaurant(self.owner)
 
     def test_create_staff_member(self):
-        staff = StaffMember(
-            restaurant=self.restaurant,
-            first_name='Jean',
-            last_name='Dupont',
-            username='jean',
-            role='cuisinier',
+        staff_user = make_user('chef@test.com', 'Jean', 'Dupont')
+        sm = StaffMember.objects.create(
+            user=staff_user, restaurant=self.restaurant, role='cuisinier'
         )
-        staff.set_password('secret123')
-        staff.save()
-        self.assertEqual(StaffMember.objects.count(), 1)
-        self.assertEqual(staff.get_full_name(), 'Jean Dupont')
+        self.assertEqual(sm.get_full_name(), 'Jean Dupont')
+        self.assertEqual(sm.get_role_display(), 'Cuisinier')
+        self.assertTrue(sm.is_active)
 
-    def test_password_hashing(self):
-        staff = StaffMember(
-            restaurant=self.restaurant, first_name='A', last_name='B',
-            username='ab', role='serveur',
+    def test_unique_user_per_restaurant(self):
+        staff_user = make_user('chef2@test.com', 'Paul', 'Martin')
+        StaffMember.objects.create(
+            user=staff_user, restaurant=self.restaurant, role='cuisinier'
         )
-        staff.set_password('mypassword')
-        staff.save()
-        fresh = StaffMember.objects.get(pk=staff.pk)
-        self.assertTrue(fresh.check_password('mypassword'))
-        self.assertFalse(fresh.check_password('wrongpassword'))
-
-    def test_username_unique_per_restaurant(self):
-        s = StaffMember(
-            restaurant=self.restaurant, first_name='A', last_name='B',
-            username='chef', role='cuisinier',
-        )
-        s.set_password('x')
-        s.save()
         with self.assertRaises(IntegrityError):
             StaffMember.objects.create(
-                restaurant=self.restaurant, first_name='C', last_name='D',
-                username='chef', role='serveur', password='y'
+                user=staff_user, restaurant=self.restaurant, role='serveur'
             )
 
-    def test_str_representation(self):
-        staff = StaffMember(
+
+class StaffInvitationModelTest(TestCase):
+
+    def setUp(self):
+        self.owner = make_user('owner2@test.com', 'Owner', 'Two')
+        self.restaurant = make_restaurant(self.owner)
+
+    def test_invitation_is_valid(self):
+        inv = StaffInvitation.objects.create(
             restaurant=self.restaurant,
-            first_name='Jean', last_name='Dupont', role='cuisinier',
-            username='jean',
+            email='invite@test.com',
+            role='cuisinier',
+            created_by=self.owner,
+            expires_at=timezone.now() + timezone.timedelta(days=7),
         )
-        staff.set_password('pass')
-        staff.save()
-        self.assertIn('Jean Dupont', str(staff))
-        self.assertIn(self.restaurant.name, str(staff))
+        self.assertTrue(inv.is_valid())
 
-    def test_order_has_preparing_by_name(self):
-        order = Order(
+    def test_expired_invitation_invalid(self):
+        inv = StaffInvitation.objects.create(
             restaurant=self.restaurant,
-            order_type='dine_in',
-            status='preparing',
-            preparing_by_name='Jean Dupont',
+            email='exp@test.com',
+            role='serveur',
+            created_by=self.owner,
+            expires_at=timezone.now() - timezone.timedelta(seconds=1),
         )
-        order.save()
-        self.assertEqual(Order.objects.get(pk=order.pk).preparing_by_name, 'Jean Dupont')
+        self.assertFalse(inv.is_valid())
 
-
-class StaffFormsTest(TestCase):
-
-    def setUp(self):
-        self.owner = make_owner()
-        self.restaurant = make_restaurant(self.owner)
-
-    def test_login_form_valid(self):
-        form = StaffLoginForm(data={'username': 'jean', 'password': 'pass'})
-        self.assertTrue(form.is_valid())
-
-    def test_login_form_missing_fields(self):
-        form = StaffLoginForm(data={'username': ''})
-        self.assertFalse(form.is_valid())
-
-    def test_staff_member_form_valid(self):
-        form = StaffMemberForm(data={
-            'first_name': 'Marie', 'last_name': 'Martin',
-            'username': 'marie', 'role': 'serveur',
-            'password': 'secret', 'confirm_password': 'secret',
-            'is_active': True,
-        })
-        self.assertTrue(form.is_valid())
-
-    def test_staff_member_form_password_mismatch(self):
-        form = StaffMemberForm(data={
-            'first_name': 'A', 'last_name': 'B', 'username': 'ab',
-            'role': 'cuisinier', 'password': 'abc', 'confirm_password': 'xyz',
-            'is_active': True,
-        })
-        self.assertFalse(form.is_valid())
-        self.assertIn('confirm_password', form.errors)
-
-
-class DecoratorsTest(TestCase):
-
-    def setUp(self):
-        self.owner = make_owner()
-        self.restaurant = make_restaurant(self.owner)
-        self.staff = StaffMember(
+    def test_accepted_invitation_invalid(self):
+        inv = StaffInvitation.objects.create(
             restaurant=self.restaurant,
-            first_name='Chef', last_name='Test',
-            username='chef', role='cuisinier', is_active=True,
+            email='done@test.com',
+            role='cuisinier',
+            created_by=self.owner,
+            expires_at=timezone.now() + timezone.timedelta(days=7),
+            accepted=True,
         )
-        self.staff.set_password('pass')
-        self.staff.save()
-
-    def test_get_staff_from_session_found(self):
-        session = self.client.session
-        session['staff_id'] = self.staff.id
-        session.save()
-        # Simulate a request with this session via test client
-        # We test the helper directly using a mock-like approach
-        from unittest.mock import MagicMock
-        request = MagicMock()
-        request.session = {'staff_id': self.staff.id}
-        result = get_staff_from_session(request)
-        self.assertEqual(result.id, self.staff.id)
-
-    def test_get_staff_from_session_not_found(self):
-        from unittest.mock import MagicMock
-        request = MagicMock()
-        request.session = {}
-        result = get_staff_from_session(request)
-        self.assertIsNone(result)
-
-    def test_staff_required_redirects_without_session(self):
-        response = self.client.get('/staff/commandes/')
-        self.assertEqual(response.status_code, 302)
-        self.assertIn('/staff/connexion/', response['Location'])
+        self.assertFalse(inv.is_valid())
 
 
-class StaffAuthViewsTest(TestCase):
+# ─── Task 2: Decorator tests ───────────────────────────────────────────────────
+
+class GetUserRestaurantTest(TestCase):
 
     def setUp(self):
-        self.owner = make_owner()
+        self.owner = make_user('owner3@test.com', 'Owner', 'Three')
         self.restaurant = make_restaurant(self.owner)
-        self.staff = StaffMember(
+
+    def test_owner_returns_owner_role(self):
+        from base.decorators import get_user_restaurant
+        restaurant, role = get_user_restaurant(self.owner)
+        self.assertEqual(restaurant, self.restaurant)
+        self.assertEqual(role, 'owner')
+
+    def test_staff_returns_staff_role(self):
+        from base.decorators import get_user_restaurant
+        staff_user = make_user('staff3@test.com', 'Staff', 'Three')
+        StaffMember.objects.create(
+            user=staff_user, restaurant=self.restaurant, role='cuisinier'
+        )
+        restaurant, role = get_user_restaurant(staff_user)
+        self.assertEqual(restaurant, self.restaurant)
+        self.assertEqual(role, 'cuisinier')
+
+    def test_no_restaurant_returns_none(self):
+        from base.decorators import get_user_restaurant
+        lonely = make_user('alone@test.com', 'No', 'Resto')
+        restaurant, role = get_user_restaurant(lonely)
+        self.assertIsNone(restaurant)
+        self.assertIsNone(role)
+
+    def test_inactive_staff_ignored(self):
+        from base.decorators import get_user_restaurant
+        staff_user = make_user('inactive@test.com', 'In', 'Active')
+        StaffMember.objects.create(
+            user=staff_user, restaurant=self.restaurant, role='serveur', is_active=False
+        )
+        restaurant, role = get_user_restaurant(staff_user)
+        self.assertIsNone(restaurant)
+        self.assertIsNone(role)
+
+
+# ─── Task 3: Email tests ───────────────────────────────────────────────────────
+
+class StaffInvitationEmailTest(TestCase):
+
+    def setUp(self):
+        self.owner = make_user('owner4@test.com', 'Owner', 'Four')
+        self.restaurant = make_restaurant(self.owner)
+
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_sends_invitation_email(self):
+        from base.emails import send_staff_invitation_email
+        inv = StaffInvitation.objects.create(
             restaurant=self.restaurant,
-            first_name='Chef', last_name='Test',
-            username='chef', role='cuisinier', is_active=True,
+            email='newstaff@test.com',
+            role='cuisinier',
+            created_by=self.owner,
+            expires_at=timezone.now() + timezone.timedelta(days=7),
         )
-        self.staff.set_password('secret')
-        self.staff.save()
-
-    def test_staff_login_page_loads(self):
-        response = self.client.get('/staff/connexion/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_staff_login_success(self):
-        response = self.client.post('/staff/connexion/', {
-            'username': 'chef', 'password': 'secret',
-        })
-        self.assertRedirects(response, '/staff/commandes/', fetch_redirect_response=False)
-        self.assertIn('staff_id', self.client.session)
-
-    def test_staff_login_wrong_password(self):
-        response = self.client.post('/staff/connexion/', {
-            'username': 'chef', 'password': 'wrong',
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn('staff_id', self.client.session)
-
-    def test_staff_login_inactive_account(self):
-        self.staff.is_active = False
-        self.staff.save()
-        response = self.client.post('/staff/connexion/', {
-            'username': 'chef', 'password': 'secret',
-        })
-        self.assertEqual(response.status_code, 200)
-        self.assertNotIn('staff_id', self.client.session)
-
-    def test_staff_logout_clears_session(self):
-        session = self.client.session
-        session['staff_id'] = self.staff.id
-        session['staff_role'] = self.staff.role
-        session.save()
-        self.client.get('/staff/deconnexion/')
-        self.assertNotIn('staff_id', self.client.session)
+        send_staff_invitation_email(base_url='http://testserver', invitation=inv)
+        self.assertEqual(len(django_mail.outbox), 1)
+        self.assertIn('newstaff@test.com', django_mail.outbox[0].to)
+        self.assertIn(str(inv.token), django_mail.outbox[0].body)
+        self.assertIn(self.restaurant.name, django_mail.outbox[0].body)
 
 
-class StaffOrdersViewsTest(TestCase):
+# ─── Task 4: Connexion routing tests ──────────────────────────────────────────
+
+class ConnectionRoutingTest(TestCase):
 
     def setUp(self):
-        self.owner = make_owner()
+        self.client = Client()
+        self.owner = make_user('owner5@test.com', 'Owner', 'Five')
         self.restaurant = make_restaurant(self.owner)
-        self.cook = StaffMember(
-            restaurant=self.restaurant, first_name='Jean', last_name='Chef',
-            username='jean', role='cuisinier', is_active=True,
+
+    def _login(self, email, password='pass123'):
+        return self.client.post(reverse('connexion'), {
+            'email': email, 'password': password,
+        })
+
+    def test_owner_redirects_to_dashboard(self):
+        resp = self._login('owner5@test.com')
+        self.assertRedirects(resp, reverse('dashboard'), fetch_redirect_response=False)
+
+    def test_cuisinier_redirects_to_dashboard(self):
+        chef_user = make_user('chef5@test.com', 'Chef', 'Five')
+        StaffMember.objects.create(
+            user=chef_user, restaurant=self.restaurant, role='cuisinier'
         )
-        self.cook.set_password('pass')
-        self.cook.save()
+        resp = self._login('chef5@test.com')
+        self.assertRedirects(resp, reverse('dashboard'), fetch_redirect_response=False)
 
-        self.server = StaffMember(
-            restaurant=self.restaurant, first_name='Marie', last_name='Serv',
-            username='marie', role='serveur', is_active=True,
-        )
-        self.server.set_password('pass')
-        self.server.save()
-
-        self.order = Order.objects.create(
-            restaurant=self.restaurant, status='pending', order_type='dine_in'
-        )
-
-    def _login_staff(self, staff):
-        session = self.client.session
-        session['staff_id'] = staff.id
-        session['staff_role'] = staff.role
-        session.save()
-
-    def test_orders_list_requires_staff_session(self):
-        response = self.client.get('/staff/commandes/')
-        self.assertEqual(response.status_code, 302)
-
-    def test_orders_list_accessible_to_cook(self):
-        self._login_staff(self.cook)
-        response = self.client.get('/staff/commandes/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_cook_can_set_preparing(self):
-        self._login_staff(self.cook)
-        self.client.post(
-            f'/staff/commandes/{self.order.pk}/statut/',
-            {'status': 'preparing'},
-        )
-        self.order.refresh_from_db()
-        self.assertEqual(self.order.status, 'preparing')
-        self.assertEqual(self.order.preparing_by_name, 'Jean Chef')
-
-    def test_server_cannot_set_preparing(self):
-        self._login_staff(self.server)
-        self.client.post(
-            f'/staff/commandes/{self.order.pk}/statut/',
-            {'status': 'preparing'},
-        )
-        self.order.refresh_from_db()
-        self.assertNotEqual(self.order.status, 'preparing')
-
-    def test_server_can_set_delivered(self):
-        self.order.status = 'ready'
-        self.order.save()
-        self._login_staff(self.server)
-        self.client.post(
-            f'/staff/commandes/{self.order.pk}/statut/',
-            {'status': 'delivered'},
-        )
-        self.order.refresh_from_db()
-        self.assertEqual(self.order.status, 'delivered')
-
-    def test_check_updates_returns_json(self):
-        self._login_staff(self.cook)
-        response = self.client.get('/staff/commandes/check/?last_id=0')
-        self.assertEqual(response.status_code, 200)
-        data = response.json()
-        self.assertIn('orders', data)
-        self.assertIn('ready_count', data)
+    def test_no_restaurant_user_redirects_to_create(self):
+        lonely = make_user('lonely5@test.com', 'Lonely', 'Five')
+        resp = self._login('lonely5@test.com')
+        self.assertRedirects(resp, reverse('create_restaurant'), fetch_redirect_response=False)
 
 
-class StaffAdminViewsTest(TestCase):
+# ─── Task 5: Role access tests ────────────────────────────────────────────────
+
+class RoleAccessTest(TestCase):
 
     def setUp(self):
-        self.owner = make_owner()
+        self.client = Client()
+        self.owner = make_user('owner6@test.com', 'Owner', 'Six')
         self.restaurant = make_restaurant(self.owner)
-        self.coadmin = StaffMember(
-            restaurant=self.restaurant, first_name='Co', last_name='Admin',
-            username='coadmin', role='coadmin', is_active=True,
+        self.chef_user = make_user('chef6@test.com', 'Chef', 'Six')
+        self.chef = StaffMember.objects.create(
+            user=self.chef_user, restaurant=self.restaurant, role='cuisinier'
         )
-        self.coadmin.set_password('pass')
-        self.coadmin.save()
-
-        self.cook = StaffMember(
-            restaurant=self.restaurant, first_name='Chef', last_name='Two',
-            username='chef2', role='cuisinier', is_active=True,
+        self.server_user = make_user('server6@test.com', 'Server', 'Six')
+        self.server = StaffMember.objects.create(
+            user=self.server_user, restaurant=self.restaurant, role='serveur'
         )
-        self.cook.set_password('pass')
-        self.cook.save()
 
-    def _login_owner(self):
+    def test_cuisinier_cannot_access_tables(self):
+        self.client.force_login(self.chef_user)
+        resp = self.client.get(reverse('tables_list'))
+        self.assertRedirects(resp, reverse('dashboard'), fetch_redirect_response=False)
+
+    def test_cuisinier_cannot_access_equipe(self):
+        self.client.force_login(self.chef_user)
+        resp = self.client.get(reverse('staff_list'))
+        self.assertRedirects(resp, reverse('dashboard'), fetch_redirect_response=False)
+
+    def test_serveur_cannot_access_menus(self):
+        self.client.force_login(self.server_user)
+        resp = self.client.get(reverse('menus_list'))
+        self.assertRedirects(resp, reverse('dashboard'), fetch_redirect_response=False)
+
+    def test_serveur_can_access_tables(self):
+        self.client.force_login(self.server_user)
+        resp = self.client.get(reverse('tables_list'))
+        self.assertEqual(resp.status_code, 200)
+
+    def test_owner_can_access_all(self):
+        self.client.force_login(self.owner)
+        for url_name in ['orders_list', 'menus_list', 'tables_list', 'staff_list']:
+            resp = self.client.get(reverse(url_name))
+            self.assertNotEqual(resp.status_code, 302, f"{url_name} returned redirect for owner")
+
+
+# ─── Task 6: Invitation view tests ────────────────────────────────────────────
+
+class InvitationViewTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.owner = make_user('owner7@test.com', 'Owner', 'Seven')
+        self.restaurant = make_restaurant(self.owner)
         self.client.force_login(self.owner)
 
-    def _login_coadmin(self):
-        session = self.client.session
-        session['staff_id'] = self.coadmin.id
-        session['staff_role'] = 'coadmin'
-        session.save()
-
-    def test_staff_list_requires_auth(self):
-        response = self.client.get('/equipe/')
-        self.assertEqual(response.status_code, 302)
-
-    def test_staff_list_accessible_by_owner(self):
-        self._login_owner()
-        response = self.client.get('/equipe/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_staff_list_accessible_by_coadmin(self):
-        self._login_coadmin()
-        response = self.client.get('/equipe/')
-        self.assertEqual(response.status_code, 200)
-
-    def test_owner_can_create_coadmin(self):
-        self._login_owner()
-        self.client.post('/equipe/create/', {
-            'first_name': 'New', 'last_name': 'Coadmin',
-            'username': 'newco', 'role': 'coadmin',
-            'password': 'abc123', 'confirm_password': 'abc123',
-            'is_active': 'on',
+    @override_settings(EMAIL_BACKEND='django.core.mail.backends.locmem.EmailBackend')
+    def test_send_invitation_creates_invitation_and_sends_email(self):
+        resp = self.client.post(reverse('staff_invite'), {
+            'email': 'newchef@test.com',
+            'role': 'cuisinier',
         })
-        self.assertEqual(StaffMember.objects.filter(role='coadmin').count(), 2)
+        self.assertRedirects(resp, reverse('staff_list'), fetch_redirect_response=False)
+        self.assertEqual(StaffInvitation.objects.count(), 1)
+        self.assertEqual(len(django_mail.outbox), 1)
+        self.assertIn('newchef@test.com', django_mail.outbox[0].to)
 
-    def test_coadmin_cannot_create_coadmin(self):
-        self._login_coadmin()
-        self.client.post('/equipe/create/', {
-            'first_name': 'Bad', 'last_name': 'Actor',
-            'username': 'bad', 'role': 'coadmin',
-            'password': 'abc123', 'confirm_password': 'abc123',
-            'is_active': 'on',
+    def test_accept_invitation_new_user(self):
+        inv = StaffInvitation.objects.create(
+            restaurant=self.restaurant, email='brand@new.com', role='serveur',
+            created_by=self.owner,
+            expires_at=timezone.now() + timezone.timedelta(days=7),
+        )
+        self.client.logout()
+        resp = self.client.post(reverse('staff_invite_accept', args=[inv.token]), {
+            'first_name': 'Brand',
+            'last_name': 'New',
+            'password': 'securepass123',
         })
-        self.assertEqual(StaffMember.objects.filter(role='coadmin').count(), 1)
+        self.assertRedirects(resp, reverse('connexion'), fetch_redirect_response=False)
+        new_user = User.objects.get(email='brand@new.com')
+        self.assertTrue(new_user.email_verified)
+        self.assertTrue(StaffMember.objects.filter(user=new_user).exists())
+        inv.refresh_from_db()
+        self.assertTrue(inv.accepted)
 
-    def test_coadmin_cannot_delete_another_coadmin(self):
-        self._login_coadmin()
-        self.client.post(f'/equipe/{self.coadmin.pk}/delete/')
-        self.assertEqual(StaffMember.objects.filter(role='coadmin').count(), 1)
+    def test_accept_invitation_existing_logged_in_user(self):
+        existing = make_user('existing@test.com', 'Ex', 'Isting')
+        inv = StaffInvitation.objects.create(
+            restaurant=self.restaurant, email='existing@test.com', role='cuisinier',
+            created_by=self.owner,
+            expires_at=timezone.now() + timezone.timedelta(days=7),
+        )
+        self.client.force_login(existing)
+        resp = self.client.get(reverse('staff_invite_accept', args=[inv.token]))
+        self.assertRedirects(resp, reverse('dashboard'), fetch_redirect_response=False)
+        self.assertTrue(StaffMember.objects.filter(user=existing).exists())
+        inv.refresh_from_db()
+        self.assertTrue(inv.accepted)
 
-    def test_owner_can_delete_coadmin(self):
-        self._login_owner()
-        self.client.post(f'/equipe/{self.coadmin.pk}/delete/')
-        self.assertEqual(StaffMember.objects.filter(role='coadmin').count(), 0)
+    def test_expired_token_shows_error(self):
+        inv = StaffInvitation.objects.create(
+            restaurant=self.restaurant, email='exp@test.com', role='cuisinier',
+            created_by=self.owner,
+            expires_at=timezone.now() - timezone.timedelta(seconds=1),
+        )
+        self.client.logout()
+        resp = self.client.get(reverse('staff_invite_accept', args=[inv.token]))
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, 'expir')
+
+    def test_owner_can_delete_staff(self):
+        staff_user = make_user('deleteme@test.com', 'Del', 'Me')
+        sm = StaffMember.objects.create(
+            user=staff_user, restaurant=self.restaurant, role='cuisinier'
+        )
+        resp = self.client.post(reverse('staff_delete', args=[sm.pk]))
+        self.assertRedirects(resp, reverse('staff_list'), fetch_redirect_response=False)
+        self.assertFalse(StaffMember.objects.filter(pk=sm.pk).exists())
+
+    def test_coadmin_cannot_delete_other_coadmin(self):
+        coadmin_user = make_user('coadmin7@test.com', 'Co', 'Admin')
+        StaffMember.objects.create(
+            user=coadmin_user, restaurant=self.restaurant, role='coadmin'
+        )
+        other_coadmin_user = make_user('coadmin7b@test.com', 'Co', 'Admin2')
+        other_sm = StaffMember.objects.create(
+            user=other_coadmin_user, restaurant=self.restaurant, role='coadmin'
+        )
+        self.client.force_login(coadmin_user)
+        resp = self.client.post(reverse('staff_delete', args=[other_sm.pk]))
+        self.assertRedirects(resp, reverse('staff_list'), fetch_redirect_response=False)
+        self.assertTrue(StaffMember.objects.filter(pk=other_sm.pk).exists())
