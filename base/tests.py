@@ -4,6 +4,7 @@ from django.db import IntegrityError
 from accounts.models import User
 from base.models import Restaurant, Order, StaffMember, SubscriptionPlan
 from base.staff_forms import StaffLoginForm, StaffMemberForm
+from base.decorators import get_staff_from_session, staff_required, admin_or_coadmin_required
 
 
 def make_owner():
@@ -112,3 +113,41 @@ class StaffFormsTest(TestCase):
         })
         self.assertFalse(form.is_valid())
         self.assertIn('confirm_password', form.errors)
+
+
+class DecoratorsTest(TestCase):
+
+    def setUp(self):
+        self.owner = make_owner()
+        self.restaurant = make_restaurant(self.owner)
+        self.staff = StaffMember(
+            restaurant=self.restaurant,
+            first_name='Chef', last_name='Test',
+            username='chef', role='cuisinier', is_active=True,
+        )
+        self.staff.set_password('pass')
+        self.staff.save()
+
+    def test_get_staff_from_session_found(self):
+        session = self.client.session
+        session['staff_id'] = self.staff.id
+        session.save()
+        # Simulate a request with this session via test client
+        # We test the helper directly using a mock-like approach
+        from unittest.mock import MagicMock
+        request = MagicMock()
+        request.session = {'staff_id': self.staff.id}
+        result = get_staff_from_session(request)
+        self.assertEqual(result.id, self.staff.id)
+
+    def test_get_staff_from_session_not_found(self):
+        from unittest.mock import MagicMock
+        request = MagicMock()
+        request.session = {}
+        result = get_staff_from_session(request)
+        self.assertIsNone(result)
+
+    def test_staff_required_redirects_without_session(self):
+        response = self.client.get('/staff/commandes/')
+        self.assertEqual(response.status_code, 302)
+        self.assertIn('/staff/connexion/', response['Location'])
