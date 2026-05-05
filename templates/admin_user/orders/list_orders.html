@@ -123,7 +123,7 @@
 <!-- Polling nouvelles commandes -->
 <script>
   const audio = new Audio('{% static "sounds/new-order.mp3" %}');
-  let knownCount = {{ pending_count|default:0 }};
+  let lastOrderId = {{ latest_order_id|default:"null" }};
 
   setInterval(async () => {
     try {
@@ -131,9 +131,9 @@
         headers: { 'X-Requested-With': 'XMLHttpRequest' }
       });
       const d = await r.json();
-      if (d.new_count > knownCount) {
+      if (d.latest_order_id && d.latest_order_id !== lastOrderId) {
         audio.play().catch(() => {});
-        knownCount = d.new_count;
+        lastOrderId = d.latest_order_id;
         location.reload();
       }
     } catch(e) {}
