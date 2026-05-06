@@ -129,8 +129,10 @@ MEDIA_ROOT = BASE_DIR.joinpath('media/')
 
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_USE_TLS = True
+EMAIL_PORT = 465
+# EMAIL_USE_TLS = True
+EMAIL_USE_TLS = False          # <-- On passe TLS à False
+EMAIL_USE_SSL = True
 EMAIL_HOST_USER = 'solutionasitech@gmail.com'  # Remplace par ton email
 EMAIL_HOST_PASSWORD = 'gqldkxwyvtpjxuur'  # Remplace par ton mot de passe ou un App Password
 DEFAULT_FROM_EMAIL = 'noreply@test.com'

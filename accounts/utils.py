@@ -33,5 +33,6 @@ Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.
         message,
         settings.DEFAULT_FROM_EMAIL,
         [user.email],
-        fail_silently=False,
+        # fail_silently=False,
+        fail_silently=True,
     )
