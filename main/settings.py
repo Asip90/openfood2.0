@@ -122,8 +122,7 @@ STATIC_URL = '/static/'
 STATICFILES_DIRS = [
     BASE_DIR / "static",
 ]
-
-
+STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.joinpath('media/')
 
@@ -144,12 +143,19 @@ FEDAPAY_PUBLIC_KEY = 'pk_sandbox_your_key_here'
 FEDAPAY_ENV = 'sandbox'   # 'live' en production
 
 LOGIN_URL = "/connexion"
-BACKEND_DOMAIN="http://localhost:8000"
+BACKEND_DOMAIN = 'https://openfood2-0.onrender.com'
+# BACKEND_DOMAIN="http://localhost:8000"
 FRONTEND_BASE_URL="/127.0.0.1:8000"
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    "le-luxury-house.localhost",  # <-- ton sous-domaine
-    "*",  # temporaire pour tests, pas en prod !
+    ".onrender.com", # Autorise votre domaine Render et tous ses sous-domaines
 ]
+
+# ALLOWED_HOSTS = [
+#     "127.0.0.1",
+#     "localhost",
+#     "le-luxury-house.localhost",  # <-- ton sous-domaine
+#     "*",  # temporaire pour tests, pas en prod !
+# ]
