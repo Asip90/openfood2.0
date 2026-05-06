@@ -18,29 +18,71 @@ import uuid
 
 class SubscriptionPlan(models.Model):
     PLAN_TYPES = [
-        ('starter', 'Starter'),
+        ('gratuit', 'Gratuit'),
         ('pro', 'Pro'),
-        ('enterprise', 'Enterprise'),
+        ('max', 'Max'),
     ]
-    
+
     name = models.CharField(max_length=100)
     plan_type = models.CharField(max_length=20, choices=PLAN_TYPES)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     duration_days = models.IntegerField(default=30)
-    
+
+    # Limits — 0 means unlimited
+    max_menu_items = models.IntegerField(default=5)
+    max_tables = models.IntegerField(default=3)
+    max_staff = models.IntegerField(default=0)
+
     # Features
-    max_menu_items = models.IntegerField()
-    max_tables = models.IntegerField()
-    custom_domain = models.BooleanField(default=False)
     analytics = models.BooleanField(default=False)
-    priority_support = models.BooleanField(default=False)
+    advanced_analytics = models.BooleanField(default=False)
     remove_branding = models.BooleanField(default=False)
-    
+    priority_support = models.BooleanField(default=False)
+    custom_domain = models.BooleanField(default=False)
+
     is_active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    
+
     def __str__(self):
-        return f"{self.name} - {self.price}€"
+        return f"{self.name} ({self.price} FCFA)"
+
+    def is_unlimited(self, field):
+        return getattr(self, field) == 0
+
+
+class PromoCode(models.Model):
+    code = models.CharField(max_length=50, unique=True, db_index=True)
+    plan = models.ForeignKey(
+        SubscriptionPlan, on_delete=models.CASCADE, related_name='promo_codes'
+    )
+    duration_days = models.IntegerField(default=30)
+    max_uses = models.IntegerField(null=True, blank=True)  # null = unlimited
+    uses_count = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    expires_at = models.DateTimeField(null=True, blank=True)  # null = never expires
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def __str__(self):
+        return f"{self.code} → {self.plan.name}"
+
+    def is_valid(self):
+        from django.utils import timezone
+        if not self.is_active:
+            return False
+        if self.expires_at and self.expires_at < timezone.now():
+            return False
+        if self.max_uses is not None and self.uses_count >= self.max_uses:
+            return False
+        return True
+
+
+class PromoCodeUse(models.Model):
+    promo_code = models.ForeignKey(PromoCode, on_delete=models.CASCADE, related_name='uses')
+    restaurant = models.ForeignKey('Restaurant', on_delete=models.CASCADE, related_name='promo_uses')
+    used_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('promo_code', 'restaurant')
 
 
 

@@ -1,12 +1,8 @@
-from django.shortcuts import get_object_or_404, render
-from django.shortcuts import render, redirect
+from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
-from django.contrib.auth import authenticate, login , logout
-from django.conf import settings
-from django.core.mail import send_mail
-from django.urls import reverse
+from django.contrib.auth import authenticate, login, logout
 
-from base.views import dashboard
+from base.decorators import get_user_restaurant
 from .utils import send_verification_email
 from .models import User
 
@@ -30,12 +26,20 @@ def connexion(request):
             return redirect("connexion")
 
         login(request, user)
-        return redirect(dashboard)  # adapte ici
 
-    return render(request, "auth/connexion.html")
+        next_url = request.GET.get('next') or request.POST.get('next')
+        if next_url and next_url.startswith('/'):
+            return redirect(next_url)
 
-   
-   
+        restaurant, role = get_user_restaurant(user)
+        if restaurant:
+            return redirect("dashboard")
+        return redirect("create_restaurant")
+
+    next_url = request.GET.get('next', '')
+    return render(request, "auth/connexion.html", {'next': next_url})
+
+
 def inscription(request):
     if request.method == "POST":
         first_name = request.POST.get("first_name")
@@ -74,14 +78,13 @@ def verify_email(request, token):
         return redirect("connexion")
 
     user.email_verified = True
-    user.email_token = None  # optionnel mais recommandé
+    user.email_token = None
     user.save()
 
     messages.success(request, "Email vérifié avec succès 🎉")
     return redirect("connexion")
 
-# @login_required
+
 def log_out(request):
     logout(request)
     return redirect("connexion")
-    

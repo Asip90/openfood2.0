@@ -1,14 +1,15 @@
-from django import views
 from django.urls import path
 from base.views import *
 from base import staff_admin_views
+from base import subscription_views
 
 
 urlpatterns = [
-    path('',home,name="home"),
-    
+    path('', home, name="home"),
+
     path("restaurant/create/", create_restaurant, name="create_restaurant"),
-     # Dashboard
+
+    # Dashboard
     path("dashboard/", dashboard, name="dashboard"),
 
     # Commandes
@@ -20,9 +21,7 @@ urlpatterns = [
     path('orders/<int:order_id>/delete/', delete_order, name='delete_order'),
     path("orders/<int:pk>/change-status/", order_change_status, name="order_change_status"),
 
-
     # Catégories
-    # path("categories/", categories_list, name="categories_list"),
     path("categories/create/", create_category, name="create_category"),
     path("categories/create/modale/", create_category_modale, name="create_category_modale"),
 
@@ -32,6 +31,7 @@ urlpatterns = [
     path("menus/<int:pk>/delete/", menu_delete, name="menu_delete"),
     path("menus/create/", menu_create, name="menu_create"),
     path("menus/<int:pk>/change-availability/", change_menu_status, name="menu_toggle_availability"),
+
     # Tables
     path("tables/", tables_list, name="tables_list"),
     path("tables/create/", table_create, name="table_create"),
@@ -50,9 +50,17 @@ urlpatterns = [
     # PWA
     path("manifest/<slug:slug>.json", pwa_manifest, name="pwa_manifest"),
 
-    # Équipe (staff management)
-    path('equipe/',                 staff_admin_views.staff_list,   name='staff_list'),
-    path('equipe/create/',          staff_admin_views.staff_create, name='staff_create'),
-    path('equipe/<int:pk>/update/', staff_admin_views.staff_update, name='staff_update'),
-    path('equipe/<int:pk>/delete/', staff_admin_views.staff_delete, name='staff_delete'),
+    # Équipe — invitation flow
+    path('equipe/', staff_admin_views.staff_list, name='staff_list'),
+    path('equipe/inviter/', staff_admin_views.staff_invite, name='staff_invite'),
+    path('equipe/accepter/<uuid:token>/', staff_admin_views.staff_invite_accept, name='staff_invite_accept'),
+    path('equipe/<int:pk>/supprimer/', staff_admin_views.staff_delete, name='staff_delete'),
+
+    # Tarification
+    path('tarifs/', subscription_views.pricing, name='pricing'),
+
+    # Abonnements / FedaPay
+    path('abonnement/<str:plan_type>/payer/', subscription_views.subscribe_initiate, name='subscribe_initiate'),
+    path('abonnement/callback/<str:plan_type>/', subscription_views.subscribe_callback, name='subscribe_callback'),
+    path('abonnement/statut/', subscription_views.subscription_status, name='subscription_status'),
 ]

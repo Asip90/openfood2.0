@@ -1,0 +1,329 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>404 — Page introuvable · OpenFood</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@700;800;900&family=DM+Mono:wght@400;500&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:       #080c14;
+      --surface:  #0f1623;
+      --border:   rgba(255,255,255,0.07);
+      --orange:   #f97316;
+      --orange2:  #ea580c;
+      --muted:    #64748b;
+      --text:     #e2e8f0;
+    }
+
+    html, body {
+      height: 100%;
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'DM Sans', system-ui, sans-serif;
+      overflow: hidden;
+    }
+
+    /* Noise grain overlay */
+    body::before {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+      pointer-events: none;
+      z-index: 0;
+      opacity: 0.4;
+    }
+
+    /* Grid lines */
+    body::after {
+      content: '';
+      position: fixed;
+      inset: 0;
+      background-image:
+        linear-gradient(var(--border) 1px, transparent 1px),
+        linear-gradient(90deg, var(--border) 1px, transparent 1px);
+      background-size: 60px 60px;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    .page {
+      position: relative;
+      z-index: 1;
+      height: 100vh;
+      display: grid;
+      grid-template-rows: auto 1fr auto;
+      padding: 2rem 2.5rem;
+      max-width: 1100px;
+      margin: 0 auto;
+    }
+
+    /* ── Header ── */
+    .header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding-bottom: 2rem;
+      border-bottom: 1px solid var(--border);
+    }
+    .logo {
+      font-family: 'Syne', sans-serif;
+      font-weight: 900;
+      font-size: 1.1rem;
+      letter-spacing: -0.02em;
+      color: #fff;
+      text-decoration: none;
+    }
+    .logo span { color: var(--orange); }
+    .status-pill {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--orange);
+      border: 1px solid rgba(249,115,22,0.3);
+      background: rgba(249,115,22,0.08);
+      padding: 0.35rem 0.9rem;
+      border-radius: 999px;
+    }
+
+    /* ── Center ── */
+    .center {
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 0;
+      position: relative;
+    }
+
+    .error-code {
+      font-family: 'Syne', sans-serif;
+      font-weight: 900;
+      font-size: clamp(10rem, 22vw, 20rem);
+      line-height: 0.85;
+      letter-spacing: -0.06em;
+      background: linear-gradient(135deg, var(--orange) 0%, var(--orange2) 40%, #7c2d12 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      user-select: none;
+      animation: fadeUp 0.7s cubic-bezier(0.16,1,0.3,1) both;
+    }
+
+    .divider {
+      display: flex;
+      align-items: center;
+      gap: 1.5rem;
+      margin: 1.5rem 0;
+      animation: fadeUp 0.7s 0.12s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .divider::before {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: linear-gradient(90deg, var(--orange), transparent);
+    }
+    .divider-label {
+      font-family: 'DM Mono', monospace;
+      font-size: 0.65rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+    .divider::after {
+      content: '';
+      width: 6px;
+      height: 6px;
+      background: var(--orange);
+      border-radius: 50%;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    .message-block {
+      animation: fadeUp 0.7s 0.22s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .message-title {
+      font-family: 'Syne', sans-serif;
+      font-weight: 800;
+      font-size: clamp(1.4rem, 3vw, 2.2rem);
+      color: #fff;
+      letter-spacing: -0.03em;
+      margin-bottom: 0.6rem;
+    }
+    .message-sub {
+      font-size: 0.95rem;
+      color: var(--muted);
+      max-width: 42ch;
+      line-height: 1.65;
+    }
+
+    .actions {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 2.5rem;
+      animation: fadeUp 0.7s 0.32s cubic-bezier(0.16,1,0.3,1) both;
+    }
+    .btn-primary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.75rem;
+      background: var(--orange);
+      color: #fff;
+      font-weight: 600;
+      font-size: 0.9rem;
+      border-radius: 0.75rem;
+      text-decoration: none;
+      transition: background 0.15s, transform 0.1s;
+      box-shadow: 0 0 0 0 rgba(249,115,22,0.4);
+    }
+    .btn-primary:hover {
+      background: var(--orange2);
+      transform: translateY(-1px);
+      box-shadow: 0 8px 24px rgba(249,115,22,0.3);
+    }
+    .btn-secondary {
+      display: inline-flex;
+      align-items: center;
+      gap: 0.5rem;
+      padding: 0.75rem 1.5rem;
+      color: var(--muted);
+      font-size: 0.9rem;
+      text-decoration: none;
+      border: 1px solid var(--border);
+      border-radius: 0.75rem;
+      transition: color 0.15s, border-color 0.15s;
+    }
+    .btn-secondary:hover { color: var(--text); border-color: rgba(255,255,255,0.15); }
+
+    /* ── Footer ── */
+    .footer {
+      padding-top: 2rem;
+      border-top: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      font-family: 'DM Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+    }
+    .footer-code { color: rgba(249,115,22,0.6); }
+
+    /* ── Decorative floating plate ── */
+    .deco {
+      position: absolute;
+      right: -2rem;
+      top: 50%;
+      transform: translateY(-50%);
+      width: clamp(180px, 22vw, 320px);
+      aspect-ratio: 1;
+      pointer-events: none;
+      animation: float 6s ease-in-out infinite;
+    }
+    .deco-ring {
+      position: absolute;
+      inset: 0;
+      border-radius: 50%;
+      border: 1px solid rgba(249,115,22,0.12);
+    }
+    .deco-ring:nth-child(2) { inset: 12%; border-color: rgba(249,115,22,0.08); }
+    .deco-ring:nth-child(3) { inset: 25%; border-color: rgba(249,115,22,0.15); }
+    .deco-center {
+      position: absolute;
+      inset: 38%;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(249,115,22,0.15) 0%, transparent 70%);
+    }
+    .deco-text {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-family: 'Syne', sans-serif;
+      font-weight: 900;
+      font-size: 1.4rem;
+      color: rgba(249,115,22,0.2);
+      letter-spacing: -0.02em;
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(20px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.4; transform: scale(0.6); }
+    }
+    @keyframes float {
+      0%, 100% { transform: translateY(-50%) rotate(0deg); }
+      33%       { transform: translateY(calc(-50% - 12px)) rotate(1.5deg); }
+      66%       { transform: translateY(calc(-50% + 8px)) rotate(-1deg); }
+    }
+
+    @media (max-width: 640px) {
+      .page { padding: 1.5rem; }
+      .deco { display: none; }
+      .error-code { font-size: clamp(7rem, 30vw, 12rem); }
+    }
+  </style>
+</head>
+<body>
+<div class="page">
+
+  <header class="header">
+    <a href="/" class="logo">Open<span>Food</span></a>
+    <span class="status-pill">Erreur 404</span>
+  </header>
+
+  <main class="center">
+
+    <div class="error-code">404</div>
+
+    <div class="divider">
+      <span class="divider-label">Page introuvable</span>
+    </div>
+
+    <div class="message-block">
+      <h1 class="message-title">Ce plat n'est pas au menu.</h1>
+      <p class="message-sub">
+        La page que vous recherchez a été retirée, déplacée, ou n'a jamais existé.
+        Retournez à l'accueil pour reprendre votre chemin.
+      </p>
+
+      <div class="actions">
+        <a href="/" class="btn-primary">
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12L12 3l9 9"/><path d="M9 21V9h6v12"/></svg>
+          Retour à l'accueil
+        </a>
+        <a href="javascript:history.back()" class="btn-secondary">
+          ← Page précédente
+        </a>
+      </div>
+    </div>
+
+    <!-- Decorative element -->
+    <div class="deco" aria-hidden="true">
+      <div class="deco-ring"></div>
+      <div class="deco-ring"></div>
+      <div class="deco-ring"></div>
+      <div class="deco-center"></div>
+      <div class="deco-text">404</div>
+    </div>
+
+  </main>
+
+  <footer class="footer">
+    <span class="footer-code">GET / HTTP 404</span>
+    <span>OpenFood · {% now "Y" %}</span>
+  </footer>
+
+</div>
+</body>
+</html>

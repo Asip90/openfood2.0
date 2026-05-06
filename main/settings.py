@@ -64,6 +64,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'base.context_processors.restaurant_context',
             ],
         },
     },
@@ -136,6 +137,11 @@ EMAIL_HOST_PASSWORD = 'gqldkxwyvtpjxuur'  # Remplace par ton mot de passe ou un 
 DEFAULT_FROM_EMAIL = 'noreply@test.com'
 
 AUTH_USER_MODEL = 'accounts.User'
+
+# FedaPay
+FEDAPAY_SECRET_KEY = 'sk_sandbox_your_key_here'   # remplace par ta clé sandbox puis live
+FEDAPAY_PUBLIC_KEY = 'pk_sandbox_your_key_here'
+FEDAPAY_ENV = 'sandbox'   # 'live' en production
 
 LOGIN_URL = "/connexion"
 BACKEND_DOMAIN="http://localhost:8000"

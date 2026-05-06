@@ -1,0 +1,408 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Tarifs — OpenFood{% endblock %}
+
+{% block extra_css %}
+<style>
+  :root {
+    --orange: #f97316;
+    --orange-dark: #ea580c;
+    --orange-glow: rgba(249,115,22,0.18);
+  }
+
+  .pricing-hero {
+    text-align: center;
+    padding: 5rem 1.5rem 3rem;
+  }
+  .pricing-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    background: rgba(249,115,22,0.1);
+    color: var(--orange);
+    border: 1px solid rgba(249,115,22,0.25);
+    padding: 0.3rem 0.85rem;
+    border-radius: 999px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    margin-bottom: 1.25rem;
+  }
+  .pricing-title {
+    font-family: 'Syne', sans-serif;
+    font-weight: 900;
+    font-size: clamp(2rem, 5vw, 3.25rem);
+    color: #0f172a;
+    letter-spacing: -0.04em;
+    line-height: 1.1;
+    margin-bottom: 1rem;
+  }
+  .pricing-title span { color: var(--orange); }
+  .pricing-sub {
+    color: #64748b;
+    font-size: 1.05rem;
+    max-width: 42ch;
+    margin: 0 auto 0.5rem;
+    line-height: 1.65;
+  }
+
+  /* Currency toggle */
+  .currency-note {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    padding: 0.4rem 1rem;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    color: #64748b;
+    margin-top: 1rem;
+  }
+
+  /* Cards */
+  .plans-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.5rem;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem 4rem;
+  }
+
+  .plan-card {
+    background: #fff;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 1.5rem;
+    padding: 2rem;
+    position: relative;
+    transition: box-shadow 0.2s, border-color 0.2s, transform 0.2s;
+    display: flex;
+    flex-direction: column;
+  }
+  .plan-card:hover {
+    box-shadow: 0 16px 48px rgba(0,0,0,0.08);
+    transform: translateY(-3px);
+  }
+  .plan-card.featured {
+    border-color: var(--orange);
+    box-shadow: 0 0 0 4px var(--orange-glow), 0 16px 48px rgba(249,115,22,0.12);
+  }
+  .plan-card.featured:hover { transform: translateY(-5px); }
+
+  .plan-badge {
+    position: absolute;
+    top: -0.85rem;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--orange);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    padding: 0.25rem 0.85rem;
+    border-radius: 999px;
+    white-space: nowrap;
+  }
+
+  .plan-name {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1.25rem;
+    color: #0f172a;
+    margin-bottom: 0.25rem;
+  }
+  .plan-desc { font-size: 0.85rem; color: #64748b; margin-bottom: 1.5rem; line-height: 1.5; }
+
+  .plan-price {
+    display: flex;
+    align-items: flex-end;
+    gap: 0.25rem;
+    margin-bottom: 0.35rem;
+  }
+  .plan-amount {
+    font-family: 'Syne', sans-serif;
+    font-weight: 900;
+    font-size: 2.5rem;
+    color: #0f172a;
+    line-height: 1;
+  }
+  .plan-amount.free { color: #16a34a; }
+  .plan-currency { font-size: 0.85rem; color: #64748b; padding-bottom: 0.35rem; }
+  .plan-period { font-size: 0.8rem; color: #94a3b8; margin-bottom: 1.75rem; }
+
+  .plan-features { list-style: none; padding: 0; margin: 0 0 2rem; flex: 1; }
+  .plan-features li {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.6rem;
+    font-size: 0.9rem;
+    color: #374151;
+    padding: 0.45rem 0;
+    border-bottom: 1px solid #f1f5f9;
+  }
+  .plan-features li:last-child { border-bottom: none; }
+  .feat-check { color: #16a34a; flex-shrink: 0; margin-top: 1px; }
+  .feat-x { color: #cbd5e1; flex-shrink: 0; margin-top: 1px; }
+  .feat-label { line-height: 1.4; }
+  .feat-label strong { color: #0f172a; }
+
+  .plan-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.85rem 1.5rem;
+    border-radius: 0.85rem;
+    font-weight: 700;
+    font-size: 0.9rem;
+    text-decoration: none;
+    transition: all 0.15s;
+    border: none;
+    cursor: pointer;
+    width: 100%;
+  }
+  .plan-btn.primary {
+    background: var(--orange);
+    color: #fff;
+    box-shadow: 0 4px 14px rgba(249,115,22,0.3);
+  }
+  .plan-btn.primary:hover { background: var(--orange-dark); box-shadow: 0 6px 20px rgba(249,115,22,0.4); transform: translateY(-1px); }
+  .plan-btn.outline {
+    background: #fff;
+    color: #374151;
+    border: 1.5px solid #e2e8f0;
+  }
+  .plan-btn.outline:hover { border-color: var(--orange); color: var(--orange); }
+  .plan-btn.current {
+    background: #f0fdf4;
+    color: #16a34a;
+    border: 1.5px solid #bbf7d0;
+    cursor: default;
+  }
+
+  /* Promo code section */
+  .promo-section {
+    max-width: 440px;
+    margin: 0 auto 4rem;
+    padding: 0 1.5rem;
+  }
+  .promo-box {
+    background: #fff;
+    border: 1.5px dashed #e2e8f0;
+    border-radius: 1.25rem;
+    padding: 1.5rem;
+    text-align: center;
+  }
+  .promo-box h3 {
+    font-family: 'Syne', sans-serif;
+    font-weight: 800;
+    font-size: 1rem;
+    color: #0f172a;
+    margin-bottom: 0.4rem;
+  }
+  .promo-box p { font-size: 0.85rem; color: #64748b; margin-bottom: 1rem; }
+  .promo-form { display: flex; gap: 0.5rem; }
+  .promo-input {
+    flex: 1;
+    padding: 0.7rem 1rem;
+    border: 1.5px solid #e2e8f0;
+    border-radius: 0.75rem;
+    font-size: 0.9rem;
+    color: #0f172a;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    outline: none;
+    transition: border-color 0.15s;
+  }
+  .promo-input:focus { border-color: var(--orange); }
+  .promo-submit {
+    padding: 0.7rem 1.25rem;
+    background: var(--orange);
+    color: #fff;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 700;
+    font-size: 0.88rem;
+    cursor: pointer;
+    transition: background 0.15s;
+  }
+  .promo-submit:hover { background: var(--orange-dark); }
+
+  /* FAQ strip */
+  .faq-strip {
+    background: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 2.5rem 1.5rem;
+    text-align: center;
+  }
+  .faq-strip p { color: #64748b; font-size: 0.9rem; }
+  .faq-strip a { color: var(--orange); font-weight: 600; text-decoration: none; }
+  .faq-strip a:hover { text-decoration: underline; }
+
+  @media (max-width: 640px) {
+    .plans-grid { grid-template-columns: 1fr; }
+    .plan-card.featured { margin-top: 0.75rem; }
+  }
+</style>
+{% endblock %}
+
+{% block content %}
+
+{% include 'home/header.html' %}
+
+<section class="pricing-hero">
+  <div class="pricing-badge"><i class="ri-price-tag-3-line"></i> Tarifs simples et transparents</div>
+  <h1 class="pricing-title">Un plan pour<br>chaque <span>étape</span> de votre croissance</h1>
+  <p class="pricing-sub">Commencez gratuitement. Évoluez quand vous en avez besoin. Sans engagement, sans surprise.</p>
+  <div class="currency-note">
+    <i class="ri-money-franc-circle-line"></i>
+    Tous les prix sont en <strong>Francs CFA (XOF)</strong> — paiement mobile money (MTN, Orange, Wave)
+  </div>
+</section>
+
+<div class="plans-grid">
+  {% for plan in plans %}
+  <div class="plan-card {% if plan.plan_type == 'pro' %}featured{% endif %}">
+    {% if plan.plan_type == 'pro' %}
+      <div class="plan-badge">⭐ Populaire</div>
+    {% elif plan.plan_type == 'max' %}
+      <div class="plan-badge" style="background:#7c3aed;">✦ Complet</div>
+    {% endif %}
+
+    <div class="plan-name">{{ plan.name }}</div>
+    <div class="plan-desc">
+      {% if plan.plan_type == 'gratuit' %}Lancez votre menu digital sans rien dépenser.
+      {% elif plan.plan_type == 'pro' %}Tout ce qu'il faut pour développer votre restaurant.
+      {% elif plan.plan_type == 'max' %}Puissance maximale, zéro limite, support prioritaire.
+      {% endif %}
+    </div>
+
+    <div class="plan-price">
+      <span class="plan-amount {% if plan.price == 0 %}free{% endif %}">
+        {% if plan.price == 0 %}0{% else %}{{ plan.price|floatformat:0 }}{% endif %}
+      </span>
+      {% if plan.price > 0 %}<span class="plan-currency">FCFA</span>{% endif %}
+    </div>
+    <div class="plan-period">
+      {% if plan.price == 0 %}Gratuit pour toujours{% else %}/mois · renouvelable{% endif %}
+    </div>
+
+    <ul class="plan-features">
+      <!-- Menu items -->
+      <li>
+        <i class="ri-restaurant-line feat-check"></i>
+        <span class="feat-label">
+          {% if plan.max_menu_items == 0 %}<strong>Plats illimités</strong>
+          {% else %}<strong>{{ plan.max_menu_items }} plats</strong> au menu{% endif %}
+        </span>
+      </li>
+      <!-- Tables -->
+      <li>
+        <i class="ri-layout-grid-line feat-check"></i>
+        <span class="feat-label">
+          {% if plan.max_tables == 0 %}<strong>Tables illimitées</strong>
+          {% else %}<strong>{{ plan.max_tables }} tables</strong>{% endif %}
+        </span>
+      </li>
+      <!-- Staff -->
+      <li>
+        {% if plan.max_staff == 0 and plan.plan_type != 'gratuit' %}
+          <i class="ri-team-line feat-check"></i>
+          <span class="feat-label"><strong>Équipe illimitée</strong></span>
+        {% elif plan.max_staff == 0 and plan.plan_type == 'gratuit' %}
+          <i class="ri-team-line feat-x"></i>
+          <span class="feat-label" style="color:#94a3b8;">Pas de membres d'équipe</span>
+        {% else %}
+          <i class="ri-team-line feat-check"></i>
+          <span class="feat-label"><strong>{{ plan.max_staff }} membres</strong> d'équipe</span>
+        {% endif %}
+      </li>
+      <!-- Analytics -->
+      <li>
+        {% if plan.analytics %}
+          <i class="ri-bar-chart-2-line feat-check"></i>
+          <span class="feat-label"><strong>Analytics</strong> inclus</span>
+        {% else %}
+          <i class="ri-bar-chart-2-line feat-x"></i>
+          <span class="feat-label" style="color:#94a3b8;">Pas d'analytics</span>
+        {% endif %}
+      </li>
+      <!-- Advanced analytics -->
+      {% if plan.advanced_analytics %}
+      <li>
+        <i class="ri-line-chart-line feat-check"></i>
+        <span class="feat-label"><strong>Analytics avancés</strong> (revenus, tendances)</span>
+      </li>
+      {% endif %}
+      <!-- Remove branding -->
+      <li>
+        {% if plan.remove_branding %}
+          <i class="ri-shield-check-line feat-check"></i>
+          <span class="feat-label"><strong>Sans branding</strong> OpenFood</span>
+        {% else %}
+          <i class="ri-shield-check-line feat-x"></i>
+          <span class="feat-label" style="color:#94a3b8;">Branding OpenFood visible</span>
+        {% endif %}
+      </li>
+      <!-- Support -->
+      <li>
+        {% if plan.priority_support %}
+          <i class="ri-customer-service-2-line feat-check"></i>
+          <span class="feat-label"><strong>Support WhatsApp prioritaire</strong></span>
+        {% else %}
+          <i class="ri-customer-service-2-line feat-x"></i>
+          <span class="feat-label" style="color:#94a3b8;">Support email standard</span>
+        {% endif %}
+      </li>
+    </ul>
+
+    {% if current_plan and current_plan.id == plan.id %}
+      <span class="plan-btn current"><i class="ri-checkbox-circle-line"></i> Votre plan actuel</span>
+    {% elif plan.price == 0 %}
+      {% if user.is_authenticated and restaurant %}
+        <a href="{% url 'subscribe_initiate' plan.plan_type %}" class="plan-btn outline">Passer en Gratuit</a>
+      {% else %}
+        <a href="{% url 'inscription' %}" class="plan-btn outline"><i class="ri-user-add-line"></i> Commencer gratuitement</a>
+      {% endif %}
+    {% else %}
+      {% if user.is_authenticated and restaurant %}
+        <form method="post" action="{% url 'subscribe_initiate' plan.plan_type %}">
+          {% csrf_token %}
+          <button type="submit" class="plan-btn primary">
+            <i class="ri-bank-card-line"></i> Souscrire — {{ plan.price|floatformat:0 }} FCFA/mois
+          </button>
+        </form>
+      {% else %}
+        <a href="{% url 'inscription' %}" class="plan-btn primary">
+          <i class="ri-rocket-2-line"></i> Commencer avec {{ plan.name }}
+        </a>
+      {% endif %}
+    {% endif %}
+  </div>
+  {% endfor %}
+</div>
+
+<!-- Promo code -->
+{% if user.is_authenticated and restaurant and not current_plan or current_plan and current_plan.plan_type == 'gratuit' %}
+<div class="promo-section">
+  <div class="promo-box">
+    <h3><i class="ri-coupon-3-line" style="color:var(--orange);"></i> Vous avez un code promo ?</h3>
+    <p>Entrez votre code pour activer un plan Pro ou Max gratuitement.</p>
+    <form method="post" action="{% url 'subscribe_initiate' 'pro' %}" class="promo-form">
+      {% csrf_token %}
+      <input type="text" name="promo_code" class="promo-input" placeholder="Ex. PREMIER ou ELITE" oninput="this.value=this.value.toUpperCase()">
+      <button type="submit" class="promo-submit">Appliquer</button>
+    </form>
+  </div>
+</div>
+{% endif %}
+
+<div class="faq-strip">
+  <p>Des questions ? <a href="/#faq">Consultez notre FAQ</a> ou contactez-nous sur <a href="https://wa.me/votre_numero">WhatsApp</a>.</p>
+  <p style="margin-top:0.5rem;">Paiement 100% sécurisé via <strong>FedaPay</strong> · MTN MoMo · Orange Money · Wave</p>
+</div>
+
+{% endblock %}

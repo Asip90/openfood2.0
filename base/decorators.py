@@ -1,62 +1,66 @@
 # base/decorators.py
 from functools import wraps
 from django.shortcuts import redirect
-from base.models import StaffMember, Restaurant
+from base.models import Restaurant
 
 
-def get_staff_from_session(request):
-    """Return the active StaffMember from session, or None."""
-    staff_id = request.session.get('staff_id')
-    if not staff_id:
-        return None
-    try:
-        return StaffMember.objects.select_related('restaurant').get(
-            id=staff_id, is_active=True
-        )
-    except StaffMember.DoesNotExist:
-        return None
-
-
-def staff_required(roles=None):
+def get_user_restaurant(user):
     """
-    Decorator for views accessible only to active StaffMembers.
-    roles: list of allowed roles e.g. ['cuisinier', 'serveur']; None = all roles.
-    Attaches request.staff_member on success.
+    Returns (restaurant, role) for a Django User.
+    role is 'owner' for restaurant owners, or the StaffMember role string.
+    Returns (None, None) if the user has no associated restaurant.
+    """
+    if hasattr(user, 'staff_profile') and user.staff_profile.is_active:
+        sp = user.staff_profile
+        return sp.restaurant, sp.role
+    restaurant = Restaurant.objects.filter(owner=user).first()
+    if restaurant:
+        return restaurant, 'owner'
+    return None, None
+
+
+def restaurant_required(allowed_roles=None):
+    """
+    Decorator that:
+    1. Requires authentication (redirects to 'connexion' if not).
+    2. Resolves (restaurant, role) via get_user_restaurant.
+    3. Redirects to 'create_restaurant' if no restaurant found.
+    4. Redirects to 'dashboard' if role not in allowed_roles (when specified).
+    5. Sets request.restaurant and request.user_role for the view.
+
+    Usage:
+        @restaurant_required()                          # any role
+        @restaurant_required(['owner', 'coadmin'])      # restricted
     """
     def decorator(view_func):
         @wraps(view_func)
         def wrapper(request, *args, **kwargs):
-            staff = get_staff_from_session(request)
-            if staff is None:
-                return redirect('staff_login')
-            if roles and staff.role not in roles:
-                return redirect('staff_orders')
-            request.staff_member = staff
+            if not request.user.is_authenticated:
+                return redirect('connexion')
+            restaurant, role = get_user_restaurant(request.user)
+            if not restaurant:
+                return redirect('create_restaurant')
+            if allowed_roles and role not in allowed_roles:
+                return redirect('dashboard')
+            request.restaurant = restaurant
+            request.user_role = role
             return view_func(request, *args, **kwargs)
         return wrapper
     return decorator
 
 
-def admin_or_coadmin_required(view_func):
-    """
-    Decorator for staff management views.
-    Accepts Django-authenticated owner OR coadmin via staff session.
-    Attaches request.managing_restaurant and request.staff_member (None for owner).
-    """
+def owner_or_coadmin_required(view_func):
+    """Shortcut decorator for owner + coadmin only views."""
     @wraps(view_func)
     def wrapper(request, *args, **kwargs):
-        # Case 1: Django-authenticated restaurant owner
-        if request.user.is_authenticated:
-            restaurant = Restaurant.objects.filter(owner=request.user).first()
-            if restaurant:
-                request.managing_restaurant = restaurant
-                request.staff_member = None
-                return view_func(request, *args, **kwargs)
-        # Case 2: coadmin via staff session
-        staff = get_staff_from_session(request)
-        if staff and staff.role == 'coadmin':
-            request.managing_restaurant = staff.restaurant
-            request.staff_member = staff
-            return view_func(request, *args, **kwargs)
-        return redirect('connexion')
+        if not request.user.is_authenticated:
+            return redirect('connexion')
+        restaurant, role = get_user_restaurant(request.user)
+        if not restaurant:
+            return redirect('create_restaurant')
+        if role not in ('owner', 'coadmin'):
+            return redirect('dashboard')
+        request.restaurant = restaurant
+        request.user_role = role
+        return view_func(request, *args, **kwargs)
     return wrapper

@@ -1,6 +1,0 @@
-{% extends "admin_user/base.html" %}
-{% block content %}
-<h1>Ajouter un membre</h1>
-{% if messages %}{% for msg in messages %}<p style="color:red">{{ msg }}</p>{% endfor %}{% endif %}
-<form method="post">{% csrf_token %}{{ form.as_p }}<button type="submit">Créer</button></form>
-{% endblock %}

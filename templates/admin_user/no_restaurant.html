@@ -1,37 +1,45 @@
 {% extends "admin_user/base.html" %}
 {% load static %}
 
+{% block page_title %}Bienvenue{% endblock %}
+
 {% block content %}
 <div class="min-h-[70vh] flex items-center justify-center px-4">
 
-  <div class="max-w-lg w-full text-center bg-white rounded-2xl shadow-lg p-8">
+  <div class="max-w-md w-full text-center">
 
     <!-- Icon -->
     <div class="flex justify-center mb-6">
-      <div class="w-20 h-20 flex items-center justify-center rounded-full bg-gray-100">
-        <i class="fa-solid fa-utensils text-4xl text-gray-500"></i>
+      <div class="w-20 h-20 flex items-center justify-center rounded-2xl bg-primary/10 shadow-soft">
+        <i class="ri-store-2-line text-4xl text-primary"></i>
       </div>
     </div>
 
     <!-- Title -->
-    <h1 class="text-2xl font-bold text-gray-900 mb-2">
+    <h1 class="font-display font-black text-2xl text-slate-900 mb-3 tracking-tight">
       Aucun restaurant trouvé
     </h1>
 
     <!-- Description -->
-    <p class="text-gray-600 mb-6">
-      Vous n’avez encore créé aucun restaurant.
+    <p class="text-slate-500 text-sm leading-relaxed mb-8">
+      Vous n'avez encore créé aucun restaurant.<br>
       Commencez maintenant et activez votre menu digital avec QR Code.
     </p>
 
     <!-- Action Button -->
     <a href="{% url 'create_restaurant' %}"
-       class="inline-flex items-center justify-center gap-2 px-6 py-3 rounded-xl
-              bg-black text-white font-semibold
-              hover:bg-gray-800 transition">
-      <i class="fa-solid fa-plus"></i>
+       class="inline-flex items-center justify-center gap-2 px-7 py-3.5 rounded-2xl
+              bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-all
+              shadow-glow hover:shadow-[0_0_0_4px_rgba(249,115,22,0.15),0_12px_40px_rgba(249,115,22,0.3)]">
+      <i class="ri-add-line text-base"></i>
       Créer mon restaurant
     </a>
+
+    <!-- Trust signal -->
+    <p class="text-slate-400 text-xs mt-6 flex items-center justify-center gap-1.5">
+      <i class="ri-shield-check-line text-green-400"></i>
+      Gratuit — Prêt en 5 minutes
+    </p>
 
   </div>
 

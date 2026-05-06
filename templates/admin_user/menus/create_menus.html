@@ -1,488 +1,215 @@
 {% extends "admin_user/base.html" %}
-
 {% block title %}Ajouter un plat – OpenFood{% endblock %}
+{% block page_title %}Nouveau plat{% endblock %}
 
-{% block content %}
-<div class="max-w-2xl mx-auto p-4 md:p-6">
-
-  <!-- En-tête -->
-  <div class="mb-8">
-    <div class="flex items-center gap-3 mb-3">
-      <a href="{% url 'menus_list' %}" 
-         class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
-        <i class="fas fa-arrow-left"></i>
-      </a>
-      <div>
-        <h1 class="text-xl font-semibold text-gray-900">
-          Ajouter un plat
-        </h1>
-        <p class="text-sm text-gray-500 mt-0.5">
-          Restaurant : {{ restaurant.name }}
-        </p>
-      </div>
-    </div>
-  </div>
-
-  <!-- Formulaire -->
-  <div class="bg-white rounded-lg border border-gray-100 p-6">
-    <form method="post" enctype="multipart/form-data" class="space-y-6">
-      {% csrf_token %}
-
-      <!-- Nom -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Nom du plat
-        </label>
-        <input type="text" name="name" required
-          class="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg
-                 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
-                 placeholder:text-gray-400"
-          placeholder="Ex : Poulet braisé">
-      </div>
-
-      <!-- Image du plat -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Image du plat
-        </label>
-        {% comment %} <div class="mt-1 flex items-center">
-          <label for="image-upload" class="cursor-pointer">
-            <div class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-lg hover:border-primary/50 transition-colors duration-150">
-              <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                <i class="fas fa-cloud-upload-alt text-gray-300 text-xl mb-2"></i>
-                <p class="text-xs text-gray-500">PNG, JPG, WEBP jusqu'à 5MB</p>
-                <p class="text-xs text-gray-400 mt-1">Cliquez pour télécharger</p>
-              </div>
-              <input id="image-upload" type="file" name="image" accept="image/png,image/jpeg,image/webp"
-                     class="hidden">
-            </div>
-          </label>
-        </div> {% endcomment %}
-      
-        <label for="image-upload" class="cursor-pointer block">
-  <div id="upload-preview"
-    class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-lg hover:border-primary/50">
-    
-    <i class="fas fa-cloud-upload-alt text-gray-300 text-xl mb-2"></i>
-    <p class="text-xs text-gray-500">PNG, JPG, WEBP jusqu'à 5MB</p>
-    <p class="text-xs text-gray-400 mt-1">Cliquez pour télécharger</p>
-  </div>
-</label>
-
-<input
-  id="image-upload"
-  type="file"
-  name="image"
-  accept="image/png,image/jpeg,image/webp"
-  class="hidden">
-
-      </div>
-
-      <!-- Catégorie -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Catégorie
-        </label>
-        <div class="flex gap-2">
-          <select name="category" id="categorySelect" required
-            class="flex-1 px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg
-                   focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
-            <option value="" class="text-gray-400">Sélectionner une catégorie</option>
-            {% for category in categories %}
-              <option value="{{ category.id }}" class="text-gray-700">{{ category.name }}</option>
-            {% endfor %}
-          </select>
-          <button type="button" onclick="openCategoryModal()"
-            class="px-4 rounded-lg bg-primary text-white text-sm font-medium hover:bg-primary/90 transition-colors duration-150">
-            +
-          </button>
-        </div>
-      </div>
-
-      <!-- Prix -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Prix (FCFA)
-        </label>
-        <input type="number" name="price" step="0.01" required
-          class="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg
-                 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
-                 placeholder:text-gray-400"
-          placeholder="2500">
-      </div>
-
-      <!-- Description -->
-      <div>
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Description
-        </label>
-        <textarea name="description" rows="3"
-          class="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg
-                 focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
-                 placeholder:text-gray-400"
-          placeholder="Description du plat (facultatif)"></textarea>
-      </div>
-
-      <!-- Actions -->
-      <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
-        <a href="{% url 'menus_list' %}"
-           class="px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150">
-          Annuler
-        </a>
-        <button type="submit"
-          class="px-4 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-150">
-          Enregistrer
-        </button>
-      </div>
-    </form>
-  </div>
-</div>
-
-<!-- Modal de création de catégorie -->
-<div id="categoryModal"
-  class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 hidden">
-  
-  <div class="bg-white rounded-lg border border-gray-200 p-6 w-full max-w-md transform transition-all duration-200 scale-95 opacity-0">
-    <div class="mb-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-4">
-        Nouvelle catégorie
-      </h2>
-      <input type="text" id="categoryName"
-        class="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg
-               focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary
-               placeholder:text-gray-400"
-        placeholder="Nom de la catégorie">
-      <p class="text-xs text-gray-400 mt-2">
-        La catégorie sera ajoutée et sélectionnée automatiquement.
-      </p>
-    </div>
-
-    <div class="flex items-center gap-3">
-      <button onclick="closeCategoryModal()"
-        class="flex-1 px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150">
-        Annuler
-      </button>
-      <button onclick="submitCategory()"
-        class="flex-1 px-4 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-150">
-        Créer
-      </button>
-    </div>
-  </div>
-</div>
-
-<script>
-// Gestion de la modal de catégorie
-let categoryModal = document.getElementById('categoryModal');
-let modalContent = categoryModal.querySelector('div');
-
-function openCategoryModal() {
-  categoryModal.classList.remove('hidden');
-  setTimeout(() => {
-    modalContent.classList.remove('scale-95', 'opacity-0');
-  }, 10);
-}
-
-function closeCategoryModal() {
-  modalContent.classList.add('scale-95', 'opacity-0');
-  setTimeout(() => {
-    categoryModal.classList.add('hidden');
-    document.getElementById('categoryName').value = '';
-  }, 200);
-}
-
-// Fermer la modal en cliquant en dehors
-categoryModal.addEventListener('click', (e) => {
-  if (e.target === categoryModal) {
-    closeCategoryModal();
-  }
-});
-
-// Fermer avec la touche Échap
-document.addEventListener('keydown', (e) => {
-  if (e.key === 'Escape' && !categoryModal.classList.contains('hidden')) {
-    closeCategoryModal();
-  }
-});
-
-// Fonction pour soumettre la nouvelle catégorie
-function submitCategory() {
-  const name = document.getElementById('categoryName').value.trim();
-  
-  if (!name) {
-    alert('Veuillez saisir un nom pour la catégorie');
-    return;
-  }
-
-  // Récupérer le token CSRF
-  const csrfToken = document.querySelector('[name=csrfmiddlewaretoken]').value;
-  
-  // Envoyer la requête AJAX
-  fetch("{% url 'create_category_modale' %}", {
-    method: "POST",
-    headers: {
-      "X-CSRFToken": csrfToken,
-      "Content-Type": "application/x-www-form-urlencoded",
-    },
-    body: new URLSearchParams({ name: name })
-  })
-  .then(response => {
-    if (!response.ok) {
-      throw new Error('Erreur réseau');
-    }
-    return response.json();
-  })
-  .then(data => {
-    if (data.error) {
-      alert(data.error);
-      return;
-    }
-
-    // Ajouter la nouvelle catégorie au select
-    const select = document.getElementById('categorySelect');
-    const option = document.createElement('option');
-    option.value = data.id;
-    option.textContent = data.name;
-    option.selected = true;
-    
-    select.appendChild(option);
-    
-    // Réinitialiser et fermer la modal
-    document.getElementById('categoryName').value = '';
-    closeCategoryModal();
-    
-    // Afficher un message de succès
-    const successMsg = document.createElement('div');
-    successMsg.className = 'fixed top-4 right-4 px-4 py-2 bg-green-50 text-green-700 text-sm rounded-lg border border-green-200 z-50';
-    successMsg.textContent = 'Catégorie ajoutée avec succès';
-    document.body.appendChild(successMsg);
-    
-    setTimeout(() => {
-      successMsg.remove();
-    }, 3000);
-  })
-  .catch(error => {
-    console.error('Erreur:', error);
-    alert('Une erreur est survenue lors de la création de la catégorie');
-  });
-}
-
-// Aperçu de l'image sélectionnée
-
-
-document.getElementById('image-upload').addEventListener('change', function (e) {
-  const file = e.target.files[0]
-  if (!file) return
-
-  const reader = new FileReader()
-  reader.onload = function (event) {
-    document.getElementById('upload-preview').innerHTML = `
-      <img src="${event.target.result}"
-           class="w-full h-full object-cover rounded-lg"
-           alt="Aperçu">
-    `
-  }
-  reader.readAsDataURL(file)
-})
-
-</script>
+{% block header_actions %}
+<a href="{% url 'menus_list' %}"
+   class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+  <i class="ri-arrow-left-line"></i>
+  <span class="hidden sm:block">Menu</span>
+</a>
 {% endblock %}
 
-{% comment %} {% extends "admin_user/base.html" %}
-
-{% block title %}Ajouter un plat – OpenFood{% endblock %}
-
 {% block content %}
-<div class="max-w-3xl mx-auto">
+<div class="max-w-lg mx-auto">
 
-  <!-- Titre -->
-  <div class="mb-8">
-    <h1 class="text-2xl font-semibold text-dark">
-      Ajouter un plat
-    </h1>
-    <p class="text-gray-500 mt-1">
-      Restaurant : {{ restaurant.name }}
-    </p>
-  </div>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
 
-  <!-- Formulaire -->
-  <div class="bg-white border border-gray-200 rounded-2xl shadow-sm p-8">
-    <form method="post" enctype="multipart/form-data" class="space-y-6">
+    <!-- Header carte -->
+    <div class="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
+        <i class="ri-restaurant-line text-primary text-lg"></i>
+      </div>
+      <div>
+        <h2 class="font-display font-black text-slate-900 text-base">Ajouter un plat</h2>
+        <p class="text-xs text-slate-400 mt-0.5">{{ restaurant.name }}</p>
+      </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="p-6 space-y-5">
       {% csrf_token %}
+
+      <!-- Zone upload image -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          Photo du plat
+        </label>
+        <label for="image-upload" class="cursor-pointer block">
+          <div id="upload-preview"
+               class="relative w-full h-44 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/3 transition-all overflow-hidden group">
+            <div id="upload-placeholder" class="flex flex-col items-center gap-2 text-center px-4">
+              <div class="w-12 h-12 rounded-xl bg-slate-100 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
+                <i class="ri-image-add-line text-slate-400 group-hover:text-primary text-xl transition-colors"></i>
+              </div>
+              <div>
+                <p class="text-sm font-semibold text-slate-600 group-hover:text-primary transition-colors">Choisir une photo</p>
+                <p class="text-xs text-slate-400 mt-0.5">PNG, JPG, WEBP · max 5 MB</p>
+              </div>
+            </div>
+          </div>
+        </label>
+        <input id="image-upload" type="file" name="image" accept="image/png,image/jpeg,image/webp" class="hidden">
+      </div>
 
       <!-- Nom -->
       <div>
-        <label class="block text-sm font-medium mb-2">
-          Nom du plat
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          Nom du plat <span class="text-red-400">*</span>
         </label>
         <input type="text" name="name" required
-          class="w-full rounded-xl border border-gray-300 px-4 py-2
-                 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-          placeholder="Ex : Poulet braisé">
+          class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300"
+          placeholder="Ex : Poulet Yassa, Thiéboudiène…">
       </div>
-      <!-- Image du plat -->
-        <div>
-            <label class="block text-sm font-medium mb-2">
-            Image du plat
-            </label>
-        
-            <input
-            type="file"
-            name="image"
-            accept="image/png,image/jpeg,image/webp"
-            class="w-full rounded-xl border border-gray-300 px-4 py-2
-                    focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
-        </div>
-  
-      <!-- Catégorie -->
-      {% comment %} <div>
-        <label class="block text-sm font-medium mb-2">
-          Catégorie
-        </label>
-        <select name="category" required
-          class="w-full rounded-xl border border-gray-300 px-4 py-2
-                 bg-white focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
-          <option value="">Sélectionner une catégorie</option>
-          {% for category in categories %}
-            <option value="{{ category.id }}">
-              {{ category.name }}
-            </option>
-          {% endfor %}
-        </select>
-      </div> 
+
+      <!-- Catégorie + nouveau -->
       <div>
-        <label class="block text-sm font-medium mb-2">
-          Catégorie
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          Catégorie <span class="text-red-400">*</span>
         </label>
-      
         <div class="flex gap-2">
           <select name="category" id="categorySelect" required
-            class="flex-1 rounded-xl border border-gray-300 px-4 py-2 bg-white
-                   focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary">
-            <option value="">Sélectionner une catégorie</option>
+            class="flex-1 px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none">
+            <option value="">Sélectionner…</option>
             {% for category in categories %}
               <option value="{{ category.id }}">{{ category.name }}</option>
             {% endfor %}
           </select>
-      
           <button type="button" onclick="openCategoryModal()"
-            class="px-4 rounded-xl bg-primary text-white font-semibold">
-            +
+            class="px-4 rounded-xl bg-slate-100 text-slate-600 text-sm font-bold hover:bg-primary hover:text-white transition-colors">
+            <i class="ri-add-line"></i>
           </button>
         </div>
       </div>
-      
+
       <!-- Prix -->
       <div>
-        <label class="block text-sm font-medium mb-2">
-          Prix (FCFA)
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          Prix <span class="text-red-400">*</span>
         </label>
-        <input type="number" name="price" step="0.01" required
-          class="w-full rounded-xl border border-gray-300 px-4 py-2
-                 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-          placeholder="2500">
+        <div class="relative">
+          <input type="number" name="price" step="1" required
+            class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300 pr-16"
+            placeholder="2500">
+          <span class="absolute right-4 top-1/2 -translate-y-1/2 text-xs text-slate-400 font-semibold">FCFA</span>
+        </div>
       </div>
 
       <!-- Description -->
       <div>
-        <label class="block text-sm font-medium mb-2">
-          Description
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          Description <span class="text-slate-300">(optionnel)</span>
         </label>
         <textarea name="description" rows="3"
-          class="w-full rounded-xl border border-gray-300 px-4 py-2
-                 focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary"
-          placeholder="Description du plat (facultatif)"></textarea>
+          class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300 resize-none"
+          placeholder="Ingrédients, accompagnements, spécificités…"></textarea>
       </div>
 
       <!-- Actions -->
-      <div class="flex justify-end gap-4 pt-4">
+      <div class="flex gap-3 pt-1">
         <a href="{% url 'menus_list' %}"
-           class="px-6 py-2 rounded-xl border text-gray-600 hover:bg-gray-50">
+           class="flex-1 py-3 text-center text-sm font-semibold text-slate-600 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors">
           Annuler
         </a>
-
         <button type="submit"
-          class="px-6 py-2 rounded-xl bg-primary text-white font-medium
-                 hover:bg-green-700 transition">
-          Enregistrer
+          class="flex-1 py-3 text-sm font-bold text-white bg-primary rounded-2xl hover:bg-primary-dark transition-colors shadow-glow">
+          <i class="ri-check-line mr-1"></i> Enregistrer
         </button>
       </div>
     </form>
   </div>
+
 </div>
+
+<!-- Modal Nouvelle catégorie -->
 <div id="categoryModal"
-  class="fixed inset-0 bg-black/40 hidden items-center justify-center z-50">
-
-  <div class="bg-white rounded-2xl p-6 w-full max-w-md">
-    <h2 class="text-lg font-semibold mb-4">
-      Nouvelle catégorie
-    </h2>
-
+  class="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-4 bg-black/50 hidden">
+  <div id="categoryModalContent"
+       class="bg-white w-full sm:max-w-sm rounded-3xl p-6 shadow-card transform transition-all duration-200 scale-95 opacity-0">
+    <div class="flex items-center gap-3 mb-5">
+      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+        <i class="ri-tag-line text-primary"></i>
+      </div>
+      <h3 class="font-display font-black text-slate-900 text-base">Nouvelle catégorie</h3>
+    </div>
     <input type="text" id="categoryName"
-      class="w-full rounded-xl border px-4 py-2 mb-4"
-      placeholder="Nom de la catégorie">
-
-    <div class="flex justify-end gap-3">
+      class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300 mb-2"
+      placeholder="Ex : Entrées, Plats, Desserts…">
+    <p class="text-xs text-slate-400 mb-5">La catégorie sera sélectionnée automatiquement.</p>
+    <div class="flex gap-3">
       <button onclick="closeCategoryModal()"
-        class="px-4 py-2 border rounded-xl">
+        class="flex-1 py-3 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
         Annuler
       </button>
-
       <button onclick="submitCategory()"
-        class="px-4 py-2 bg-primary text-white rounded-xl">
+        class="flex-1 py-3 rounded-2xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors">
         Créer
       </button>
     </div>
   </div>
 </div>
-{% comment %} javascript pour la modale de création de catégorie 
 
 <script>
-    function openCategoryModal() {
-      document.getElementById("categoryModal").classList.remove("hidden")
-      document.getElementById("categoryModal").classList.add("flex")
-    }
-    
-    function closeCategoryModal() {
-      document.getElementById("categoryModal").classList.add("hidden")
-    }
-    
-    function getCSRFToken() {
-      return document.querySelector('[name=csrfmiddlewaretoken]').value
-    }
-    
-    function submitCategory() {
-      const name = document.getElementById("categoryName").value.trim()
-      if (!name) {
-        alert("Nom requis")
-        return
-      }
-    
-      fetch("{% url 'create_category_modale' %}", {
-        method: "POST",
-        headers: {
-          "X-CSRFToken": getCSRFToken()
-        },
-        body: new URLSearchParams({ name })
-      })
-      .then(res => res.json())
-      .then(data => {
-        if (data.error) {
-          alert(data.error)
-          return
-        }
-    
-        const select = document.getElementById("categorySelect")
-        const option = document.createElement("option")
-        option.value = data.id
-        option.textContent = data.name
-        option.selected = true
-    
-        select.appendChild(option)
-    
-        document.getElementById("categoryName").value = ""
-        closeCategoryModal()
-      })
-    }
-    </script>
-    
-{% endblock %} {% endcomment %}
+/* ─── Category modal ─── */
+const catModal = document.getElementById('categoryModal');
+const catContent = document.getElementById('categoryModalContent');
+
+function openCategoryModal() {
+  catModal.classList.remove('hidden');
+  requestAnimationFrame(() => catContent.classList.remove('scale-95', 'opacity-0'));
+  setTimeout(() => document.getElementById('categoryName').focus(), 200);
+}
+function closeCategoryModal() {
+  catContent.classList.add('scale-95', 'opacity-0');
+  setTimeout(() => { catModal.classList.add('hidden'); document.getElementById('categoryName').value = ''; }, 200);
+}
+catModal.addEventListener('click', e => { if (e.target === catModal) closeCategoryModal(); });
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeCategoryModal(); });
+
+function submitCategory() {
+  const name = document.getElementById('categoryName').value.trim();
+  if (!name) { document.getElementById('categoryName').focus(); return; }
+  const csrf = document.querySelector('[name=csrfmiddlewaretoken]').value;
+  fetch("{% url 'create_category_modale' %}", {
+    method: 'POST',
+    headers: { 'X-CSRFToken': csrf, 'Content-Type': 'application/x-www-form-urlencoded' },
+    body: new URLSearchParams({ name })
+  })
+  .then(r => r.json())
+  .then(data => {
+    if (data.error) { alert(data.error); return; }
+    const opt = new Option(data.name, data.id, true, true);
+    document.getElementById('categorySelect').appendChild(opt);
+    closeCategoryModal();
+    showToast('Catégorie « ' + data.name + ' » créée !');
+  })
+  .catch(() => alert('Erreur réseau'));
+}
+
+/* ─── Image preview ─── */
+document.getElementById('image-upload').addEventListener('change', function(e) {
+  const file = e.target.files[0];
+  if (!file) return;
+  const reader = new FileReader();
+  reader.onload = ev => {
+    const preview = document.getElementById('upload-preview');
+    preview.innerHTML = `
+      <img src="${ev.target.result}" class="w-full h-full object-cover" alt="Aperçu">
+      <div class="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+        <span class="text-white text-xs font-semibold bg-black/50 px-3 py-1.5 rounded-xl">Changer</span>
+      </div>
+    `;
+  };
+  reader.readAsDataURL(file);
+});
+
+/* ─── Toast ─── */
+function showToast(msg) {
+  const t = document.createElement('div');
+  t.className = 'fixed top-4 right-4 z-50 px-4 py-3 bg-slate-900 text-white text-sm font-semibold rounded-2xl shadow-card animate-[slideUp_0.3s_ease]';
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => t.remove(), 3000);
+}
+</script>
+
+{% endblock %}

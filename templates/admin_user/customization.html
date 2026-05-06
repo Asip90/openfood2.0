@@ -1,661 +1,841 @@
 {% extends "admin_user/base.html" %}
+{% block title %}Personnalisation — {{ restaurant.name }}{% endblock %}
+{% block page_title %}Personnalisation{% endblock %}
 
-{% block title %}Personnalisation - {{ restaurant.name }}{% endblock %}
+{% block extra_css %}
+<style>
+  /* ── Swatches de couleur ── */
+  .swatch-row { display: flex; gap: 0.5rem; flex-wrap: wrap; margin-top: 0.5rem; }
+  .swatch {
+    width: 1.75rem; height: 1.75rem;
+    border-radius: 50%;
+    cursor: pointer;
+    border: 2px solid transparent;
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+  .swatch:hover { transform: scale(1.15); }
+  .swatch.selected {
+    border-color: #0f172a;
+    box-shadow: 0 0 0 2px white, 0 0 0 4px #0f172a;
+  }
+
+  /* ── Picker container ── */
+  .color-picker-wrap {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.5rem;
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 0.875rem;
+  }
+  .color-picker-wrap input[type="color"] {
+    width: 2.5rem;
+    height: 2.5rem;
+    border: none;
+    border-radius: 0.625rem;
+    padding: 0;
+    cursor: pointer;
+    background: none;
+  }
+  .color-picker-wrap input[type="text"] {
+    flex: 1;
+    font-size: 0.8125rem;
+    font-family: 'DM Mono', monospace;
+    border: none;
+    background: transparent;
+    outline: none;
+    color: #334155;
+    letter-spacing: 0.03em;
+  }
+  .color-picker-wrap:focus-within {
+    border-color: #f97316;
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.12);
+    background: white;
+  }
+
+  /* ── Upload zone ── */
+  .upload-zone {
+    border: 2px dashed #e2e8f0;
+    border-radius: 1rem;
+    padding: 1.25rem;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    background: #f8fafc;
+  }
+  .upload-zone:hover, .upload-zone.drag-over {
+    border-color: #f97316;
+    background: #fff7ed;
+  }
+  .upload-zone i { font-size: 1.5rem; color: #cbd5e1; transition: color 0.2s; }
+  .upload-zone:hover i { color: #f97316; }
+
+  /* ── Font cards ── */
+  .font-card {
+    padding: 0.875rem 1rem;
+    border: 2px solid #f1f5f9;
+    border-radius: 1rem;
+    cursor: pointer;
+    transition: all 0.18s;
+    background: white;
+  }
+  .font-card:hover { border-color: #fdba74; background: #fff7ed; }
+  .font-card.selected {
+    border-color: #f97316;
+    background: #fff7ed;
+    box-shadow: 0 0 0 3px rgba(249,115,22,0.1);
+  }
+  .font-card .font-name { font-size: 0.8125rem; font-weight: 600; color: #334155; }
+  .font-card .font-sample { font-size: 1.25rem; color: #0f172a; margin-top: 0.25rem; }
+  .font-card .font-desc { font-size: 0.6875rem; color: #94a3b8; margin-top: 0.125rem; }
+  input[type="radio"].font-radio { display: none; }
+
+  /* ── Toggle switch ── */
+  .toggle-track {
+    width: 3rem; height: 1.625rem;
+    border-radius: 9999px;
+    border: none;
+    cursor: pointer;
+    transition: background 0.25s;
+    position: relative;
+    flex-shrink: 0;
+  }
+  .toggle-track.on  { background: #f97316; }
+  .toggle-track.off { background: #e2e8f0; }
+  .toggle-thumb {
+    position: absolute;
+    top: 0.1875rem;
+    left: 0.1875rem;
+    width: 1.25rem;
+    height: 1.25rem;
+    background: white;
+    border-radius: 50%;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+    transition: transform 0.25s cubic-bezier(0.34,1.56,0.64,1);
+  }
+  .toggle-track.on .toggle-thumb { transform: translateX(1.375rem); }
+
+  /* ── Phone frame ── */
+  .phone-frame {
+    position: relative;
+    width: 220px;
+    min-height: 420px;
+    background: #0f172a;
+    border-radius: 2.5rem;
+    padding: 0.875rem;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.06);
+    margin: 0 auto;
+  }
+  .phone-screen {
+    border-radius: 1.875rem;
+    overflow: hidden;
+    background: white;
+    min-height: 390px;
+    display: flex;
+    flex-direction: column;
+  }
+  .phone-notch {
+    width: 60px; height: 16px;
+    background: #0f172a;
+    border-radius: 0 0 12px 12px;
+    margin: 0 auto 0;
+    position: relative;
+    z-index: 10;
+  }
+  .phone-cover-img {
+    width: 100%;
+    height: 90px;
+    object-fit: cover;
+    display: block;
+  }
+  .phone-cover-placeholder {
+    width: 100%;
+    height: 90px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.6875rem;
+    color: rgba(255,255,255,0.6);
+  }
+  .phone-logo-wrap {
+    margin: -1.5rem auto 0;
+    width: 3rem; height: 3rem;
+    border-radius: 0.875rem;
+    border: 3px solid white;
+    overflow: hidden;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.9rem;
+    font-weight: 900;
+    color: white;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    position: relative;
+    z-index: 5;
+  }
+  .phone-btn {
+    width: calc(100% - 1.5rem);
+    margin: 0 0.75rem 0.375rem;
+    padding: 0.5rem;
+    border-radius: 0.625rem;
+    border: none;
+    font-size: 0.6875rem;
+    font-weight: 700;
+    cursor: default;
+    text-align: center;
+    color: white;
+    transition: all 0.3s;
+  }
+  .phone-btn-outline {
+    background: transparent !important;
+    border: 1.5px solid currentColor !important;
+    color: #f97316;
+  }
+
+  /* ── Field styling ── */
+  .section-title {
+    font-size: 0.6875rem;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    color: #94a3b8;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.875rem;
+  }
+  .section-title::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: #f1f5f9;
+  }
+
+  .save-btn {
+    display: inline-flex; align-items: center; gap: 0.5rem;
+    padding: 0.625rem 1.5rem;
+    font-size: 0.875rem; font-weight: 600;
+    color: white; background: #f97316;
+    border-radius: 0.875rem; border: none; cursor: pointer;
+    box-shadow: 0 2px 8px rgba(249,115,22,0.3);
+    transition: all 0.15s;
+  }
+  .save-btn:hover { background: #ea580c; box-shadow: 0 4px 16px rgba(249,115,22,0.4); transform: translateY(-1px); }
+
+  .reset-link {
+    display: inline-flex; align-items: center; gap: 0.375rem;
+    font-size: 0.8125rem; color: #ef4444; text-decoration: none; font-weight: 500;
+    transition: color 0.15s;
+  }
+  .reset-link:hover { color: #b91c1c; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(8px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+  .phone-frame { animation: fadeUp 0.4s ease; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto p-4 md:p-6">
+<div class="max-w-6xl mx-auto space-y-6">
 
   <!-- En-tête -->
-  <div class="mb-8">
-    <div class="flex items-center justify-between mb-6">
-      <div>
-        <h1 class="text-xl font-semibold text-gray-900 mb-1">
-          Personnalisation du restaurant
-        </h1>
-        <p class="text-sm text-gray-500">
-          Personnalisez l'apparence de votre menu en ligne
-        </p>
-      </div>
-      
-      <div class="flex items-center gap-3">
-        <a href="{% url 'reset_customization' %}" 
-           onclick="return confirm('Voulez-vous vraiment réinitialiser toutes vos personnalisations ? Cette action est irréversible.');"
-           class="text-sm text-red-600 hover:text-red-800 transition-colors duration-150 flex items-center gap-2">
-          <i class="fas fa-redo text-xs"></i>
-          Réinitialiser
-        </a>
-        <a href="{% url 'dashboard' %}" 
-           class="text-sm text-gray-500 hover:text-gray-700 transition-colors duration-150 flex items-center gap-2">
-          <i class="fas fa-arrow-left text-xs"></i>
-          Retour au dashboard
-        </a>
-      </div>
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="font-display font-black text-slate-900 text-2xl leading-tight">
+        Personnalisation
+      </h2>
+      <p class="text-sm text-slate-500 mt-1">Personnalisez l'apparence de votre menu client en temps réel</p>
+    </div>
+    <div class="hidden lg:flex items-center gap-4">
+      <a href="{% url 'reset_customization' %}"
+         onclick="return confirm('Réinitialiser toutes les personnalisations ? Cette action est irréversible.');"
+         class="reset-link">
+        <i class="ri-refresh-line text-sm"></i>
+        Réinitialiser
+      </a>
+      <a href="{% url 'dashboard' %}"
+         class="flex items-center gap-1.5 text-sm text-slate-400 hover:text-slate-700 transition-colors">
+        <i class="ri-arrow-left-line"></i>
+        Dashboard
+      </a>
     </div>
   </div>
 
-  <!-- Messages -->
-  {% if messages %}
-  <div class="mb-6">
-    {% for message in messages %}
-    <div class="p-4 rounded-lg border {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-700{% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-700{% elif message.tags == 'info' %}bg-blue-50 border-blue-200 text-blue-700{% else %}bg-gray-50 border-gray-200 text-gray-700{% endif %}">
-      <div class="flex items-center gap-2">
-        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% elif message.tags == 'error' %}fa-exclamation-circle{% elif message.tags == 'info' %}fa-info-circle{% else %}fa-bell{% endif %}"></i>
-        <span>{{ message }}</span>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+  <!-- Grille principale -->
+  <div class="grid lg:grid-cols-[1fr_280px] gap-6">
 
-  <div class="grid lg:grid-cols-2 gap-6">
-    <!-- Formulaire -->
-    <div class="bg-white rounded-lg border border-gray-100 p-6">
-      <form method="post" enctype="multipart/form-data" class="space-y-6">
+    <!-- ══ Formulaire ══ -->
+    <div class="space-y-4">
+      <form method="post" enctype="multipart/form-data" id="customForm">
         {% csrf_token %}
-        
-        <!-- Activer/Désactiver le thème -->
-        <div class="flex items-center justify-between p-4 bg-gray-50 rounded-lg">
-          <div>
-            <h3 class="text-sm font-medium text-gray-900 mb-1">Thème personnalisé</h3>
-            <p class="text-xs text-gray-500">Activez ou désactivez le thème personnalisé</p>
-          </div>
-          <label class="relative inline-flex items-center cursor-pointer">
-            <input type="checkbox" name="use_custom_theme" value="on" 
-                   class="sr-only peer"
-                   {% if customization.use_custom_theme %}checked{% endif %}>
-            <div class="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-2 peer-focus:ring-primary/20 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-primary"></div>
-          </label>
-        </div>
-
-        <!-- Couleurs -->
-        <div>
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <i class="fas fa-palette text-primary text-sm"></i>
-            </div>
-            <h3 class="text-sm font-medium text-gray-900">Couleurs</h3>
-          </div>
-          
-          <div class="grid md:grid-cols-2 gap-4">
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-2">
-                Couleur principale
-              </label>
-              <div class="flex items-center gap-3">
-                <input type="color" 
-                       id="primary_color" 
-                       name="primary_color"
-                       value="{{ customization.primary_color|default:'#16a34a' }}"
-                       class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer">
-                <div class="flex-1">
-                  <input type="text" 
-                         id="primary_color_hex" 
-                         name="primary_color_hex"
-                         value="{{ customization.primary_color|default:'#16a34a' }}"
-                         class="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                         pattern="^#[0-9A-Fa-f]{6}$"
-                         title="Format hexadécimal: #RRGGBB">
-                </div>
-              </div>
-              <p class="text-xs text-gray-400 mt-1">Utilisée pour les boutons et éléments principaux</p>
-            </div>
-            
-            <div>
-              <label class="block text-xs font-medium text-gray-700 mb-2">
-                Couleur secondaire
-              </label>
-              <div class="flex items-center gap-3">
-                <input type="color" 
-                       id="secondary_color" 
-                       name="secondary_color"
-                       value="{{ customization.secondary_color|default:'#f97316' }}"
-                       class="w-10 h-10 rounded-lg border border-gray-200 cursor-pointer">
-                <div class="flex-1">
-                  <input type="text" 
-                         id="secondary_color_hex" 
-                         name="secondary_color_hex"
-                         value="{{ customization.secondary_color|default:'#f97316' }}"
-                         class="w-full px-3 py-2 text-xs border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary"
-                         pattern="^#[0-9A-Fa-f]{6}$"
-                         title="Format hexadécimal: #RRGGBB">
-                </div>
-              </div>
-              <p class="text-xs text-gray-400 mt-1">Utilisée pour les accents et éléments secondaires</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Logo -->
-        <div class="pt-4 border-t border-gray-100">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <i class="fas fa-image text-primary text-sm"></i>
-            </div>
-            <h3 class="text-sm font-medium text-gray-900">Logo</h3>
-          </div>
-          
-          <div>
-            <div class="mb-4">
-              <p class="text-xs text-gray-500 mb-2">Logo actuel :</p>
-              {% if customization.logo %}
-              <div class="relative group">
-                <div class="w-32 h-16 rounded-lg border border-gray-200 overflow-hidden">
-                  <img src="{{ customization.logo.url }}" 
-                       alt="Logo actuel" 
-                       class="w-full h-full object-contain"
-                       id="currentLogo">
-                </div>
-                <button type="button" 
-                        onclick="document.getElementById('remove_logo').value = 'true'; document.getElementById('currentLogo').style.opacity = '0.5'; this.style.display = 'none';"
-                        class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-              {% else %}
-              <div class="w-32 h-16 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
-                <p class="text-xs text-gray-400">Aucun logo</p>
-              </div>
-              {% endif %}
-            </div>
-            
-            <div class="mt-1">
-              <label for="logo-upload" class="cursor-pointer">
-                <div class="flex flex-col items-center justify-center w-full h-32 border-2 border-dashed border-gray-200 rounded-lg hover:border-primary/50 transition-colors duration-150">
-                  <div class="flex flex-col items-center justify-center pt-5 pb-6">
-                    <i class="fas fa-cloud-upload-alt text-gray-300 text-xl mb-2"></i>
-                    <p class="text-xs text-gray-500">Télécharger un logo</p>
-                    <p class="text-xs text-gray-400 mt-1">PNG, JPG, WEBP jusqu'à 5MB</p>
-                  </div>
-                  <input id="logo-upload" type="file" name="logo" accept="image/*"
-                         class="hidden" onchange="previewLogo(this)">
-                </div>
-              </label>
-              <p class="text-xs text-gray-400 mt-2">Taille recommandée : 200×100 pixels</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Image de couverture -->
-        <div class="pt-4 border-t border-gray-100">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <i class="fas fa-image text-primary text-sm"></i>
-            </div>
-            <h3 class="text-sm font-medium text-gray-900">Image de couverture</h3>
-          </div>
-          
-          <div>
-            <div class="mb-4">
-              <p class="text-xs text-gray-500 mb-2">Image actuelle :</p>
-              {% if customization.cover_image %}
-              <div class="relative group">
-                <div class="w-full h-24 rounded-lg border border-gray-200 overflow-hidden">
-                  <img src="{{ customization.cover_image.url }}" 
-                       alt="Couverture actuelle" 
-                       class="w-full h-full object-cover"
-                       id="currentCover">
-                </div>
-                <button type="button" 
-                        onclick="document.getElementById('remove_cover').value = 'true'; document.getElementById('currentCover').style.opacity = '0.5'; this.style.display = 'none';"
-                        class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600">
-                  <i class="fas fa-times"></i>
-                </button>
-              </div>
-              {% else %}
-              <div class="w-full h-24 rounded-lg border-2 border-dashed border-gray-200 flex items-center justify-center">
-                <p class="text-xs text-gray-400">Aucune image de couverture</p>
-              </div>
-              {% endif %}
-            </div>
-            
-            <div class="mt-1">
-              <label for="cover-upload" class="cursor-pointer">
-                <div class="flex flex-col items-center justify-center w-full h-24 border-2 border-dashed border-gray-200 rounded-lg hover:border-primary/50 transition-colors duration-150">
-                  <div class="flex flex-col items-center justify-center">
-                    <i class="fas fa-cloud-upload-alt text-gray-300 text-lg mb-1"></i>
-                    <p class="text-xs text-gray-500">Télécharger une image</p>
-                  </div>
-                  <input id="cover-upload" type="file" name="cover_image" accept="image/*"
-                         class="hidden" onchange="previewCover(this)">
-                </div>
-              </label>
-              <p class="text-xs text-gray-400 mt-2">Taille recommandée : 1200×400 pixels</p>
-            </div>
-          </div>
-        </div>
-
-        <!-- Typographie -->
-        <div class="pt-4 border-t border-gray-100">
-          <div class="flex items-center gap-2 mb-4">
-            <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-              <i class="fas fa-font text-primary text-sm"></i>
-            </div>
-            <h3 class="text-sm font-medium text-gray-900">Typographie</h3>
-          </div>
-          
-          <div>
-            <label class="block text-xs font-medium text-gray-700 mb-2">
-              Police de caractères
-            </label>
-            <select id="font_family" name="font_family"
-                    class="w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary">
-              <option value="inter" {% if customization.font_family == 'inter' %}selected{% endif %}>
-                Inter - Moderne et lisible
-              </option>
-              <option value="poppins" {% if customization.font_family == 'poppins' or not customization.font_family %}selected{% endif %}>
-                Poppins - Élégante et arrondie
-              </option>
-              <option value="montserrat" {% if customization.font_family == 'montserrat' %}selected{% endif %}>
-                Montserrat - Géométrique et professionnelle
-              </option>
-              <option value="roboto" {% if customization.font_family == 'roboto' %}selected{% endif %}>
-                Roboto - Simple et universelle
-              </option>
-            </select>
-            <p class="text-xs text-gray-400 mt-2">
-              Cette police sera utilisée sur le menu en ligne de vos clients
-            </p>
-          </div>
-        </div>
-
-        <!-- Champs cachés pour suppression d'images -->
         <input type="hidden" id="remove_logo" name="remove_logo" value="false">
         <input type="hidden" id="remove_cover" name="remove_cover" value="false">
+        <input type="hidden" id="font_family_hidden" name="font_family" value="{{ customization.font_family|default:'poppins' }}">
+
+        <!-- ── Thème activé ── -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold text-slate-800">Thème personnalisé</p>
+              <p class="text-xs text-slate-400 mt-0.5">Activer pour appliquer vos couleurs et polices sur le menu client</p>
+            </div>
+            <button type="button" id="themeToggleBtn"
+                    onclick="toggleTheme()"
+                    class="toggle-track {% if customization.use_custom_theme %}on{% else %}off{% endif %}">
+              <div class="toggle-thumb"></div>
+            </button>
+            <input type="checkbox" name="use_custom_theme" id="use_custom_theme" class="hidden"
+                   {% if customization.use_custom_theme %}checked{% endif %}>
+          </div>
+        </div>
+
+        <!-- ── Couleurs ── -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-5">
+          <p class="section-title"><i class="ri-palette-line text-primary"></i>Palette de couleurs</p>
+
+          <div class="grid sm:grid-cols-2 gap-6">
+            <!-- Couleur principale -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">Couleur principale</label>
+              <div class="color-picker-wrap">
+                <input type="color" id="primary_color" name="primary_color"
+                       value="{{ customization.primary_color|default:'#f97316' }}"
+                       oninput="onPrimaryChange(this.value)">
+                <input type="text" id="primary_color_hex"
+                       value="{{ customization.primary_color|default:'#f97316' }}"
+                       maxlength="7"
+                       oninput="onPrimaryHexChange(this.value)">
+              </div>
+              <p class="text-xs text-slate-400 mt-1.5 mb-2">Suggestions :</p>
+              <div class="swatch-row" id="primarySwatches">
+                <span class="swatch {% if customization.primary_color == '#f97316' or not customization.primary_color %}selected{% endif %}"
+                      style="background:#f97316" onclick="setPrimary('#f97316')" title="Orange"></span>
+                <span class="swatch {% if customization.primary_color == '#ef4444' %}selected{% endif %}"
+                      style="background:#ef4444" onclick="setPrimary('#ef4444')" title="Rouge"></span>
+                <span class="swatch {% if customization.primary_color == '#8b5cf6' %}selected{% endif %}"
+                      style="background:#8b5cf6" onclick="setPrimary('#8b5cf6')" title="Violet"></span>
+                <span class="swatch {% if customization.primary_color == '#06b6d4' %}selected{% endif %}"
+                      style="background:#06b6d4" onclick="setPrimary('#06b6d4')" title="Cyan"></span>
+                <span class="swatch {% if customization.primary_color == '#10b981' %}selected{% endif %}"
+                      style="background:#10b981" onclick="setPrimary('#10b981')" title="Vert"></span>
+                <span class="swatch {% if customization.primary_color == '#ec4899' %}selected{% endif %}"
+                      style="background:#ec4899" onclick="setPrimary('#ec4899')" title="Rose"></span>
+                <span class="swatch {% if customization.primary_color == '#f59e0b' %}selected{% endif %}"
+                      style="background:#f59e0b" onclick="setPrimary('#f59e0b')" title="Ambre"></span>
+                <span class="swatch {% if customization.primary_color == '#0f172a' %}selected{% endif %}"
+                      style="background:#0f172a" onclick="setPrimary('#0f172a')" title="Ardoise"></span>
+              </div>
+            </div>
+
+            <!-- Couleur secondaire -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">Couleur secondaire</label>
+              <div class="color-picker-wrap">
+                <input type="color" id="secondary_color" name="secondary_color"
+                       value="{{ customization.secondary_color|default:'#0f172a' }}"
+                       oninput="onSecondaryChange(this.value)">
+                <input type="text" id="secondary_color_hex"
+                       value="{{ customization.secondary_color|default:'#0f172a' }}"
+                       maxlength="7"
+                       oninput="onSecondaryHexChange(this.value)">
+              </div>
+              <p class="text-xs text-slate-400 mt-1.5 mb-2">Suggestions :</p>
+              <div class="swatch-row" id="secondarySwatches">
+                <span class="swatch {% if customization.secondary_color == '#0f172a' or not customization.secondary_color %}selected{% endif %}"
+                      style="background:#0f172a" onclick="setSecondary('#0f172a')" title="Ardoise foncé"></span>
+                <span class="swatch {% if customization.secondary_color == '#1e293b' %}selected{% endif %}"
+                      style="background:#1e293b" onclick="setSecondary('#1e293b')" title="Slate"></span>
+                <span class="swatch {% if customization.secondary_color == '#292524' %}selected{% endif %}"
+                      style="background:#292524" onclick="setSecondary('#292524')" title="Stone"></span>
+                <span class="swatch {% if customization.secondary_color == '#7c3aed' %}selected{% endif %}"
+                      style="background:#7c3aed" onclick="setSecondary('#7c3aed')" title="Violet foncé"></span>
+                <span class="swatch {% if customization.secondary_color == '#059669' %}selected{% endif %}"
+                      style="background:#059669" onclick="setSecondary('#059669')" title="Émeraude"></span>
+                <span class="swatch {% if customization.secondary_color == '#db2777' %}selected{% endif %}"
+                      style="background:#db2777" onclick="setSecondary('#db2777')" title="Rose foncé"></span>
+                <span class="swatch {% if customization.secondary_color == '#b45309' %}selected{% endif %}"
+                      style="background:#b45309" onclick="setSecondary('#b45309')" title="Brun"></span>
+                <span class="swatch {% if customization.secondary_color == '#475569' %}selected{% endif %}"
+                      style="background:#475569" onclick="setSecondary('#475569')" title="Gris"></span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Typographie ── -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-5">
+          <p class="section-title"><i class="ri-text ri-lg text-primary"></i>Typographie</p>
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+
+            <label class="font-card {% if customization.font_family == 'poppins' or not customization.font_family %}selected{% endif %}"
+                   onclick="selectFont('poppins')">
+              <input type="radio" class="font-radio" name="font_family_radio" value="poppins"
+                     {% if customization.font_family == 'poppins' or not customization.font_family %}checked{% endif %}>
+              <p class="font-name">Poppins</p>
+              <p class="font-sample" style="font-family:'Poppins',sans-serif;">Aa</p>
+              <p class="font-desc">Élégante</p>
+            </label>
+
+            <label class="font-card {% if customization.font_family == 'montserrat' %}selected{% endif %}"
+                   onclick="selectFont('montserrat')">
+              <input type="radio" class="font-radio" name="font_family_radio" value="montserrat"
+                     {% if customization.font_family == 'montserrat' %}checked{% endif %}>
+              <p class="font-name">Montserrat</p>
+              <p class="font-sample" style="font-family:'Montserrat',sans-serif;">Aa</p>
+              <p class="font-desc">Géométrique</p>
+            </label>
+
+            <label class="font-card {% if customization.font_family == 'inter' %}selected{% endif %}"
+                   onclick="selectFont('inter')">
+              <input type="radio" class="font-radio" name="font_family_radio" value="inter"
+                     {% if customization.font_family == 'inter' %}checked{% endif %}>
+              <p class="font-name">Inter</p>
+              <p class="font-sample" style="font-family:'Inter',sans-serif;">Aa</p>
+              <p class="font-desc">Moderne</p>
+            </label>
+
+            <label class="font-card {% if customization.font_family == 'roboto' %}selected{% endif %}"
+                   onclick="selectFont('roboto')">
+              <input type="radio" class="font-radio" name="font_family_radio" value="roboto"
+                     {% if customization.font_family == 'roboto' %}checked{% endif %}>
+              <p class="font-name">Roboto</p>
+              <p class="font-sample" style="font-family:'Roboto',sans-serif;">Aa</p>
+              <p class="font-desc">Universelle</p>
+            </label>
+          </div>
+        </div>
+
+        <!-- ── Logo & couverture ── -->
+        <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-5">
+          <p class="section-title"><i class="ri-image-line text-primary"></i>Visuels</p>
+
+          <div class="grid sm:grid-cols-2 gap-6">
+            <!-- Logo -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">Logo</label>
+              {% if customization.logo %}
+              <div class="relative mb-3 inline-block">
+                <img src="{{ customization.logo.url }}" alt="Logo"
+                     class="h-16 rounded-xl border border-slate-100 object-contain bg-slate-50 px-2"
+                     id="currentLogoPreview">
+                <button type="button"
+                        onclick="removeLogo()"
+                        class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition shadow-md">
+                  <i class="ri-close-line"></i>
+                </button>
+              </div>
+              {% endif %}
+              <label for="logo-upload" class="upload-zone block">
+                <input id="logo-upload" type="file" name="logo" accept="image/*"
+                       class="hidden" onchange="previewLogo(this)">
+                <i class="ri-upload-cloud-2-line block"></i>
+                <p class="text-xs text-slate-500 mt-1">Télécharger un logo</p>
+                <p class="text-xs text-slate-400">PNG, JPG · 200×200 px · max 5 MB</p>
+              </label>
+            </div>
+
+            <!-- Couverture -->
+            <div>
+              <label class="block text-xs font-semibold text-slate-700 mb-2">Image de couverture</label>
+              {% if customization.cover_image %}
+              <div class="relative mb-3">
+                <img src="{{ customization.cover_image.url }}" alt="Couverture"
+                     class="w-full h-16 rounded-xl object-cover border border-slate-100"
+                     id="currentCoverPreview">
+                <button type="button"
+                        onclick="removeCover()"
+                        class="absolute -top-2 -right-2 w-6 h-6 bg-red-500 text-white rounded-full text-xs flex items-center justify-center hover:bg-red-600 transition shadow-md">
+                  <i class="ri-close-line"></i>
+                </button>
+              </div>
+              {% endif %}
+              <label for="cover-upload" class="upload-zone block">
+                <input id="cover-upload" type="file" name="cover_image" accept="image/*"
+                       class="hidden" onchange="previewCover(this)">
+                <i class="ri-image-add-line block"></i>
+                <p class="text-xs text-slate-500 mt-1">Télécharger une couverture</p>
+                <p class="text-xs text-slate-400">PNG, JPG · 1200×400 px · max 5 MB</p>
+              </label>
+            </div>
+          </div>
+        </div>
 
         <!-- Actions -->
-        <div class="pt-4 border-t border-gray-100">
-          <div class="flex items-center justify-end gap-3">
-            <button type="reset" 
-                    class="px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150"
-                    onclick="resetForm()">
-              Réinitialiser le formulaire
-            </button>
-            <button type="submit" 
-                    class="px-4 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-150 flex items-center gap-2">
-              <i class="fas fa-save text-xs"></i>
-              Enregistrer les modifications
-            </button>
-          </div>
+        <div class="flex items-center justify-between">
+          <a href="{% url 'reset_customization' %}"
+             onclick="return confirm('Réinitialiser toutes les personnalisations ?');"
+             class="reset-link lg:hidden">
+            <i class="ri-refresh-line"></i>
+            Réinitialiser
+          </a>
+          <button type="submit" class="save-btn ml-auto">
+            <i class="ri-save-line text-sm"></i>
+            Enregistrer les modifications
+          </button>
         </div>
       </form>
     </div>
 
-    <!-- Aperçu -->
-    <div class="space-y-6">
-      <div class="bg-white rounded-lg border border-gray-100 p-6">
-        <div class="flex items-center gap-2 mb-6">
-          <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
-            <i class="fas fa-eye text-blue-600 text-sm"></i>
-          </div>
-          <h3 class="text-sm font-medium text-gray-900">Aperçu en direct</h3>
-          <span class="ml-auto text-xs px-2 py-1 rounded-full {% if customization.use_custom_theme %}bg-green-100 text-green-800{% else %}bg-gray-100 text-gray-800{% endif %}">
-            {% if customization.use_custom_theme %}Thème activé{% else %}Thème désactivé{% endif %}
-          </span>
-        </div>
-        
-        <div class="p-6 border border-gray-200 rounded-lg bg-gradient-to-br from-gray-50 to-white" 
-             id="previewContainer">
-          
-          <!-- Image de couverture dans l'aperçu -->
+    <!-- ══ Prévisualisation phone ══ -->
+    <div class="lg:sticky lg:top-24 self-start space-y-4">
+
+      <!-- Label -->
+      <div class="flex items-center justify-between">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Aperçu en direct</p>
+        <span id="themeStatusBadge"
+              class="text-xs font-semibold px-2 py-0.5 rounded-full
+              {% if customization.use_custom_theme %}bg-green-100 text-green-700{% else %}bg-slate-100 text-slate-500{% endif %}">
+          {% if customization.use_custom_theme %}Thème actif{% else %}Thème off{% endif %}
+        </span>
+      </div>
+
+      <!-- Phone mockup -->
+      <div class="phone-frame" id="phoneFrame">
+        <div class="phone-screen" id="phoneScreen">
+          <div class="phone-notch"></div>
+
+          <!-- Cover -->
           {% if customization.cover_image %}
-          <div class="w-full h-32 rounded-lg overflow-hidden mb-4">
-            <img src="{{ customization.cover_image.url }}" 
-                 alt="Couverture" 
-                 id="previewCover"
-                 class="w-full h-full object-cover">
-          </div>
+          <img src="{{ customization.cover_image.url }}" alt="Cover"
+               id="phoneCover" class="phone-cover-img">
           {% else %}
-          <div id="previewCoverPlaceholder" 
-               class="w-full h-32 rounded-lg bg-gradient-to-r from-primary/20 to-secondary/20 mb-4 flex items-center justify-center">
-            <p class="text-sm text-gray-500">Image de couverture</p>
+          <div id="phoneCoverPlaceholder"
+               class="phone-cover-placeholder"
+               style="background: linear-gradient(135deg, {{ customization.primary_color|default:'#f97316' }}88, {{ customization.secondary_color|default:'#0f172a' }}99);">
+            <i class="ri-image-line text-xl"></i>
           </div>
           {% endif %}
-          
-          <div class="text-center mb-6">
+
+          <!-- Logo -->
+          <div style="text-align:center; margin-top: -1.5rem; position: relative; z-index:5;">
             {% if customization.logo %}
-            <img src="{{ customization.logo.url }}" 
-                 alt="Logo" 
-                 id="previewLogo"
-                 class="w-32 h-16 mx-auto mb-4 object-contain">
+            <img src="{{ customization.logo.url }}" alt="Logo"
+                 id="phoneLogo"
+                 style="width:3rem;height:3rem;border-radius:0.875rem;border:3px solid white;object-fit:cover;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.15);">
             {% else %}
-            <div id="previewLogoPlaceholder" 
-                 class="w-16 h-16 mx-auto mb-4 rounded-lg bg-primary text-white flex items-center justify-center text-xl font-bold">
+            <div id="phoneLogoPlaceholder"
+                 class="phone-logo-wrap"
+                 style="background: {{ customization.primary_color|default:'#f97316' }}; display:inline-flex; margin:0 auto;">
               {{ restaurant.name|slice:":2"|upper }}
             </div>
             {% endif %}
-            
-            <h4 id="restaurantNamePreview" class="text-lg font-semibold text-gray-900 mb-1">
+          </div>
+
+          <!-- Restaurant name -->
+          <div style="padding: 0.5rem 0.75rem 0.375rem; text-align:center;">
+            <p id="phoneRestaurantName"
+               style="font-size:0.875rem; font-weight:800; color:#0f172a; line-height:1.25;"
+               class="font-display">
               {{ restaurant.name }}
-            </h4>
-            <p class="text-sm text-gray-500">Menu en ligne</p>
-          </div>
-          
-          <div class="space-y-3 mb-6">
-            <button class="w-full py-2.5 rounded-lg font-medium transition-colors" id="previewPrimaryBtn">
-              <i class="fas fa-shopping-cart mr-2"></i>
-              Commander maintenant
-            </button>
-            
-            <button class="w-full py-2.5 rounded-lg font-medium border transition-colors" id="previewSecondaryBtn">
-              <i class="fas fa-list mr-2"></i>
-              Voir le menu complet
-            </button>
-          </div>
-          
-          <div class="pt-6 border-t border-gray-200">
-            <h6 class="text-sm font-medium text-gray-900 mb-2" id="previewHeading">
-              Spécialité du chef
-            </h6>
-            <p id="previewText" class="text-sm text-gray-600 mb-4">
-              Découvrez notre plat signature préparé avec des ingrédients frais et locaux. Une expérience culinaire unique qui met en valeur les saveurs de la région.
             </p>
-            
-            <div class="flex items-center justify-between text-xs text-gray-500">
-              <span id="previewFontFamily">
-                Police: {{ customization.get_font_family_display|default:"Poppins" }}
-              </span>
-              <span id="previewColors">
-                Couleurs personnalisées
-              </span>
+            <p style="font-size:0.625rem; color:#94a3b8; margin-top:0.125rem;">Menu en ligne</p>
+          </div>
+
+          <!-- Boutons -->
+          <div style="padding: 0.5rem 0 0.375rem;">
+            <button class="phone-btn" id="phonePrimaryBtn"
+                    style="background: {{ customization.primary_color|default:'#f97316' }}; color: white;">
+              Commander
+            </button>
+            <button class="phone-btn phone-btn-outline" id="phoneSecondaryBtn"
+                    style="border-color: {{ customization.primary_color|default:'#f97316' }}; color: {{ customization.primary_color|default:'#f97316' }};">
+              Voir le menu
+            </button>
+          </div>
+
+          <!-- Menu items simulés -->
+          <div style="padding: 0.5rem 0.75rem; flex:1;">
+            <p style="font-size:0.5625rem; font-weight:700; text-transform:uppercase; letter-spacing:0.06em; color:#94a3b8; margin-bottom:0.5rem;">
+              Spécialités
+            </p>
+            {% for i in "123" %}
+            <div style="display:flex;align-items:center;gap:0.5rem;padding:0.5rem 0;border-bottom:1px solid #f1f5f9;">
+              <div style="width:2rem;height:2rem;border-radius:0.5rem;background:#f8fafc;flex-shrink:0;"></div>
+              <div style="flex:1;min-width:0;">
+                <div style="height:0.5rem;width:65%;background:#e2e8f0;border-radius:9999px;"></div>
+                <div style="height:0.375rem;width:40%;background:#f1f5f9;border-radius:9999px;margin-top:0.25rem;"></div>
+              </div>
+              <div id="phonePrice{{ forloop.counter }}"
+                   style="font-size:0.625rem;font-weight:700;color:{{ customization.primary_color|default:'#f97316' }}; white-space:nowrap;">
+                {{ forloop.counter }}2.90€
+              </div>
             </div>
-          </div>
-          
-          <div class="mt-6 pt-6 border-t border-gray-200">
-            <p class="text-xs text-gray-400 flex items-center gap-1.5">
-              <i class="fas fa-info-circle text-gray-300"></i>
-              Cet aperçu montre comment vos clients verront votre menu en ligne.
-            </p>
+            {% endfor %}
           </div>
         </div>
       </div>
 
       <!-- Conseils -->
-      <div class="bg-white rounded-lg border border-gray-100 p-6">
-        <div class="flex items-center gap-2 mb-4">
-          <div class="w-8 h-8 rounded-lg bg-yellow-100 flex items-center justify-center">
-            <i class="fas fa-lightbulb text-yellow-600 text-sm"></i>
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-4 space-y-3">
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">Conseils</p>
+
+        <div class="flex items-start gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-amber-50 text-amber-500 flex items-center justify-center flex-shrink-0 text-sm">
+            <i class="ri-contrast-2-line"></i>
           </div>
-          <h3 class="text-sm font-medium text-gray-900">Conseils de personnalisation</h3>
+          <div>
+            <p class="text-xs font-semibold text-slate-700">Contraste suffisant</p>
+            <p class="text-xs text-slate-400 leading-relaxed">Choisissez des couleurs qui offrent un bon contraste pour la lisibilité.</p>
+          </div>
         </div>
-        
-        <div class="space-y-3">
-          <div class="flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-palette text-primary text-xs"></i>
-            </div>
-            <div>
-              <p class="text-xs font-medium text-gray-700 mb-1">Couleurs contrastées</p>
-              <p class="text-xs text-gray-600">Choisissez des couleurs qui offrent un bon contraste pour une meilleure lisibilité.</p>
-            </div>
+
+        <div class="flex items-start gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-blue-50 text-blue-500 flex items-center justify-center flex-shrink-0 text-sm">
+            <i class="ri-image-2-line"></i>
           </div>
-          
-          <div class="flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-image text-primary text-xs"></i>
-            </div>
-            <div>
-              <p class="text-xs font-medium text-gray-700 mb-1">Images optimisées</p>
-              <p class="text-xs text-gray-600">Utilisez des images de bonne qualité mais optimisées pour le web (max 500KB).</p>
-            </div>
+          <div>
+            <p class="text-xs font-semibold text-slate-700">Images optimisées</p>
+            <p class="text-xs text-slate-400 leading-relaxed">Gardez vos images sous 500 KB pour un chargement rapide.</p>
           </div>
-          
-          <div class="flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-mobile-alt text-primary text-xs"></i>
-            </div>
-            <div>
-              <p class="text-xs font-medium text-gray-700 mb-1">Responsive design</p>
-              <p class="text-xs text-gray-600">Votre personnalisation s'adapte automatiquement aux mobiles et tablettes.</p>
-            </div>
+        </div>
+
+        <div class="flex items-start gap-2.5">
+          <div class="w-7 h-7 rounded-lg bg-green-50 text-green-500 flex items-center justify-center flex-shrink-0 text-sm">
+            <i class="ri-smartphone-line"></i>
           </div>
-          
-          <div class="flex items-start gap-3">
-            <div class="w-6 h-6 rounded-full bg-primary/10 flex items-center justify-center flex-shrink-0">
-              <i class="fas fa-undo text-primary text-xs"></i>
-            </div>
-            <div>
-              <p class="text-xs font-medium text-gray-700 mb-1">Réinitialisation facile</p>
-              <p class="text-xs text-gray-600">Vous pouvez à tout moment réinitialiser votre thème aux valeurs par défaut.</p>
-            </div>
+          <div>
+            <p class="text-xs font-semibold text-slate-700">100% responsive</p>
+            <p class="text-xs text-slate-400 leading-relaxed">Votre design s'adapte automatiquement à tous les écrans.</p>
           </div>
         </div>
       </div>
     </div>
   </div>
 </div>
-
 {% endblock %}
 
 {% block extra_js %}
 <script>
-document.addEventListener('DOMContentLoaded', function() {
-    // Éléments du formulaire
-    const primaryColorInput = document.getElementById('primary_color');
-    const primaryColorHex = document.getElementById('primary_color_hex');
-    const secondaryColorInput = document.getElementById('secondary_color');
-    const secondaryColorHex = document.getElementById('secondary_color_hex');
-    const logoInput = document.getElementById('logo-upload');
-    const coverInput = document.getElementById('cover-upload');
-    const fontFamilySelect = document.getElementById('font_family');
-    const useCustomThemeCheckbox = document.querySelector('input[name="use_custom_theme"]');
-    
-    // Éléments de prévisualisation
-    const previewContainer = document.getElementById('previewContainer');
-    const previewLogo = document.getElementById('previewLogo');
-    const previewLogoPlaceholder = document.getElementById('previewLogoPlaceholder');
-    const previewCover = document.getElementById('previewCover');
-    const previewCoverPlaceholder = document.getElementById('previewCoverPlaceholder');
-    const previewPrimaryBtn = document.getElementById('previewPrimaryBtn');
-    const previewSecondaryBtn = document.getElementById('previewSecondaryBtn');
-    const restaurantNamePreview = document.getElementById('restaurantNamePreview');
-    const previewHeading = document.getElementById('previewHeading');
-    const previewText = document.getElementById('previewText');
-    const previewFontFamily = document.getElementById('previewFontFamily');
-    const previewColors = document.getElementById('previewColors');
-    
-    // Synchronisation des champs couleur
-    function syncColorInputs() {
-        primaryColorHex.value = primaryColorInput.value;
-        secondaryColorHex.value = secondaryColorInput.value;
-        updatePreview();
-    }
-    
-    // Synchronisation inverse (hex vers color picker)
-    function syncColorFromHex(input, colorPicker) {
-        const hexValue = input.value;
-        if (/^#[0-9A-Fa-f]{6}$/.test(hexValue)) {
-            colorPicker.value = hexValue;
-            updatePreview();
-        }
-    }
-    
-    // Mise à jour de la prévisualisation
-    function updatePreview() {
-        // Couleurs
-        const primaryColor = primaryColorInput.value;
-        const secondaryColor = secondaryColorInput.value;
-        
-        // Appliquer les couleurs aux boutons
-        if (previewPrimaryBtn) {
-            previewPrimaryBtn.style.backgroundColor = primaryColor;
-            previewPrimaryBtn.style.color = getContrastColor(primaryColor);
-            previewPrimaryBtn.style.border = 'none';
-        }
-        
-        if (previewSecondaryBtn) {
-            previewSecondaryBtn.style.borderColor = secondaryColor;
-            previewSecondaryBtn.style.color = secondaryColor;
-            previewSecondaryBtn.style.backgroundColor = 'transparent';
-            previewSecondaryBtn.style.borderWidth = '1px';
-        }
-        
-        // Mettre à jour le placeholder du logo
-        if (previewLogoPlaceholder) {
-            previewLogoPlaceholder.style.backgroundColor = primaryColor;
-            previewLogoPlaceholder.style.color = getContrastColor(primaryColor);
-        }
-        
-        // Mettre à jour le placeholder de la couverture
-        if (previewCoverPlaceholder) {
-            previewCoverPlaceholder.style.background = `linear-gradient(to right, ${primaryColor}20, ${secondaryColor}20)`;
-        }
-        
-        // Mettre à jour la police
-        const fontFamily = getFontFamily(fontFamilySelect.value);
-        const fontDisplayName = fontFamilySelect.options[fontFamilySelect.selectedIndex].text.split(' - ')[0];
-        
-        if (previewContainer) previewContainer.style.fontFamily = fontFamily;
-        if (restaurantNamePreview) restaurantNamePreview.style.fontFamily = fontFamily;
-        if (previewHeading) previewHeading.style.fontFamily = fontFamily;
-        if (previewText) previewText.style.fontFamily = fontFamily;
-        if (previewFontFamily) previewFontFamily.textContent = `Police: ${fontDisplayName}`;
-        if (previewColors) previewColors.textContent = `Couleurs: ${primaryColor}, ${secondaryColor}`;
-        
-        // Mettre à jour le thème activé/désactivé
-        const themeStatus = useCustomThemeCheckbox.checked;
-        if (previewContainer) {
-            if (!themeStatus) {
-                previewContainer.style.opacity = '0.6';
-                previewContainer.style.filter = 'grayscale(50%)';
-            } else {
-                previewContainer.style.opacity = '1';
-                previewContainer.style.filter = 'grayscale(0%)';
-            }
-        }
-    }
-    
-    // Convertir la valeur de police en famille CSS
-    function getFontFamily(fontValue) {
-        const fontMap = {
-            'inter': "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
-            'poppins': "'Poppins', -apple-system, BlinkMacSystemFont, sans-serif",
-            'montserrat': "'Montserrat', -apple-system, BlinkMacSystemFont, sans-serif",
-            'roboto': "'Roboto', -apple-system, BlinkMacSystemFont, sans-serif"
-        };
-        return fontMap[fontValue] || "'Poppins', -apple-system, BlinkMacSystemFont, sans-serif";
-    }
-    
-    // Calculer la couleur de contraste (noir ou blanc)
-    function getContrastColor(hexColor) {
-        hexColor = hexColor.replace('#', '');
-        const r = parseInt(hexColor.substr(0, 2), 16);
-        const g = parseInt(hexColor.substr(2, 2), 16);
-        const b = parseInt(hexColor.substr(4, 2), 16);
-        const luminance = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-        return luminance > 0.5 ? '#000000' : '#ffffff';
-    }
-    
-    // Prévisualisation du logo uploadé
-    window.previewLogo = function(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (previewLogo) {
-                    previewLogo.src = e.target.result;
-                } else if (previewLogoPlaceholder) {
-                    const newLogo = document.createElement('img');
-                    newLogo.src = e.target.result;
-                    newLogo.alt = "Logo preview";
-                    newLogo.className = 'w-32 h-16 mx-auto mb-4 object-contain';
-                    newLogo.id = 'previewLogo';
-                    previewLogoPlaceholder.parentElement.replaceChild(newLogo, previewLogoPlaceholder);
-                }
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    };
-    
-    // Prévisualisation de la couverture uploadée
-    window.previewCover = function(input) {
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                if (previewCover) {
-                    previewCover.src = e.target.result;
-                } else if (previewCoverPlaceholder) {
-                    const newCover = document.createElement('img');
-                    newCover.src = e.target.result;
-                    newCover.alt = "Cover preview";
-                    newCover.className = 'w-full h-32 object-cover rounded-lg mb-4';
-                    newCover.id = 'previewCover';
-                    previewCoverPlaceholder.parentElement.replaceChild(newCover, previewCoverPlaceholder);
-                }
-            };
-            reader.readAsDataURL(input.files[0]);
-        }
-    };
-    
-    // Réinitialisation du formulaire
-    window.resetForm = function() {
-        primaryColorInput.value = '{{ default_colors.primary|default:"#16a34a" }}';
-        secondaryColorInput.value = '{{ default_colors.secondary|default:"#f97316" }}';
-        fontFamilySelect.value = 'poppins';
-        useCustomThemeCheckbox.checked = true;
-        syncColorInputs();
-    };
-    
-    // Événements
-    primaryColorInput.addEventListener('input', syncColorInputs);
-    secondaryColorInput.addEventListener('input', syncColorInputs);
-    primaryColorHex.addEventListener('input', () => syncColorFromHex(primaryColorHex, primaryColorInput));
-    secondaryColorHex.addEventListener('input', () => syncColorFromHex(secondaryColorHex, secondaryColorInput));
-    fontFamilySelect.addEventListener('change', updatePreview);
-    useCustomThemeCheckbox.addEventListener('change', updatePreview);
-    
-    // Initialiser la prévisualisation
-    syncColorInputs();
-    
-    // Charger les polices Google Fonts
-    const fontLinks = {
-        'inter': 'https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap',
-        'poppins': 'https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap',
-        'montserrat': 'https://fonts.googleapis.com/css2?family=Montserrat:wght@400;500;600;700&display=swap',
-        'roboto': 'https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap'
-    };
-    
-    // Charger toutes les polices au démarrage
-    Object.values(fontLinks).forEach(link => {
-        const existingLink = document.querySelector(`link[href="${link}"]`);
-        if (!existingLink) {
-            const newLink = document.createElement('link');
-            newLink.href = link;
-            newLink.rel = 'stylesheet';
-            document.head.appendChild(newLink);
-        }
-    });
-    
-    // Effet de survol pour les boutons d'aperçu
-    if (previewPrimaryBtn) {
-        previewPrimaryBtn.addEventListener('mouseenter', function() {
-            this.style.transform = 'translateY(-1px)';
-            this.style.boxShadow = '0 4px 12px rgba(0,0,0,0.1)';
-        });
-        previewPrimaryBtn.addEventListener('mouseleave', function() {
-            this.style.transform = 'translateY(0)';
-            this.style.boxShadow = 'none';
-        });
-    }
-    
-    if (previewSecondaryBtn) {
-        previewSecondaryBtn.addEventListener('mouseenter', function() {
-            this.style.backgroundColor = 'rgba(0,0,0,0.02)';
-        });
-        previewSecondaryBtn.addEventListener('mouseleave', function() {
-            this.style.backgroundColor = 'transparent';
-        });
-    }
+/* ── Google Fonts préchargement ── */
+const FONTS = {
+  poppins:    { css: "https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&display=swap",    stack: "'Poppins', sans-serif" },
+  montserrat: { css: "https://fonts.googleapis.com/css2?family=Montserrat:wght@400;600;700;800&display=swap", stack: "'Montserrat', sans-serif" },
+  inter:      { css: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap",      stack: "'Inter', sans-serif" },
+  roboto:     { css: "https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap",         stack: "'Roboto', sans-serif" },
+};
+Object.values(FONTS).forEach(f => {
+  if (!document.querySelector(`link[href="${f.css}"]`)) {
+    const l = document.createElement('link'); l.rel='stylesheet'; l.href = f.css; document.head.appendChild(l);
+  }
 });
+
+/* ── State ── */
+let currentPrimary   = document.getElementById('primary_color').value;
+let currentSecondary = document.getElementById('secondary_color').value;
+let currentFont      = document.getElementById('font_family_hidden').value || 'poppins';
+
+/* ── Couleur principale ── */
+function onPrimaryChange(val) {
+  currentPrimary = val;
+  document.getElementById('primary_color_hex').value = val;
+  updatePhoneColors();
+}
+function onPrimaryHexChange(val) {
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+    currentPrimary = val;
+    document.getElementById('primary_color').value = val;
+    updatePhoneColors();
+  }
+}
+function setPrimary(val) {
+  currentPrimary = val;
+  document.getElementById('primary_color').value = val;
+  document.getElementById('primary_color_hex').value = val;
+  document.querySelectorAll('#primarySwatches .swatch').forEach(s => {
+    s.classList.toggle('selected', s.style.background.replace(/\s/g,'').toLowerCase() === val.toLowerCase() ||
+      s.getAttribute('style').includes(val.replace('#','').toLowerCase()));
+  });
+  updatePhoneColors();
+}
+function setSecondary(val) {
+  currentSecondary = val;
+  document.getElementById('secondary_color').value = val;
+  document.getElementById('secondary_color_hex').value = val;
+  document.querySelectorAll('#secondarySwatches .swatch').forEach(s => {
+    s.classList.toggle('selected', s.style.background.replace(/\s/g,'').toLowerCase() === val.toLowerCase() ||
+      s.getAttribute('style').includes(val.replace('#','').toLowerCase()));
+  });
+  updatePhoneColors();
+}
+function onSecondaryChange(val) {
+  currentSecondary = val;
+  document.getElementById('secondary_color_hex').value = val;
+  updatePhoneColors();
+}
+function onSecondaryHexChange(val) {
+  if (/^#[0-9A-Fa-f]{6}$/.test(val)) {
+    currentSecondary = val;
+    document.getElementById('secondary_color').value = val;
+    updatePhoneColors();
+  }
+}
+
+function updatePhoneColors() {
+  const p = currentPrimary, s = currentSecondary;
+  const textColor = getContrastColor(p);
+
+  // Primary button
+  const pb = document.getElementById('phonePrimaryBtn');
+  if (pb) { pb.style.background = p; pb.style.color = textColor; }
+
+  // Secondary button outline
+  const sb = document.getElementById('phoneSecondaryBtn');
+  if (sb) { sb.style.borderColor = p; sb.style.color = p; }
+
+  // Logo placeholder
+  const lp = document.getElementById('phoneLogoPlaceholder');
+  if (lp) lp.style.background = p;
+
+  // Cover placeholder gradient
+  const cp = document.getElementById('phoneCoverPlaceholder');
+  if (cp) cp.style.background = `linear-gradient(135deg, ${p}88, ${s}99)`;
+
+  // Prices
+  ['1','2','3'].forEach(i => {
+    const el = document.getElementById('phonePrice' + i);
+    if (el) el.style.color = p;
+  });
+}
+
+/* ── Police ── */
+function selectFont(val) {
+  currentFont = val;
+  document.getElementById('font_family_hidden').value = val;
+  document.querySelectorAll('.font-card').forEach(c => c.classList.remove('selected'));
+  event.currentTarget.classList.add('selected');
+
+  const stack = FONTS[val] ? FONTS[val].stack : "'Poppins', sans-serif";
+  const name = document.getElementById('phoneRestaurantName');
+  if (name) name.style.fontFamily = stack;
+}
+
+/* ── Toggle thème ── */
+function toggleTheme() {
+  const btn = document.getElementById('themeToggleBtn');
+  const cb  = document.getElementById('use_custom_theme');
+  const badge = document.getElementById('themeStatusBadge');
+  const isOn = btn.classList.contains('on');
+  btn.classList.toggle('on',  !isOn);
+  btn.classList.toggle('off',  isOn);
+  cb.checked = !isOn;
+
+  const phone = document.getElementById('phoneScreen');
+  if (isOn) {
+    phone.style.filter = 'grayscale(80%)';
+    phone.style.opacity = '0.7';
+    badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-slate-100 text-slate-500';
+    badge.textContent = 'Thème off';
+  } else {
+    phone.style.filter = '';
+    phone.style.opacity = '1';
+    badge.className = 'text-xs font-semibold px-2 py-0.5 rounded-full bg-green-100 text-green-700';
+    badge.textContent = 'Thème actif';
+  }
+}
+
+/* ── Suppression images ── */
+function removeLogo() {
+  document.getElementById('remove_logo').value = 'true';
+  const img = document.getElementById('currentLogoPreview');
+  const btn = img && img.nextElementSibling;
+  if (img) img.style.opacity = '0.3';
+  if (btn) btn.style.display = 'none';
+  const ph = document.getElementById('phoneLogoPlaceholder');
+  if (!ph) {
+    const logo = document.getElementById('phoneLogo');
+    if (logo) {
+      const d = document.createElement('div');
+      d.id = 'phoneLogoPlaceholder';
+      d.className = 'phone-logo-wrap';
+      d.style.background = currentPrimary;
+      d.style.display = 'inline-flex';
+      d.style.margin = '0 auto';
+      d.textContent = '{{ restaurant.name|slice:":2"|upper }}';
+      logo.parentNode.replaceChild(d, logo);
+    }
+  }
+}
+function removeCover() {
+  document.getElementById('remove_cover').value = 'true';
+  const img = document.getElementById('currentCoverPreview');
+  const btn = img && img.nextElementSibling;
+  if (img) img.style.opacity = '0.3';
+  if (btn) btn.style.display = 'none';
+  const cover = document.getElementById('phoneCover');
+  if (cover) {
+    const d = document.createElement('div');
+    d.id = 'phoneCoverPlaceholder';
+    d.className = 'phone-cover-placeholder';
+    d.style.background = `linear-gradient(135deg, ${currentPrimary}88, ${currentSecondary}99)`;
+    d.innerHTML = '<i class="ri-image-line text-xl"></i>';
+    cover.parentNode.replaceChild(d, cover);
+  }
+}
+
+/* ── Preview images uploadées ── */
+function previewLogo(input) {
+  if (!input.files || !input.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    let existing = document.getElementById('phoneLogo');
+    const ph = document.getElementById('phoneLogoPlaceholder');
+    if (!existing) {
+      existing = document.createElement('img');
+      existing.id = 'phoneLogo';
+      existing.style.cssText = 'width:3rem;height:3rem;border-radius:0.875rem;border:3px solid white;object-fit:cover;display:inline-block;box-shadow:0 4px 12px rgba(0,0,0,0.15);';
+      if (ph) ph.parentNode.replaceChild(existing, ph);
+    }
+    existing.src = e.target.result;
+  };
+  r.readAsDataURL(input.files[0]);
+}
+function previewCover(input) {
+  if (!input.files || !input.files[0]) return;
+  const r = new FileReader();
+  r.onload = e => {
+    let existing = document.getElementById('phoneCover');
+    const ph = document.getElementById('phoneCoverPlaceholder');
+    if (!existing) {
+      existing = document.createElement('img');
+      existing.id = 'phoneCover';
+      existing.className = 'phone-cover-img';
+      if (ph) ph.parentNode.replaceChild(existing, ph);
+    }
+    existing.src = e.target.result;
+  };
+  r.readAsDataURL(input.files[0]);
+}
+
+/* ── Drag & drop zones ── */
+document.querySelectorAll('.upload-zone').forEach(zone => {
+  zone.addEventListener('dragover', e => { e.preventDefault(); zone.classList.add('drag-over'); });
+  zone.addEventListener('dragleave', () => zone.classList.remove('drag-over'));
+  zone.addEventListener('drop', e => {
+    e.preventDefault(); zone.classList.remove('drag-over');
+    const file = e.dataTransfer.files[0];
+    if (!file || !file.type.startsWith('image/')) return;
+    const input = zone.querySelector('input[type=file]');
+    if (!input) return;
+    const dt = new DataTransfer(); dt.items.add(file); input.files = dt.files;
+    input.dispatchEvent(new Event('change'));
+  });
+});
+
+/* ── Contraste ── */
+function getContrastColor(hex) {
+  hex = hex.replace('#','');
+  const r = parseInt(hex.substr(0,2),16), g = parseInt(hex.substr(2,2),16), b = parseInt(hex.substr(4,2),16);
+  return (0.299*r + 0.587*g + 0.114*b)/255 > 0.5 ? '#000000' : '#ffffff';
+}
+
+/* ── Init ── */
+updatePhoneColors();
+{% if not customization.use_custom_theme %}
+document.getElementById('phoneScreen').style.filter = 'grayscale(80%)';
+document.getElementById('phoneScreen').style.opacity = '0.7';
+{% endif %}
 </script>
-
-<style>
-/* Animation pour les changements de prévisualisation */
-#previewContainer * {
-    transition: all 0.3s ease;
-}
-
-/* Style pour les boutons de prévisualisation */
-#previewPrimaryBtn, #previewSecondaryBtn {
-    transition: all 0.2s ease;
-}
-</style>
 {% endblock %}

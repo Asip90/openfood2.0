@@ -100,7 +100,7 @@
           {{ request.user.first_name|first|upper }}{{ request.user.last_name|first|upper }}
         </div>
         <div class="overflow-hidden flex-1 min-w-0" x-show="sidebarOpen">
-          <p class="text-xs font-semibold text-white truncate leading-tight">{{ request.user.get_full_name }}</p>
+          <p class="text-xs font-semibold text-white truncate leading-tight">{{ request.user.first_name }} {{ request.user.last_name }}</p>
           <p class="text-xs text-slate-400 truncate leading-tight mt-0.5">{{ request.user.email|default:"" }}</p>
         </div>
         <form method="post" action="{% url 'deconnexion' %}" x-show="sidebarOpen" class="flex-shrink-0">
@@ -117,8 +117,9 @@
   <!-- ══════════════════════════════════════════
        CONTENU PRINCIPAL
   ══════════════════════════════════════════ -->
-  <div class="flex-1 flex flex-col min-h-full min-w-0 transition-all duration-300"
-       :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-[4.5rem]'">
+  <div class="flex-1 flex flex-col min-h-full min-w-0"
+       :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-[4.5rem]'"
+       x-init="$nextTick(() => $el.classList.add('transition-all', 'duration-300'))">
 
     <!-- Top Header -->
     <header class="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b border-slate-100 h-16 flex items-center justify-between px-4 lg:px-6 shadow-soft flex-shrink-0">
@@ -194,96 +195,84 @@
 <!-- ══════════════════════════════════════════
      BOTTOM NAVBAR — Mobile uniquement
 ══════════════════════════════════════════ -->
-{% url 'dashboard'           as url_dashboard %}
-{% url 'orders_list'         as url_orders    %}
-{% url 'menus_list'          as url_menus     %}
-{% url 'tables_list'         as url_tables    %}
-{% url 'customization'       as url_custom    %}
-{% url 'restaurant_settings' as url_settings  %}
+{% url 'dashboard'   as url_dashboard %}
+{% url 'orders_list' as url_orders    %}
+{% if user_role != 'serveur'   %}{% url 'menus_list'          as url_menus    %}{% endif %}
+{% if user_role != 'cuisinier' %}{% url 'tables_list'         as url_tables   %}{% endif %}
+{% if user_role == 'owner' or user_role == 'coadmin' %}
+  {% url 'customization'       as url_custom   %}
+  {% url 'restaurant_settings' as url_settings %}
+  {% url 'staff_list'          as url_staff    %}
+{% endif %}
 
 <nav class="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-slate-100 shadow-bottom-nav bottom-safe"
      aria-label="Navigation principale">
-  <div class="grid grid-cols-6 h-16">
+  <div class="h-16 flex">
 
     {% with current=request.path %}
 
-    <!-- Dashboard -->
+    <!-- Dashboard — tous -->
     <a href="{{ url_dashboard }}"
-       class="flex flex-col items-center justify-center gap-1 transition-colors
+       class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors
               {% if current == url_dashboard %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
       <div class="relative w-7 h-7 flex items-center justify-center">
-        {% if current == url_dashboard %}
-          <span class="absolute inset-0 bg-primary/10 rounded-xl"></span>
-        {% endif %}
+        {% if current == url_dashboard %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
         <i class="ri-dashboard-line text-[1.15rem] leading-none relative"></i>
       </div>
       <span class="text-[9.5px] font-semibold leading-none">Accueil</span>
     </a>
 
-    <!-- Commandes -->
+    <!-- Commandes — tous -->
     <a href="{{ url_orders }}"
-       class="flex flex-col items-center justify-center gap-1 transition-colors
+       class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors
               {% if current == url_orders %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
       <div class="relative w-7 h-7 flex items-center justify-center">
-        {% if current == url_orders %}
-          <span class="absolute inset-0 bg-primary/10 rounded-xl"></span>
-        {% endif %}
+        {% if current == url_orders %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
         <i class="ri-shopping-bag-line text-[1.15rem] leading-none relative"></i>
       </div>
       <span class="text-[9.5px] font-semibold leading-none">Commandes</span>
     </a>
 
-    <!-- Menu -->
+    <!-- Menu — owner, coadmin, cuisinier -->
+    {% if user_role != 'serveur' %}
     <a href="{{ url_menus }}"
-       class="flex flex-col items-center justify-center gap-1 transition-colors
+       class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors
               {% if current == url_menus %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
       <div class="relative w-7 h-7 flex items-center justify-center">
-        {% if current == url_menus %}
-          <span class="absolute inset-0 bg-primary/10 rounded-xl"></span>
-        {% endif %}
+        {% if current == url_menus %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
         <i class="ri-restaurant-line text-[1.15rem] leading-none relative"></i>
       </div>
       <span class="text-[9.5px] font-semibold leading-none">Menu</span>
     </a>
+    {% endif %}
 
-    <!-- Tables -->
+    <!-- Tables — owner, coadmin, serveur -->
+    {% if user_role != 'cuisinier' %}
     <a href="{{ url_tables }}"
-       class="flex flex-col items-center justify-center gap-1 transition-colors
+       class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors
               {% if current == url_tables %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
       <div class="relative w-7 h-7 flex items-center justify-center">
-        {% if current == url_tables %}
-          <span class="absolute inset-0 bg-primary/10 rounded-xl"></span>
-        {% endif %}
+        {% if current == url_tables %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
         <i class="ri-table-line text-[1.15rem] leading-none relative"></i>
       </div>
       <span class="text-[9.5px] font-semibold leading-none">Tables</span>
     </a>
+    {% endif %}
 
-    <!-- Personnalisation -->
-    <a href="{{ url_custom }}"
-       class="flex flex-col items-center justify-center gap-1 transition-colors
-              {% if current == url_custom %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
-      <div class="relative w-7 h-7 flex items-center justify-center">
-        {% if current == url_custom %}
-          <span class="absolute inset-0 bg-primary/10 rounded-xl"></span>
-        {% endif %}
-        <i class="ri-palette-line text-[1.15rem] leading-none relative"></i>
-      </div>
-      <span class="text-[9.5px] font-semibold leading-none">Design</span>
-    </a>
+    <!-- Paramètres — owner et coadmin uniquement (Design + Équipe accessibles depuis Paramètres) -->
+    {% if user_role == 'owner' or user_role == 'coadmin' %}
 
-    <!-- Paramètres -->
     <a href="{{ url_settings }}"
-       class="flex flex-col items-center justify-center gap-1 transition-colors
-              {% if current == url_settings %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
+       class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors
+              {% if current == url_settings or current == url_custom or current == url_staff %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
       <div class="relative w-7 h-7 flex items-center justify-center">
-        {% if current == url_settings %}
-          <span class="absolute inset-0 bg-primary/10 rounded-xl"></span>
-        {% endif %}
+        {% if current == url_settings or current == url_custom or current == url_staff %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
         <i class="ri-settings-3-line text-[1.15rem] leading-none relative"></i>
       </div>
       <span class="text-[9.5px] font-semibold leading-none">Réglages</span>
     </a>
+
+    {% endif %}
 
     {% endwith %}
   </div>

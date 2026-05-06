@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="fr" class="h-full">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Rejoindre l'équipe — OpenFood</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: {
+        extend: {
+          colors: { primary: { DEFAULT: '#f97316', dark: '#ea580c' } },
+          fontFamily: {
+            display: ['Syne', 'system-ui', 'sans-serif'],
+            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+          },
+          boxShadow: {
+            glow: '0 0 0 3px rgba(249,115,22,0.15), 0 8px 32px rgba(249,115,22,0.25)',
+          },
+        }
+      }
+    }
+  </script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
+</head>
+
+<body class="font-sans bg-slate-50 min-h-full flex flex-col items-center justify-center p-4">
+
+<div class="w-full max-w-md">
+
+  <!-- Brand -->
+  <div class="text-center mb-8">
+    <span class="font-display font-black text-2xl text-slate-900 tracking-tight">
+      Open<span class="text-primary">Food</span>
+    </span>
+  </div>
+
+  {% if error %}
+  <!-- Error state -->
+  <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-8 text-center">
+    <div class="w-14 h-14 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+      <i class="ri-error-warning-line text-red-500 text-2xl"></i>
+    </div>
+    <h1 class="font-display font-black text-slate-900 text-xl mb-2">Invitation invalide</h1>
+    <p class="text-slate-500 text-sm mb-6">{{ error }}</p>
+    <a href="{% url 'connexion' %}"
+       class="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold shadow-glow hover:bg-primary-dark transition-colors">
+      <i class="ri-login-circle-line"></i> Se connecter
+    </a>
+  </div>
+
+  {% elif invitation %}
+  <!-- Registration form for new users -->
+  <div class="bg-white rounded-3xl border border-slate-100 shadow-card p-8">
+    <div class="text-center mb-6">
+      <div class="w-14 h-14 rounded-2xl bg-primary/10 flex items-center justify-center mx-auto mb-4">
+        <i class="ri-team-line text-primary text-2xl"></i>
+      </div>
+      <h1 class="font-display font-black text-slate-900 text-xl mb-1">
+        Rejoindre {{ invitation.restaurant.name }}
+      </h1>
+      <p class="text-slate-500 text-sm">
+        Vous êtes invité(e) en tant que
+        <span class="font-semibold text-slate-700">{{ invitation.role }}</span>.
+        Créez votre compte pour commencer.
+      </p>
+    </div>
+
+    {% if error %}
+    <div class="mb-4 px-4 py-3 rounded-xl bg-red-50 border border-red-100 text-red-700 text-sm flex items-center gap-2">
+      <i class="ri-error-warning-line flex-shrink-0"></i> {{ error }}
+    </div>
+    {% endif %}
+
+    <form method="post" class="space-y-4">
+      {% csrf_token %}
+      <div class="grid grid-cols-2 gap-3">
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Prénom</label>
+          <input type="text" name="first_name" required
+                 class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                 placeholder="Jean">
+        </div>
+        <div>
+          <label class="block text-xs font-semibold text-slate-600 mb-1.5">Nom</label>
+          <input type="text" name="last_name" required
+                 class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+                 placeholder="Dupont">
+        </div>
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Email</label>
+        <input type="email" value="{{ invitation.email }}" disabled
+               class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm bg-slate-50 text-slate-500 cursor-not-allowed">
+      </div>
+
+      <div>
+        <label class="block text-xs font-semibold text-slate-600 mb-1.5">Mot de passe</label>
+        <input type="password" name="password" required minlength="8"
+               class="w-full px-4 py-3 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all"
+               placeholder="8 caractères minimum">
+      </div>
+
+      <button type="submit"
+              class="w-full py-3 rounded-2xl bg-primary text-white font-semibold text-sm shadow-glow hover:bg-primary-dark transition-colors mt-2">
+        Créer mon compte et rejoindre l'équipe
+      </button>
+    </form>
+
+    <p class="text-center text-xs text-slate-400 mt-5">
+      Déjà un compte ?
+      <a href="{% url 'connexion' %}?next={% url 'staff_invite_accept' invitation.token %}"
+         class="text-primary font-semibold hover:underline">Se connecter</a>
+    </p>
+  </div>
+
+  {% endif %}
+
+</div>
+</body>
+</html>

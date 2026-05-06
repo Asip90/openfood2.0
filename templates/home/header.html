@@ -21,6 +21,7 @@
       <a href="#how-it-works" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">Comment ça marche</a>
       <a href="#reviews" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">Témoignages</a>
       <a href="#faq" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">FAQ</a>
+      <a href="{% url 'pricing' %}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">Tarifs</a>
     </nav>
 
     <!-- Auth Desktop -->
@@ -47,7 +48,7 @@
             <i class="ri-dashboard-line text-primary"></i> Tableau de bord
           </a>
           <div class="border-t border-slate-100 my-1"></div>
-          <a href="{% url 'log_out' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-all">
+          <a href="{% url 'deconnexion' %}" class="flex items-center gap-3 px-4 py-3 text-sm text-red-500 hover:bg-red-50 transition-all">
             <i class="ri-logout-box-r-line"></i> Déconnexion
           </a>
         </div>

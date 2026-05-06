@@ -1,440 +1,283 @@
 {% extends "admin_user/base.html" %}
-{% block title %}Créer une commande – OpenFood{% endblock %}
+{% block title %}Nouvelle commande – OpenFood{% endblock %}
+{% block page_title %}Commande manuelle{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'orders_list' %}"
+   class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+  <i class="ri-arrow-left-line"></i>
+  <span class="hidden sm:block">Commandes</span>
+</a>
+{% endblock %}
+
+{% block extra_css %}
+<style>
+  .field-styled { @apply w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl transition-all; }
+  .field-styled:focus { outline: none; border-color: #f97316; box-shadow: 0 0 0 3px rgba(249,115,22,0.12); }
+  select.field-styled { appearance: none; }
+</style>
+{% endblock %}
 
 {% block content %}
-<div class="max-w-6xl mx-auto p-4 md:p-6">
 
-  <!-- En-tête -->
-  <div class="mb-8">
-    <div class="flex items-center gap-3 mb-3">
-      <a href="{% url 'orders_list' %}" 
-         class="text-gray-400 hover:text-gray-600 transition-colors duration-150">
-        <i class="fas fa-arrow-left"></i>
-      </a>
-      <div>
-        <h1 class="text-xl font-semibold text-gray-900">
-          Créer une commande manuelle
-        </h1>
-        <p class="text-sm text-gray-500 mt-0.5">
-          Restaurant : {{ restaurant.name }}
-        </p>
-      </div>
-    </div>
-  </div>
+<form method="post" id="order-form" class="space-y-4">
+  {% csrf_token %}
+  {{ formset.management_form }}
 
-  <!-- Messages -->
-  {% if messages %}
-  <div class="mb-6 space-y-2">
-    {% for message in messages %}
-    <div class="p-4 rounded-lg border {% if message.tags == 'success' %}bg-green-50 border-green-200 text-green-700{% elif message.tags == 'error' %}bg-red-50 border-red-200 text-red-700{% else %}bg-blue-50 border-blue-200 text-blue-700{% endif %}">
-      <div class="flex items-center gap-2">
-        <i class="fas {% if message.tags == 'success' %}fa-check-circle{% else %}fa-exclamation-circle{% endif %}"></i>
-        <span>{{ message }}</span>
-      </div>
-    </div>
-    {% endfor %}
-  </div>
-  {% endif %}
+  <!-- Layout 2 colonnes desktop -->
+  <div class="grid lg:grid-cols-5 gap-4">
 
-  <!-- Formulaire principal -->
-  <form method="post" id="order-form" class="space-y-8">
-    {% csrf_token %}
-    
-    <!-- Management form du FormSet -->
-    {{ formset.management_form }}
+    <!-- ══ Colonne gauche : infos + menu ══ -->
+    <div class="lg:col-span-3 space-y-4">
 
-    <!-- =================== INFOS COMMANDE =================== -->
-    <div class="bg-white rounded-lg border border-gray-100 p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-6 pb-4 border-b border-gray-100">
-        Informations de la commande
-      </h2>
-
-      <div class="grid md:grid-cols-2 gap-6">
-        <!-- Type de commande -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Type de commande
-          </label>
-          {{ order_form.order_type }}
+      <!-- Infos commande -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <i class="ri-file-list-3-line text-primary text-sm"></i>
+          </div>
+          <h2 class="font-display font-black text-slate-900 text-sm">Informations</h2>
         </div>
+        <div class="p-5 space-y-4">
 
-        <!-- Table -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Table
-          </label>
-          {{ order_form.table }}
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Type</label>
+              {{ order_form.order_type }}
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Table</label>
+              {{ order_form.table }}
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-3">
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Client</label>
+              {{ order_form.customer_name }}
+            </div>
+            <div>
+              <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Téléphone</label>
+              {{ order_form.customer_phone }}
+            </div>
+          </div>
+
+          <div>
+            <label class="block text-[10px] font-semibold text-slate-400 uppercase tracking-wide mb-1.5">Notes</label>
+            {{ order_form.notes }}
+          </div>
         </div>
       </div>
 
-      <div class="grid md:grid-cols-2 gap-6 mt-6">
-        <!-- Nom du client -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Nom du client
-          </label>
-          {{ order_form.customer_name }}
+      <!-- Sélection menu -->
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center gap-2.5">
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <i class="ri-restaurant-line text-primary text-sm"></i>
+          </div>
+          <h2 class="font-display font-black text-slate-900 text-sm">Menu</h2>
         </div>
 
-        <!-- Téléphone -->
-        <div>
-          <label class="block text-sm font-medium text-gray-700 mb-2">
-            Téléphone
-          </label>
-          {{ order_form.customer_phone }}
-        </div>
-      </div>
-
-      <!-- Notes -->
-      <div class="mt-6">
-        <label class="block text-sm font-medium text-gray-700 mb-2">
-          Notes (optionnel)
-        </label>
-        {{ order_form.notes }}
-      </div>
-    </div>
-
-    <!-- =================== MENU =================== -->
-    <div class="bg-white rounded-lg border border-gray-100 p-6">
-      <h2 class="text-lg font-semibold text-gray-900 mb-6">
-        Sélectionnez les articles
-      </h2>
-
-      {% if categories %}
-        {% for category in categories %}
-          <div class="mb-8 last:mb-0">
-            <!-- Titre catégorie -->
-            <div class="mb-4">
-              <h3 class="text-sm font-medium text-gray-900 mb-1">
-                {{ category.name }}
-              </h3>
-              <div class="w-8 h-0.5 bg-primary"></div>
+        {% if categories %}
+        <div class="p-4 space-y-5">
+          {% for category in categories %}
+          <div>
+            <div class="flex items-center gap-2 mb-3">
+              <h3 class="text-xs font-bold text-slate-700">{{ category.name }}</h3>
+              <div class="flex-1 h-px bg-slate-100"></div>
             </div>
 
-            <!-- Articles de la catégorie -->
-            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-2">
               {% for item in category.items.all %}
-              <div class="group border border-gray-200 rounded-lg p-4 hover:border-primary/50 transition-colors duration-150">
-                <div class="flex items-start justify-between mb-3">
-                  <div>
-                    <h4 class="font-medium text-gray-900">{{ item.name }}</h4>
-                    {% if item.description %}
-                      <p class="text-xs text-gray-500 mt-1 line-clamp-2">{{ item.description }}</p>
-                    {% endif %}
-                  </div>
-                  {% if item.image %}
-                    <div class="w-12 h-12 rounded overflow-hidden border border-gray-200">
-                      <img src="{{ item.image.url }}" alt="{{ item.name }}" 
-                           class="w-full h-full object-cover">
-                    </div>
-                  {% endif %}
+              <button type="button"
+                      onclick="addItem('{{ item.id }}', '{{ item.name|escapejs }}', '{{ item.price }}', '{% if item.image %}{{ item.image.url }}{% endif %}')"
+                      class="flex items-center gap-3 p-3 rounded-xl border border-slate-100 hover:border-primary/40 hover:bg-primary/5 transition-all text-left group w-full">
+                {% if item.image %}
+                <div class="w-10 h-10 rounded-lg overflow-hidden flex-shrink-0">
+                  <img src="{{ item.image.url }}" alt="{{ item.name }}" class="w-full h-full object-cover">
                 </div>
-                
-                <div class="flex items-center justify-between">
-                  <div class="font-medium text-primary">{{ item.price }} FCFA</div>
-                  <button
-                    type="button"
-                    class="px-3 py-1.5 text-xs font-medium bg-primary text-white rounded-lg hover:bg-primary/90 transition-colors duration-150"
-                    onclick="addItem('{{ item.id }}', '{{ item.name|escapejs }}', '{{ item.price }}', '{% if item.image %}{{ item.image.url }}{% endif %}')">
-                    Ajouter
-                  </button>
+                {% else %}
+                <div class="w-10 h-10 rounded-lg bg-slate-100 flex items-center justify-center flex-shrink-0">
+                  <i class="ri-restaurant-line text-slate-400 text-sm"></i>
                 </div>
-              </div>
-              {% empty %}
-              <div class="col-span-3 p-4 text-center">
-                <p class="text-sm text-gray-500">Aucun plat disponible dans cette catégorie.</p>
-              </div>
+                {% endif %}
+                <div class="flex-1 min-w-0">
+                  <p class="text-sm font-semibold text-slate-800 truncate group-hover:text-primary transition-colors">{{ item.name }}</p>
+                  <p class="text-xs font-bold text-primary">{{ item.price }} FCFA</p>
+                </div>
+                <div class="w-7 h-7 rounded-lg bg-primary/10 group-hover:bg-primary flex items-center justify-center flex-shrink-0 transition-colors">
+                  <i class="ri-add-line text-primary group-hover:text-white text-sm transition-colors"></i>
+                </div>
+              </button>
               {% endfor %}
             </div>
           </div>
-        {% endfor %}
-      {% else %}
-        <div class="p-8 text-center">
-          <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-            <i class="fas fa-utensils text-gray-400"></i>
-          </div>
-          <p class="text-sm text-gray-500">Aucune catégorie avec plats disponibles.</p>
+          {% endfor %}
         </div>
-      {% endif %}
-    </div>
-
-    <!-- =================== ARTICLES DE LA COMMANDE =================== -->
-    <div class="bg-white rounded-lg border border-gray-100 p-6">
-      <div class="flex items-center justify-between mb-6">
-        <h2 class="text-lg font-semibold text-gray-900">
-          Articles de la commande
-        </h2>
-        <div class="text-sm text-gray-500" id="total-price">
-          Total : 0 FCFA
+        {% else %}
+        <div class="p-10 text-center">
+          <i class="ri-restaurant-line text-3xl text-slate-300 block mb-2"></i>
+          <p class="text-sm text-slate-500">Aucun plat disponible dans le menu.</p>
         </div>
-      </div>
-
-      <!-- Hidden formset forms will be added here -->
-      <div id="order-items-container" class="space-y-3">
-        <!-- Les articles seront ajoutés ici dynamiquement -->
-        <div id="empty-state" class="p-8 text-center border-2 border-dashed border-gray-200 rounded-lg">
-          <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-            <i class="fas fa-shopping-bag text-gray-400"></i>
-          </div>
-          <p class="text-sm text-gray-500">Aucun article ajouté</p>
-          <p class="text-xs text-gray-400 mt-1">Ajoutez des articles depuis le menu ci-dessus</p>
-        </div>
+        {% endif %}
       </div>
     </div>
 
-    <!-- =================== ACTIONS =================== -->
-    <div class="flex items-center justify-end gap-3 pt-6 border-t border-gray-100">
-      <a href="{% url 'orders_list' %}"
-         class="px-4 py-2.5 text-sm font-medium text-gray-700 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors duration-150">
-        Annuler
-      </a>
-      <button type="submit"
-              id="submit-button"
-              class="px-4 py-2.5 text-sm font-medium text-white bg-primary rounded-lg hover:bg-primary/90 transition-colors duration-150 disabled:opacity-50 disabled:cursor-not-allowed"
-              disabled>
-        Créer la commande
-      </button>
+    <!-- ══ Colonne droite : panier (sticky desktop) ══ -->
+    <div class="lg:col-span-2">
+      <div class="lg:sticky lg:top-20 bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+
+        <div class="px-5 py-4 border-b border-slate-100 flex items-center justify-between">
+          <div class="flex items-center gap-2.5">
+            <div class="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center">
+              <i class="ri-shopping-cart-2-line text-white text-sm"></i>
+            </div>
+            <h2 class="font-display font-black text-slate-900 text-sm">Commande</h2>
+          </div>
+          <span id="items-count" class="text-xs font-bold text-slate-400">0 article</span>
+        </div>
+
+        <!-- Articles -->
+        <div id="order-items-container" class="p-4 space-y-2 min-h-[120px]">
+          <div id="empty-state" class="py-8 text-center">
+            <i class="ri-shopping-bag-line text-2xl text-slate-300 block mb-2"></i>
+            <p class="text-xs text-slate-400">Ajoutez des articles depuis le menu</p>
+          </div>
+        </div>
+
+        <!-- Total + Valider -->
+        <div class="border-t border-slate-100 p-4 space-y-3">
+          <div class="flex items-center justify-between">
+            <span class="text-sm font-semibold text-slate-600">Total</span>
+            <span id="total-price" class="font-display font-black text-slate-900 text-lg">0 FCFA</span>
+          </div>
+          <button type="submit" id="submit-button" disabled
+                  class="w-full py-3.5 rounded-2xl bg-primary text-white text-sm font-bold shadow-glow transition-all
+                         disabled:opacity-40 disabled:cursor-not-allowed disabled:shadow-none
+                         hover:bg-primary-dark">
+            <i class="ri-check-line mr-1"></i> Créer la commande
+          </button>
+        </div>
+      </div>
     </div>
-  </form>
-</div>
+
+  </div>
+</form>
 
 <script>
 let orderItems = [];
-let formIndex = 0;
 
-// Fonction pour ajouter un article
+/* ─── Style form fields ─── */
+document.addEventListener('DOMContentLoaded', () => {
+  const cls = 'w-full px-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl transition-all focus:outline-none focus:border-primary placeholder:text-slate-300';
+  document.querySelectorAll('select').forEach(el => { el.className = cls; el.style.appearance = 'none'; });
+  document.querySelectorAll('input[type="text"], input[type="tel"]').forEach(el => el.className = cls);
+  document.querySelectorAll('textarea').forEach(el => { el.className = cls + ' resize-none'; el.rows = 2; });
+  updateFormSetManagement();
+});
+
 function addItem(id, name, price, imageUrl) {
-  // Supprimer l'état vide si présent
-  const emptyState = document.getElementById('empty-state');
-  if (emptyState) {
-    emptyState.remove();
-  }
-
-  // Vérifier si l'article existe déjà
-  const existingItemIndex = orderItems.findIndex(item => item.id === id);
-  
-  if (existingItemIndex > -1) {
-    // Incrémenter la quantité
-    orderItems[existingItemIndex].quantity += 1;
-    updateItemDisplay(existingItemIndex);
+  document.getElementById('empty-state')?.remove();
+  const idx = orderItems.findIndex(i => i.id === id);
+  if (idx > -1) {
+    orderItems[idx].quantity += 1;
+    updateItemDisplay(idx);
   } else {
-    // Ajouter un nouvel article
-    const newItem = {
-      id: id,
-      name: name,
-      price: parseFloat(price),
-      quantity: 1,
-      imageUrl: imageUrl
-    };
-    
-    orderItems.push(newItem);
-    addItemToDisplay(newItem, orderItems.length - 1);
+    const item = { id, name, price: parseFloat(price), quantity: 1, imageUrl };
+    orderItems.push(item);
+    const index = orderItems.length - 1;
+    renderItem(item, index);
+    createHiddenFields(item, index);
   }
-
   updateTotal();
   updateSubmitButton();
   updateFormSetManagement();
 }
 
-// Fonction pour ajouter un article à l'affichage et au formset
-function addItemToDisplay(item, index) {
-  const container = document.getElementById('order-items-container');
-  
-  // Créer l'élément visuel
-  const itemElement = document.createElement('div');
-  itemElement.className = 'flex items-center gap-4 p-3 border border-gray-200 rounded-lg bg-gray-50';
-  itemElement.dataset.index = index;
-  
-  itemElement.innerHTML = `
-    <div class="flex-1">
-      <div class="flex items-start gap-3">
-        ${item.imageUrl ? 
-          `<div class="w-10 h-10 rounded overflow-hidden border border-gray-200">
-            <img src="${item.imageUrl}" alt="${item.name}" class="w-full h-full object-cover">
-          </div>` 
-          : ''
-        }
-        <div class="flex-1">
-          <h4 class="font-medium text-gray-900">${item.name}</h4>
-          <div class="text-sm text-gray-500">${item.price} FCFA/unité</div>
-        </div>
-      </div>
-      
-      <div class="mt-3 flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <button type="button" onclick="decreaseQuantity(${index})" 
-                  class="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100">
-            <i class="fas fa-minus text-xs"></i>
-          </button>
-          <span class="font-medium text-gray-900" id="quantity-${index}">${item.quantity}</span>
-          <button type="button" onclick="increaseQuantity(${index})" 
-                  class="w-6 h-6 flex items-center justify-center rounded-full border border-gray-300 text-gray-600 hover:bg-gray-100">
-            <i class="fas fa-plus text-xs"></i>
-          </button>
-        </div>
-        <div class="font-medium text-primary" id="subtotal-${index}">
-          ${(item.price * item.quantity).toFixed(0)} FCFA
-        </div>
-      </div>
+function renderItem(item, index) {
+  const el = document.createElement('div');
+  el.className = 'flex items-center gap-3 p-3 rounded-xl bg-slate-50 border border-slate-100';
+  el.dataset.index = index;
+  el.innerHTML = `
+    ${item.imageUrl ? `<div class="w-9 h-9 rounded-lg overflow-hidden flex-shrink-0"><img src="${item.imageUrl}" class="w-full h-full object-cover"></div>` : ''}
+    <div class="flex-1 min-w-0">
+      <p class="text-xs font-semibold text-slate-800 truncate">${item.name}</p>
+      <p class="text-[10px] text-primary font-bold">${item.price} FCFA/u</p>
     </div>
-    
-    <button type="button" onclick="removeItem(${index})" 
-            class="p-2 text-gray-400 hover:text-red-500 transition-colors duration-150">
-      <i class="fas fa-trash"></i>
-    </button>
+    <div class="flex items-center gap-2 flex-shrink-0">
+      <button type="button" onclick="changeQty(${index}, -1)"
+              class="w-6 h-6 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 flex items-center justify-center text-xs font-bold transition-colors">−</button>
+      <span id="quantity-${index}" class="text-sm font-bold text-slate-900 min-w-[1.25rem] text-center">${item.quantity}</span>
+      <button type="button" onclick="changeQty(${index}, 1)"
+              class="w-6 h-6 rounded-lg border border-slate-200 bg-white text-slate-600 hover:bg-slate-100 flex items-center justify-center text-xs font-bold transition-colors">+</button>
+    </div>
+    <div class="text-right flex-shrink-0">
+      <p id="subtotal-${index}" class="text-xs font-bold text-slate-900">${item.price} FCFA</p>
+      <button type="button" onclick="removeItem(${index})"
+              class="text-[10px] text-red-400 hover:text-red-600 transition-colors mt-0.5">Retirer</button>
+    </div>
   `;
-  
-  // Ajouter l'élément au début du container
-  container.insertBefore(itemElement, container.firstChild);
-  
-  // Créer les champs cachés pour le formset
-  createHiddenFormFields(item, index);
+  document.getElementById('order-items-container').appendChild(el);
 }
 
-// Créer les champs cachés pour le formset
-function createHiddenFormFields(item, index) {
-  const form = document.getElementById('order-form');
-  
-  // Champ menu_item
-  const menuItemField = document.createElement('input');
-  menuItemField.type = 'hidden';
-  menuItemField.name = `items-${index}-menu_item`;
-  menuItemField.value = item.id;
-  menuItemField.id = `id_items-${index}-menu_item`;
-  form.appendChild(menuItemField);
-  
-  // Champ quantity
-  const quantityField = document.createElement('input');
-  quantityField.type = 'hidden';
-  quantityField.name = `items-${index}-quantity`;
-  quantityField.value = item.quantity;
-  quantityField.id = `id_items-${index}-quantity`;
-  form.appendChild(quantityField);
-  
-  // Champ DELETE (toujours False sauf si on supprime)
-  const deleteField = document.createElement('input');
-  deleteField.type = 'hidden';
-  deleteField.name = `items-${index}-DELETE`;
-  deleteField.value = 'False';
-  deleteField.id = `id_items-${index}-DELETE`;
-  form.appendChild(deleteField);
-}
-
-// Mettre à jour les champs du formset
-function updateFormFields(index) {
-  const item = orderItems[index];
-  
-  const quantityField = document.getElementById(`id_items-${index}-quantity`);
-  if (quantityField) {
-    quantityField.value = item.quantity;
-  }
-}
-
-// Mettre à jour le management form du formset
-function updateFormSetManagement() {
-  const totalForms = document.getElementById('id_items-TOTAL_FORMS');
-  if (totalForms) {
-    totalForms.value = orderItems.length;
-  }
-}
-
-// Fonction pour mettre à jour l'affichage d'un article
-function updateItemDisplay(index) {
-  const item = orderItems[index];
-  document.getElementById(`quantity-${index}`).textContent = item.quantity;
-  document.getElementById(`subtotal-${index}`).textContent = `${(item.price * item.quantity).toFixed(0)} FCFA`;
-  
-  // Mettre à jour les champs du formset
-  updateFormFields(index);
-}
-
-// Fonction pour augmenter la quantité
-function increaseQuantity(index) {
-  orderItems[index].quantity += 1;
+function changeQty(index, delta) {
+  if (orderItems[index].quantity + delta < 1) return;
+  orderItems[index].quantity += delta;
   updateItemDisplay(index);
   updateTotal();
 }
 
-// Fonction pour diminuer la quantité
-function decreaseQuantity(index) {
-  if (orderItems[index].quantity > 1) {
-    orderItems[index].quantity -= 1;
-    updateItemDisplay(index);
-    updateTotal();
-  }
+function updateItemDisplay(index) {
+  const item = orderItems[index];
+  const qEl = document.getElementById(`quantity-${index}`);
+  const sEl = document.getElementById(`subtotal-${index}`);
+  if (qEl) qEl.textContent = item.quantity;
+  if (sEl) sEl.textContent = (item.price * item.quantity).toFixed(0) + ' FCFA';
+  const qField = document.getElementById(`id_items-${index}-quantity`);
+  if (qField) qField.value = item.quantity;
 }
 
-// Fonction pour supprimer un article
 function removeItem(index) {
-  // Marquer l'article comme supprimé dans le formset
   const deleteField = document.getElementById(`id_items-${index}-DELETE`);
-  if (deleteField) {
-    deleteField.value = 'True';
-  }
-  
-  // Cacher l'élément visuellement
-  const itemElement = document.querySelector(`[data-index="${index}"]`);
-  if (itemElement) {
-    itemElement.style.display = 'none';
-  }
-  
-  // Supprimer du tableau
+  if (deleteField) deleteField.value = 'True';
+  document.querySelector(`[data-index="${index}"]`)?.remove();
   orderItems.splice(index, 1);
-  
-  // Si plus d'articles, afficher l'état vide
   if (orderItems.length === 0) {
-    const container = document.getElementById('order-items-container');
-    container.innerHTML = `
-      <div id="empty-state" class="p-8 text-center border-2 border-dashed border-gray-200 rounded-lg">
-        <div class="w-12 h-12 mx-auto mb-4 rounded-full bg-gray-100 flex items-center justify-center">
-          <i class="fas fa-shopping-bag text-gray-400"></i>
-        </div>
-        <p class="text-sm text-gray-500">Aucun article ajouté</p>
-        <p class="text-xs text-gray-400 mt-1">Ajoutez des articles depuis le menu ci-dessus</p>
-      </div>
-    `;
+    const cont = document.getElementById('order-items-container');
+    cont.innerHTML = '<div id="empty-state" class="py-8 text-center"><i class="ri-shopping-bag-line text-2xl text-slate-300 block mb-2"></i><p class="text-xs text-slate-400">Ajoutez des articles depuis le menu</p></div>';
   }
-  
   updateTotal();
   updateSubmitButton();
   updateFormSetManagement();
 }
 
-// Fonction pour mettre à jour le total
+function createHiddenFields(item, index) {
+  const form = document.getElementById('order-form');
+  [['menu_item', item.id], ['quantity', 1], ['DELETE', 'False']].forEach(([name, val]) => {
+    const inp = document.createElement('input');
+    inp.type = 'hidden';
+    inp.name = `items-${index}-${name}`;
+    inp.value = val;
+    inp.id = `id_items-${index}-${name}`;
+    form.appendChild(inp);
+  });
+}
+
 function updateTotal() {
-  const total = orderItems.reduce((sum, item) => sum + (item.price * item.quantity), 0);
-  document.getElementById('total-price').textContent = `Total : ${total.toFixed(0)} FCFA`;
+  const total = orderItems.reduce((s, i) => s + i.price * i.quantity, 0);
+  document.getElementById('total-price').textContent = total.toFixed(0) + ' FCFA';
+  const count = orderItems.length;
+  document.getElementById('items-count').textContent = count + (count > 1 ? ' articles' : ' article');
 }
 
-// Fonction pour mettre à jour l'état du bouton de soumission
 function updateSubmitButton() {
-  const submitButton = document.getElementById('submit-button');
-  submitButton.disabled = orderItems.length === 0;
+  document.getElementById('submit-button').disabled = orderItems.length === 0;
 }
 
-// Améliorer les styles des champs de formulaire Django
-document.addEventListener('DOMContentLoaded', function() {
-  // Style pour les select
-  const selects = document.querySelectorAll('select');
-  selects.forEach(select => {
-    select.className = 'w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary';
-  });
-  
-  // Style pour les inputs
-  const inputs = document.querySelectorAll('input[type="text"], input[type="tel"]');
-  inputs.forEach(input => {
-    input.className = 'w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-gray-400';
-  });
-  
-  // Style pour les textareas
-  const textareas = document.querySelectorAll('textarea');
-  textareas.forEach(textarea => {
-    textarea.className = 'w-full px-4 py-2.5 text-sm bg-white border border-gray-200 rounded-lg focus:outline-none focus:ring-1 focus:ring-primary focus:border-primary placeholder:text-gray-400';
-    textarea.rows = 3;
-  });
-  
-  // Initialiser le management form
-  updateFormSetManagement();
-});
+function updateFormSetManagement() {
+  const tf = document.getElementById('id_items-TOTAL_FORMS');
+  if (tf) tf.value = orderItems.length;
+}
 </script>
+
 {% endblock %}

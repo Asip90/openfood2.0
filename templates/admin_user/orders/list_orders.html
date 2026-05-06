@@ -1,126 +1,289 @@
 {% extends "admin_user/base.html" %}
 {% load static %}
 
-{% block title %}Commandes{% endblock %}
+{% block title %}Commandes – OpenFood{% endblock %}
 {% block page_title %}Commandes{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'create_manual_order' %}"
-   class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-medium hover:bg-primary-dark transition-colors">
-  <i class="ri-add-line"></i>
+   class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors shadow-glow">
+  <i class="ri-add-line text-base"></i>
   <span class="hidden sm:block">Commande manuelle</span>
 </a>
 {% endblock %}
 
 {% block content %}
-<!-- Filtres statut -->
-<div class="flex gap-2 mb-6 overflow-x-auto pb-1">
+
+<!-- ── Filtres statut ────────────────────────────────── -->
+<div class="flex gap-2 mb-5 overflow-x-auto pb-1 -mx-1 px-1 scrollbar-none">
+
   <a href="{% url 'orders_list' %}"
-     class="px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors
-       {% if not current_status %}bg-primary text-white{% else %}bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary{% endif %}">
+     class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all
+       {% if not current_status %}bg-primary text-white shadow-glow{% else %}bg-white border border-slate-200 text-slate-600 hover:border-primary/50 hover:text-primary{% endif %}">
     Toutes
   </a>
+
   {% for value, label in status_choices %}
   <a href="?status={{ value }}"
-     class="px-4 py-2 rounded-xl text-sm font-medium whitespace-nowrap flex-shrink-0 transition-colors flex items-center gap-1.5
-       {% if current_status == value %}bg-primary text-white{% else %}bg-white border border-slate-200 text-slate-600 hover:border-primary hover:text-primary{% endif %}">
+     class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all flex items-center gap-2
+       {% if current_status == value %}
+         {% if value == 'pending' %}bg-amber-500 text-white shadow-[0_4px_14px_rgba(245,158,11,0.3)]
+         {% elif value == 'confirmed' %}bg-blue-500 text-white
+         {% elif value == 'preparing' %}bg-indigo-500 text-white
+         {% elif value == 'ready' %}bg-green-500 text-white
+         {% else %}bg-slate-700 text-white{% endif %}
+       {% else %}bg-white border border-slate-200 text-slate-600 hover:border-primary/50 hover:text-primary{% endif %}">
     {{ label }}
     {% if value == 'pending' and pending_count %}
-      <span class="{% if current_status == value %}bg-white text-primary{% else %}bg-red-500 text-white{% endif %} text-xs rounded-full px-1.5 py-0.5 font-bold leading-none">
+      <span class="{% if current_status == value %}bg-white/25{% else %}bg-red-500{% endif %} text-{% if current_status == value %}white{% else %}white{% endif %} text-[10px] rounded-full px-1.5 py-0.5 font-black leading-none min-w-[18px] text-center">
         {{ pending_count }}
       </span>
     {% endif %}
   </a>
   {% endfor %}
+
 </div>
 
-<!-- Liste commandes -->
-<div class="space-y-3">
+<!-- ── Liste commandes ───────────────────────────────── -->
+<div class="space-y-2.5">
   {% for order in orders %}
-  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 overflow-hidden hover:shadow-card transition-shadow">
-    <div class="flex items-center gap-4 p-4">
 
-      <!-- Icône statut -->
-      <div class="flex-shrink-0 w-12 h-12 rounded-xl flex items-center justify-center
-        {% if order.status == 'pending' %}bg-amber-50 text-amber-600
-        {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-600
-        {% elif order.status == 'preparing' %}bg-indigo-50 text-indigo-600
-        {% elif order.status == 'ready' %}bg-green-50 text-green-600
-        {% else %}bg-slate-100 text-slate-500{% endif %}">
-        <i class="ri-shopping-bag-line text-xl"></i>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft hover:shadow-card hover:border-slate-200 transition-all duration-200 group overflow-visible">
+    <div class="flex items-stretch gap-0">
+
+      <!-- Bande couleur statut (left accent) -->
+      <div class="w-1 flex-shrink-0
+        {% if order.status == 'pending' %}bg-amber-400
+        {% elif order.status == 'confirmed' %}bg-blue-400
+        {% elif order.status == 'preparing' %}bg-indigo-500
+        {% elif order.status == 'ready' %}bg-green-500
+        {% elif order.status == 'delivered' %}bg-slate-300
+        {% else %}bg-red-400{% endif %}">
       </div>
 
-      <!-- Infos -->
-      <div class="flex-1 min-w-0">
-        <div class="flex items-center gap-2 flex-wrap">
-          <span class="font-bold text-slate-900 text-sm">#{{ order.order_number|slice:"-6:" }}</span>
-          <span class="text-xs font-medium px-2 py-0.5 rounded-full
-            {% if order.status == 'pending' %}bg-amber-50 text-amber-700
-            {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-700
-            {% elif order.status == 'preparing' %}bg-indigo-50 text-indigo-700
-            {% elif order.status == 'ready' %}bg-green-50 text-green-700
-            {% elif order.status == 'delivered' %}bg-slate-100 text-slate-600
-            {% else %}bg-red-50 text-red-700{% endif %}">
-            {{ order.get_status_display }}
-          </span>
-        </div>
-        <p class="text-xs text-slate-500 mt-0.5">
-          {% if order.table %}Table {{ order.table.number }}{% else %}À emporter{% endif %}
-          · {{ order.created_at|timesince }} ago
-          {% if order.customer_name %} · {{ order.customer_name }}{% endif %}
-        </p>
-        <p class="text-xs text-slate-600 mt-1 truncate">
-          {% for item in order.items.all|slice:":3" %}{{ item.quantity }}× {{ item.menu_item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-          {% if order.items.count > 3 %} +{{ order.items.count|add:"-3" }} autres{% endif %}
-        </p>
-      </div>
+      <div class="flex-1 flex items-center gap-3 p-3.5 sm:p-4 min-w-0">
 
-      <!-- Montant + Actions -->
-      <div class="flex-shrink-0 text-right">
-        <p class="font-bold text-slate-900 text-sm">{{ order.total|floatformat:0 }} FCFA</p>
-        <div class="flex items-center gap-1 mt-2 justify-end">
-          <a href="{% url 'order_detail' order.pk %}"
-             class="p-2 rounded-lg hover:bg-slate-100 text-slate-500 transition-colors" title="Détails">
-            <i class="ri-eye-line text-sm"></i>
-          </a>
-          <a href="{% url 'order_change_status' order.pk %}"
-             class="p-2 rounded-lg hover:bg-primary/10 text-primary transition-colors" title="Changer statut">
-            <i class="ri-refresh-line text-sm"></i>
-          </a>
+        <!-- Icône statut -->
+        <div class="w-11 h-11 flex-shrink-0 rounded-xl flex items-center justify-center
+          {% if order.status == 'pending' %}bg-amber-50 text-amber-500
+          {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-500
+          {% elif order.status == 'preparing' %}bg-indigo-50 text-indigo-600
+          {% elif order.status == 'ready' %}bg-green-50 text-green-600
+          {% elif order.status == 'delivered' %}bg-slate-100 text-slate-500
+          {% else %}bg-red-50 text-red-500{% endif %}">
+          {% if order.status == 'pending' %}<i class="ri-time-line text-lg"></i>
+          {% elif order.status == 'confirmed' %}<i class="ri-check-line text-lg"></i>
+          {% elif order.status == 'preparing' %}<i class="ri-fire-line text-lg"></i>
+          {% elif order.status == 'ready' %}<i class="ri-checkbox-circle-line text-lg"></i>
+          {% elif order.status == 'delivered' %}<i class="ri-shopping-bag-check-line text-lg"></i>
+          {% else %}<i class="ri-close-circle-line text-lg"></i>{% endif %}
         </div>
+
+        <!-- Infos commande -->
+        <div class="flex-1 min-w-0">
+
+          <!-- Ligne 1: numéro + badge statut -->
+          <div class="flex items-center gap-2 flex-wrap">
+            <span class="font-display font-black text-slate-900 text-sm">#{{ order.order_number|slice:"-6:" }}</span>
+            <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+              {% if order.status == 'pending' %}bg-amber-50 text-amber-700
+              {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-700
+              {% elif order.status == 'preparing' %}bg-indigo-50 text-indigo-700
+              {% elif order.status == 'ready' %}bg-green-50 text-green-700
+              {% elif order.status == 'delivered' %}bg-slate-100 text-slate-600
+              {% else %}bg-red-50 text-red-700{% endif %}">
+              {{ order.get_status_display }}
+            </span>
+            {% if order.status == 'pending' %}
+            <span class="text-[10px] text-amber-500 font-semibold animate-pulse hidden sm:inline">● En attente</span>
+            {% endif %}
+          </div>
+
+          <!-- Ligne 2: table + heure + client -->
+          <p class="text-xs text-slate-400 mt-0.5 truncate">
+            {% if order.table %}<i class="ri-table-line mr-0.5"></i>Table {{ order.table.number }}{% else %}<i class="ri-map-pin-line mr-0.5"></i>À emporter{% endif %}
+            · {{ order.created_at|timesince }} ago
+            {% if order.customer_name %} · <span class="text-slate-500">{{ order.customer_name }}</span>{% endif %}
+          </p>
+
+          <!-- Ligne 3: articles -->
+          <p class="text-xs text-slate-500 mt-1 truncate">
+            {% for item in order.items.all|slice:":3" %}{{ item.quantity }}× {{ item.menu_item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+            {% if order.items.count > 3 %}<span class="text-slate-400"> +{{ order.items.count|add:"-3" }} autres</span>{% endif %}
+          </p>
+        </div>
+
+        <!-- Montant + CTA -->
+        <div class="flex-shrink-0 text-right flex flex-col items-end gap-2">
+          <p class="font-display font-black text-slate-900 text-sm leading-none">{{ order.total|floatformat:0 }}</p>
+          <p class="text-[10px] text-slate-400 -mt-1">FCFA</p>
+
+          <div class="flex items-center gap-1">
+            <!-- Voir détail -->
+            <button onclick="openDetail({{ order.pk }})"
+               class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="Voir détails">
+              <i class="ri-eye-line text-sm"></i>
+            </button>
+
+            <!-- Dropdown statut -->
+            <div x-data="{ open: false, top: 0, right: 0 }">
+              <button
+                @click.stop="
+                  if (!open) {
+                    const r = $el.getBoundingClientRect();
+                    top = r.bottom + 6;
+                    right = window.innerWidth - r.right;
+                  }
+                  open = !open
+                "
+                class="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" title="Changer statut">
+                <i class="ri-arrow-down-s-line text-sm"></i>
+              </button>
+              <div x-show="open" @click.outside="open = false" x-cloak
+                   :style="`position:fixed; top:${top}px; right:${right}px; z-index:9999`"
+                   x-transition:enter="transition ease-out duration-100"
+                   x-transition:enter-start="opacity-0 scale-95"
+                   x-transition:enter-end="opacity-100 scale-100"
+                   x-transition:leave="transition ease-in duration-75"
+                   x-transition:leave-start="opacity-100 scale-100"
+                   x-transition:leave-end="opacity-0 scale-95"
+                   class="w-44 bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                {% for value, label in status_choices %}
+                <button @click="changeStatus({{ order.pk }}, '{{ value }}'); open = false"
+                  class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2
+                    {% if order.status == value %}bg-primary/5 text-primary{% else %}text-slate-600{% endif %}">
+                  <span class="w-2 h-2 rounded-full flex-shrink-0
+                    {% if value == 'pending' %}bg-amber-400
+                    {% elif value == 'confirmed' %}bg-blue-400
+                    {% elif value == 'preparing' %}bg-indigo-500
+                    {% elif value == 'ready' %}bg-green-500
+                    {% elif value == 'delivered' %}bg-slate-400
+                    {% else %}bg-red-400{% endif %}"></span>
+                  {{ label }}
+                  {% if order.status == value %}<i class="ri-check-line ml-auto text-primary text-xs"></i>{% endif %}
+                </button>
+                {% endfor %}
+              </div>
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   </div>
+
   {% empty %}
-  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 py-16 text-center">
-    <i class="ri-shopping-bag-line text-4xl text-slate-300 block mb-3"></i>
-    <p class="text-slate-500 font-medium">Aucune commande{% if current_status %} avec ce statut{% endif %}</p>
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft py-20 text-center">
+    <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-slate-100 flex items-center justify-center">
+      <i class="ri-shopping-bag-line text-3xl text-slate-400"></i>
+    </div>
+    <p class="font-display font-black text-slate-900 text-lg mb-1">Aucune commande</p>
+    <p class="text-slate-500 text-sm">
+      {% if current_status %}Aucune commande avec ce statut{% else %}Vos commandes apparaîtront ici{% endif %}
+    </p>
   </div>
   {% endfor %}
 </div>
 
-<!-- Pagination -->
+<!-- ── Pagination ────────────────────────────────────── -->
 {% if orders.has_other_pages %}
 <div class="flex justify-center gap-2 mt-6">
   {% if orders.has_previous %}
   <a href="?page={{ orders.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}"
-     class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:border-primary hover:text-primary transition-colors">
+     class="px-5 py-2.5 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary hover:text-primary transition-colors">
     ← Précédent
   </a>
   {% endif %}
-  <span class="px-4 py-2 rounded-xl bg-primary text-white text-sm font-medium">
+  <span class="px-5 py-2.5 rounded-2xl bg-primary text-white text-sm font-bold">
     {{ orders.number }} / {{ orders.paginator.num_pages }}
   </span>
   {% if orders.has_next %}
   <a href="?page={{ orders.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}"
-     class="px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:border-primary hover:text-primary transition-colors">
+     class="px-5 py-2.5 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary hover:text-primary transition-colors">
     Suivant →
   </a>
   {% endif %}
 </div>
 {% endif %}
 
-<!-- Polling nouvelles commandes -->
+<!-- ── Modale détail commande ─────────────────────────── -->
+<div id="detailModal"
+     class="fixed inset-0 z-[200] flex items-end sm:items-center justify-center p-0 sm:p-4 hidden"
+     onclick="if(event.target===this)closeDetail()">
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm"></div>
+
+  <!-- Panel -->
+  <div class="relative bg-white w-full sm:max-w-md sm:rounded-3xl rounded-t-3xl shadow-card overflow-hidden flex flex-col max-h-[90vh]">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 pt-5 pb-4 border-b border-slate-100 flex-shrink-0">
+      <div>
+        <p id="modalOrderNum" class="font-display font-black text-slate-900 text-lg"></p>
+        <p id="modalCreatedAt" class="text-xs text-slate-400 mt-0.5"></p>
+      </div>
+      <div class="flex items-center gap-2">
+        <span id="modalStatusBadge" class="text-[10px] font-bold px-2.5 py-1 rounded-full"></span>
+        <button onclick="closeDetail()" class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
+          <i class="ri-close-line text-lg"></i>
+        </button>
+      </div>
+    </div>
+
+    <!-- Scroll area -->
+    <div class="overflow-y-auto flex-1 px-5 py-4 space-y-4">
+
+      <!-- Infos client / table -->
+      <div class="bg-slate-50 rounded-2xl p-4 space-y-2">
+        <div class="flex items-center gap-2 text-sm">
+          <i class="ri-map-pin-line text-slate-400 text-base"></i>
+          <span id="modalTable" class="font-semibold text-slate-700"></span>
+        </div>
+        <div id="modalCustomerRow" class="flex items-center gap-2 text-sm hidden">
+          <i class="ri-user-line text-slate-400 text-base"></i>
+          <span id="modalCustomer" class="text-slate-600"></span>
+        </div>
+        <div id="modalPhoneRow" class="flex items-center gap-2 text-sm hidden">
+          <i class="ri-phone-line text-slate-400 text-base"></i>
+          <span id="modalPhone" class="text-slate-600"></span>
+        </div>
+        <div id="modalNotesRow" class="flex items-center gap-2 text-sm hidden">
+          <i class="ri-sticky-note-line text-slate-400 text-base"></i>
+          <span id="modalNotes" class="text-slate-500 italic"></span>
+        </div>
+      </div>
+
+      <!-- Articles -->
+      <div>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Articles</p>
+        <div id="modalItems" class="space-y-2"></div>
+      </div>
+
+      <!-- Totaux -->
+      <div class="border-t border-slate-100 pt-3 space-y-1.5">
+        <div class="flex justify-between text-sm text-slate-500">
+          <span>Sous-total</span>
+          <span id="modalSubtotal" class="font-semibold"></span>
+        </div>
+        <div class="flex justify-between text-sm text-slate-500">
+          <span>Taxes (10%)</span>
+          <span id="modalTax" class="font-semibold"></span>
+        </div>
+        <div class="flex justify-between text-base font-black text-slate-900 pt-1 border-t border-slate-100">
+          <span>Total</span>
+          <span id="modalTotal"></span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer loading -->
+    <div id="modalLoader" class="px-5 py-8 text-center hidden">
+      <i class="ri-loader-4-line text-2xl text-primary animate-spin"></i>
+    </div>
+  </div>
+</div>
+
+<!-- ── Polling son + refresh ─────────────────────────── -->
 <script>
   const audio = new Audio('{% static "sounds/new-order.mp3" %}');
   let lastOrderId = {{ latest_order_id|default:"null" }};
@@ -138,5 +301,99 @@
       }
     } catch(e) {}
   }, 10000);
+
+  // ── Changement de statut ──────────────────────────────
+  const csrfToken = '{{ csrf_token }}';
+
+  async function changeStatus(pk, newStatus, btn) {
+    try {
+      const res = await fetch(`/orders/${pk}/change-status/`, {
+        method: 'POST',
+        headers: {
+          'X-Requested-With': 'XMLHttpRequest',
+          'X-CSRFToken': csrfToken,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: `status=${newStatus}`,
+      });
+      const data = await res.json();
+      if (data.ok) location.reload();
+    } catch(e) {}
+  }
+
+  // ── Modale détail ─────────────────────────────────────
+  const modal = document.getElementById('detailModal');
+
+  function openDetail(pk) {
+    modal.classList.remove('hidden');
+    document.body.style.overflow = 'hidden';
+    const loader = document.getElementById('modalLoader');
+    const scrollArea = modal.querySelector('.overflow-y-auto');
+    loader.classList.remove('hidden');
+    scrollArea.classList.add('hidden');
+
+    fetch(`/orders/${pk}/`, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(r => r.json())
+      .then(d => {
+        if (!d.ok) return;
+
+        document.getElementById('modalOrderNum').textContent = '#' + d.order_number.slice(-6);
+        document.getElementById('modalCreatedAt').textContent = d.created_at;
+
+        const badge = document.getElementById('modalStatusBadge');
+        badge.textContent = d.status_display;
+        const colors = {
+          pending:   'bg-amber-50 text-amber-700',
+          confirmed: 'bg-blue-50 text-blue-700',
+          preparing: 'bg-indigo-50 text-indigo-700',
+          ready:     'bg-green-50 text-green-700',
+          delivered: 'bg-slate-100 text-slate-600',
+          cancelled: 'bg-red-50 text-red-700',
+        };
+        badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-full ' + (colors[d.status] || 'bg-slate-100 text-slate-600');
+
+        document.getElementById('modalTable').textContent = d.table;
+
+        const setRow = (rowId, spanId, val) => {
+          const row = document.getElementById(rowId);
+          if (val) { document.getElementById(spanId).textContent = val; row.classList.remove('hidden'); }
+          else row.classList.add('hidden');
+        };
+        setRow('modalCustomerRow', 'modalCustomer', d.customer_name);
+        setRow('modalPhoneRow', 'modalPhone', d.customer_phone);
+        setRow('modalNotesRow', 'modalNotes', d.notes);
+
+        const itemsEl = document.getElementById('modalItems');
+        itemsEl.innerHTML = d.items.map(it => `
+          <div class="flex items-center justify-between py-2 border-b border-slate-50 last:border-0">
+            <div class="flex items-center gap-2 min-w-0">
+              <span class="w-6 h-6 rounded-lg bg-primary/10 text-primary text-[11px] font-black flex items-center justify-center flex-shrink-0">${it.quantity}</span>
+              <span class="text-sm text-slate-700 font-medium truncate">${it.name}</span>
+            </div>
+            <span class="text-sm font-semibold text-slate-900 flex-shrink-0 ml-2">${Math.round(it.total).toLocaleString()} FCFA</span>
+          </div>`).join('');
+
+        document.getElementById('modalSubtotal').textContent = Math.round(d.subtotal).toLocaleString() + ' FCFA';
+        document.getElementById('modalTax').textContent = Math.round(d.tax).toLocaleString() + ' FCFA';
+        document.getElementById('modalTotal').textContent = Math.round(d.total).toLocaleString() + ' FCFA';
+
+        loader.classList.add('hidden');
+        scrollArea.classList.remove('hidden');
+      })
+      .catch(() => closeDetail());
+  }
+
+  function closeDetail() {
+    modal.classList.add('hidden');
+    document.body.style.overflow = '';
+  }
+
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') closeDetail(); });
 </script>
+
+<style>
+  .scrollbar-none { scrollbar-width: none; -ms-overflow-style: none; }
+  .scrollbar-none::-webkit-scrollbar { display: none; }
+</style>
+
 {% endblock %}

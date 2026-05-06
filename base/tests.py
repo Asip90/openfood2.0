@@ -17,8 +17,10 @@ def make_user(email='user@test.com', first='A', last='B'):
 
 
 def make_restaurant(owner):
+    uid = owner.pk or owner.email
     return Restaurant.objects.create(
-        owner=owner, name='TestResto', slug='testresto', subdomain='testresto',
+        owner=owner, name=f'TestResto-{uid}',
+        slug=f'testresto-{uid}', subdomain=f'testresto-{uid}',
         address='123 rue test', phone='0600000000', email='resto@test.com',
     )
 
@@ -305,6 +307,41 @@ class InvitationViewTest(TestCase):
         resp = self.client.post(reverse('staff_delete', args=[sm.pk]))
         self.assertRedirects(resp, reverse('staff_list'), fetch_redirect_response=False)
         self.assertFalse(StaffMember.objects.filter(pk=sm.pk).exists())
+
+    def test_cannot_invite_self(self):
+        resp = self.client.post(reverse('staff_invite'), {
+            'email': self.owner.email,
+            'role': 'cuisinier',
+        })
+        self.assertRedirects(resp, reverse('staff_list'), fetch_redirect_response=False)
+        self.assertEqual(StaffInvitation.objects.count(), 0)
+        self.assertEqual(StaffMember.objects.count(), 0)
+
+    def test_cannot_invite_existing_staff_member(self):
+        staff_user = make_user('alreadyin@test.com', 'Already', 'In')
+        StaffMember.objects.create(
+            user=staff_user, restaurant=self.restaurant, role='cuisinier'
+        )
+        resp = self.client.post(reverse('staff_invite'), {
+            'email': 'alreadyin@test.com',
+            'role': 'serveur',
+        })
+        self.assertRedirects(resp, reverse('staff_list'), fetch_redirect_response=False)
+        self.assertEqual(StaffMember.objects.filter(user=staff_user).count(), 1)
+
+    def test_cannot_invite_staff_of_another_restaurant(self):
+        other_owner = make_user('otherowner@test.com', 'Other', 'Owner')
+        other_restaurant = make_restaurant(other_owner)
+        staff_user = make_user('elsewhere@test.com', 'Work', 'Elsewhere')
+        StaffMember.objects.create(
+            user=staff_user, restaurant=other_restaurant, role='cuisinier'
+        )
+        resp = self.client.post(reverse('staff_invite'), {
+            'email': 'elsewhere@test.com',
+            'role': 'serveur',
+        })
+        self.assertRedirects(resp, reverse('staff_list'), fetch_redirect_response=False)
+        self.assertFalse(StaffMember.objects.filter(user=staff_user, restaurant=self.restaurant).exists())
 
     def test_coadmin_cannot_delete_other_coadmin(self):
         coadmin_user = make_user('coadmin7@test.com', 'Co', 'Admin')

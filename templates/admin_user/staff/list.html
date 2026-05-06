@@ -1,13 +1,154 @@
 {% extends "admin_user/base.html" %}
+{% block title %}Équipe{% endblock %}
+{% block page_title %}Équipe{% endblock %}
+
 {% block content %}
-<h1>Équipe</h1>
-<a href="{% url 'staff_create' %}">+ Ajouter</a>
-{% for m in members %}
-<div>{{ m.get_full_name }} ({{ m.get_role_display }}) — @{{ m.username }}
-  <a href="{% url 'staff_update' m.pk %}">Éditer</a>
-  <form method="post" action="{% url 'staff_delete' m.pk %}" style="display:inline">
-    {% csrf_token %}<button type="submit">Supprimer</button>
+
+<!-- Invitation form -->
+<div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-5 mb-6">
+  <h2 class="text-sm font-semibold text-slate-700 mb-4 flex items-center gap-2">
+    <i class="ri-user-add-line text-primary"></i> Inviter un membre
+  </h2>
+  <form method="post" action="{% url 'staff_invite' %}" class="flex flex-col sm:flex-row gap-3">
+    {% csrf_token %}
+    <input type="email" name="email" required placeholder="Email du membre..."
+           class="flex-1 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all">
+    <select name="role" required
+            class="sm:w-44 px-4 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-primary/30 focus:border-primary transition-all bg-white">
+      <option value="" disabled selected>Rôle…</option>
+      {% if is_owner %}
+      <option value="coadmin">Co-administrateur</option>
+      {% endif %}
+      <option value="cuisinier">Cuisinier</option>
+      <option value="serveur">Serveur</option>
+    </select>
+    <button type="submit"
+            class="flex items-center justify-center gap-2 px-5 py-2.5 rounded-xl bg-primary text-white text-sm font-semibold shadow-glow hover:bg-primary-dark transition-colors whitespace-nowrap">
+      <i class="ri-send-plane-line"></i> Envoyer l'invitation
+    </button>
   </form>
 </div>
-{% endfor %}
+
+<!-- Current members -->
+<h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Membres actifs</h2>
+
+{% if members %}
+<div class="grid gap-3 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+  {% for m in members %}
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+
+    <div class="px-5 py-4 flex items-center gap-3 border-b border-slate-50">
+      <div class="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0 font-bold text-sm
+        {% if m.role == 'cuisinier' %}bg-orange-50 text-primary
+        {% elif m.role == 'serveur' %}bg-blue-50 text-blue-600
+        {% else %}bg-violet-50 text-violet-600{% endif %}">
+        {{ m.user.first_name|first|upper }}{{ m.user.last_name|first|upper }}
+      </div>
+
+      <div class="min-w-0 flex-1">
+        <p class="text-sm font-semibold text-slate-900 truncate">{{ m.get_full_name }}</p>
+        <p class="text-xs text-slate-400 truncate">{{ m.user.email }}</p>
+      </div>
+
+      {% if m.is_active %}
+      <span class="w-2 h-2 rounded-full bg-green-400 flex-shrink-0" title="Actif"></span>
+      {% else %}
+      <span class="w-2 h-2 rounded-full bg-slate-300 flex-shrink-0" title="Inactif"></span>
+      {% endif %}
+    </div>
+
+    <div class="px-5 py-3 flex items-center justify-between">
+      <span class="px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase tracking-widest
+        {% if m.role == 'cuisinier' %}bg-orange-50 text-primary border border-orange-100
+        {% elif m.role == 'serveur' %}bg-blue-50 text-blue-600 border border-blue-100
+        {% else %}bg-violet-50 text-violet-600 border border-violet-100{% endif %}">
+        {{ m.get_role_display }}
+      </span>
+
+      {% if is_owner or m.role != 'coadmin' %}
+      <button type="button"
+              onclick="confirmDelete('{{ m.get_full_name|escapejs }}', '{% url 'staff_delete' m.pk %}')"
+              class="p-2 rounded-xl text-slate-400 hover:text-red-500 hover:bg-red-50 transition-colors"
+              title="Retirer de l'équipe">
+        <i class="ri-user-unfollow-line text-sm"></i>
+      </button>
+      {% endif %}
+    </div>
+  </div>
+  {% endfor %}
+</div>
+
+{% else %}
+<div class="flex flex-col items-center justify-center py-12 text-center mb-8 bg-white rounded-2xl border border-slate-100 shadow-soft">
+  <div class="w-14 h-14 rounded-2xl bg-slate-100 flex items-center justify-center mb-3">
+    <i class="ri-team-line text-2xl text-slate-400"></i>
+  </div>
+  <p class="text-slate-600 font-semibold">Aucun membre pour l'instant</p>
+  <p class="text-slate-400 text-sm mt-1">Invitez votre équipe en utilisant le formulaire ci-dessus.</p>
+</div>
+{% endif %}
+
+<!-- Pending invitations -->
+{% if pending_invitations %}
+<h2 class="text-sm font-semibold text-slate-500 uppercase tracking-wider mb-3">Invitations en attente</h2>
+<div class="space-y-2 mb-8">
+  {% for inv in pending_invitations %}
+  <div class="bg-amber-50 border border-amber-100 rounded-2xl px-5 py-3 flex items-center gap-3">
+    <i class="ri-mail-send-line text-amber-500 flex-shrink-0"></i>
+    <div class="min-w-0 flex-1">
+      <p class="text-sm font-medium text-slate-800 truncate">{{ inv.email }}</p>
+      <p class="text-xs text-slate-500">
+        Rôle : {{ inv.role }} · Expire le {{ inv.expires_at|date:"d/m/Y" }}
+      </p>
+    </div>
+    <span class="px-2 py-0.5 rounded-lg text-[10px] font-bold bg-amber-100 text-amber-700 uppercase tracking-wider flex-shrink-0">
+      En attente
+    </span>
+  </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Delete confirmation modal -->
+<div id="delete-modal"
+     class="fixed inset-0 z-50 hidden flex items-center justify-center p-4"
+     style="background:rgba(0,0,0,.5);">
+  <div class="bg-white rounded-3xl p-6 max-w-sm w-full shadow-card">
+    <div class="w-12 h-12 rounded-2xl bg-red-50 flex items-center justify-center mx-auto mb-4">
+      <i class="ri-user-unfollow-line text-red-500 text-xl"></i>
+    </div>
+    <h3 class="font-display font-black text-slate-900 text-center text-lg mb-1">Retirer le membre</h3>
+    <p class="text-slate-500 text-sm text-center mb-6" id="delete-modal-name"></p>
+    <div class="flex gap-3">
+      <button onclick="closeDeleteModal()"
+              class="flex-1 py-3 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-600 hover:bg-slate-50 transition-colors">
+        Annuler
+      </button>
+      <form id="delete-form" method="post" class="flex-1">
+        {% csrf_token %}
+        <button type="submit"
+                class="w-full py-3 rounded-2xl bg-red-500 text-white text-sm font-semibold hover:bg-red-600 transition-colors">
+          Retirer
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
+{% endblock %}
+
+{% block extra_js %}
+<script>
+function confirmDelete(name, url) {
+  document.getElementById('delete-modal-name').textContent = name + ' sera retiré(e) de l\'équipe.';
+  document.getElementById('delete-form').action = url;
+  document.getElementById('delete-modal').classList.remove('hidden');
+}
+function closeDeleteModal() {
+  document.getElementById('delete-modal').classList.add('hidden');
+}
+document.getElementById('delete-modal').addEventListener('click', function(e) {
+  if (e.target === this) closeDeleteModal();
+});
+</script>
 {% endblock %}

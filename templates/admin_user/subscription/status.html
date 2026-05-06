@@ -1,0 +1,111 @@
+{% extends "admin_user/base.html" %}
+{% block title %}Mon abonnement{% endblock %}
+{% block page_title %}Abonnement{% endblock %}
+
+{% block content %}
+<div class="max-w-3xl mx-auto">
+
+  {% if messages %}
+  {% for msg in messages %}
+  <div class="mb-4 px-4 py-3 rounded-xl text-sm font-medium
+    {% if msg.tags == 'error' %}bg-red-50 text-red-700 border border-red-200
+    {% else %}bg-green-50 text-green-700 border border-green-200{% endif %}">
+    {{ msg }}
+  </div>
+  {% endfor %}
+  {% endif %}
+
+  <!-- Plan actuel -->
+  <div class="bg-white rounded-2xl border border-slate-200 p-6 mb-6">
+    <div class="flex items-start justify-between gap-4 flex-wrap">
+      <div>
+        <p class="text-xs font-semibold text-slate-400 uppercase tracking-widest mb-1">Plan actuel</p>
+        <h2 class="text-2xl font-black text-slate-900" style="font-family:'Syne',sans-serif;">
+          {% if plan %}{{ plan.name }}{% else %}Aucun{% endif %}
+        </h2>
+        {% if plan and plan.price > 0 %}
+          <p class="text-slate-500 text-sm mt-1">{{ plan.price|floatformat:0 }} FCFA / mois</p>
+        {% elif plan and plan.price == 0 %}
+          <p class="text-green-600 text-sm font-semibold mt-1">Gratuit</p>
+        {% endif %}
+      </div>
+      {% if plan %}
+      <div class="text-right">
+        {% if is_expired %}
+          <span class="inline-flex items-center gap-1 bg-red-50 text-red-600 border border-red-200 px-3 py-1 rounded-full text-xs font-semibold">
+            <i class="ri-error-warning-line"></i> Expiré
+          </span>
+        {% elif days_left is not None %}
+          <span class="inline-flex items-center gap-1 {% if days_left < 7 %}bg-amber-50 text-amber-600 border-amber-200{% else %}bg-green-50 text-green-600 border-green-200{% endif %} border px-3 py-1 rounded-full text-xs font-semibold">
+            <i class="ri-time-line"></i> {{ days_left }} jour{{ days_left|pluralize }} restant{{ days_left|pluralize }}
+          </span>
+        {% else %}
+          <span class="inline-flex items-center gap-1 bg-green-50 text-green-600 border border-green-200 px-3 py-1 rounded-full text-xs font-semibold">
+            <i class="ri-checkbox-circle-line"></i> Actif
+          </span>
+        {% endif %}
+      </div>
+      {% endif %}
+    </div>
+
+    {% if plan %}
+    <div class="mt-5 grid grid-cols-2 sm:grid-cols-4 gap-3">
+      <div class="bg-slate-50 rounded-xl p-3 text-center">
+        <p class="text-xs text-slate-400 mb-1">Plats</p>
+        <p class="font-black text-slate-800 text-lg" style="font-family:'Syne',sans-serif;">{% if plan.max_menu_items == 0 %}∞{% else %}{{ plan.max_menu_items }}{% endif %}</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-3 text-center">
+        <p class="text-xs text-slate-400 mb-1">Tables</p>
+        <p class="font-black text-slate-800 text-lg" style="font-family:'Syne',sans-serif;">{% if plan.max_tables == 0 %}∞{% else %}{{ plan.max_tables }}{% endif %}</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-3 text-center">
+        <p class="text-xs text-slate-400 mb-1">Équipe</p>
+        <p class="font-black text-slate-800 text-lg" style="font-family:'Syne',sans-serif;">{% if plan.max_staff == 0 and plan.plan_type != 'gratuit' %}∞{% elif plan.max_staff == 0 %}—{% else %}{{ plan.max_staff }}{% endif %}</p>
+      </div>
+      <div class="bg-slate-50 rounded-xl p-3 text-center">
+        <p class="text-xs text-slate-400 mb-1">Analytics</p>
+        <p class="font-black text-slate-800 text-lg" style="font-family:'Syne',sans-serif;">{% if plan.analytics %}✓{% else %}—{% endif %}</p>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Changer de plan -->
+  <h3 class="text-sm font-semibold text-slate-400 uppercase tracking-widest mb-3">Changer de plan</h3>
+  <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+    {% for p in all_plans %}
+    <div class="bg-white rounded-2xl border {% if plan and plan.id == p.id %}border-orange-400 shadow-md{% else %}border-slate-200{% endif %} p-5 flex flex-col">
+      <div class="flex items-center justify-between mb-3">
+        <span class="font-black text-slate-900" style="font-family:'Syne',sans-serif;">{{ p.name }}</span>
+        {% if plan and plan.id == p.id %}
+          <span class="text-xs bg-orange-50 text-orange-600 border border-orange-200 px-2 py-0.5 rounded-full font-semibold">Actuel</span>
+        {% endif %}
+      </div>
+      <p class="text-2xl font-black text-slate-900 mb-1" style="font-family:'Syne',sans-serif;">
+        {% if p.price == 0 %}Gratuit{% else %}{{ p.price|floatformat:0 }} <span class="text-sm font-normal text-slate-400">FCFA/mois</span>{% endif %}
+      </p>
+      <div class="flex-1"></div>
+      {% if plan and plan.id == p.id %}
+        <span class="mt-4 text-center text-xs text-slate-400">Plan actif</span>
+      {% elif p.price == 0 %}
+        <a href="{% url 'subscribe_initiate' p.plan_type %}" class="mt-4 block text-center py-2 rounded-xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-orange-300 hover:text-orange-500 transition-colors">Passer en Gratuit</a>
+      {% else %}
+        <form method="post" action="{% url 'subscribe_initiate' p.plan_type %}">
+          {% csrf_token %}
+          <button type="submit" class="mt-4 w-full py-2 rounded-xl bg-orange-500 text-white text-sm font-semibold hover:bg-orange-600 transition-colors">
+            Souscrire — {{ p.price|floatformat:0 }} FCFA
+          </button>
+        </form>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </div>
+
+  <div class="text-center">
+    <a href="{% url 'pricing' %}" class="text-sm text-orange-500 font-semibold hover:underline">
+      <i class="ri-external-link-line"></i> Voir la page tarifs complète
+    </a>
+  </div>
+
+</div>
+{% endblock %}

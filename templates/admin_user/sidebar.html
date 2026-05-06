@@ -1,37 +1,107 @@
-{% url 'dashboard' as url_dashboard %}
-{% url 'orders_list' as url_orders %}
-{% url 'menus_list' as url_menus %}
-{% url 'tables_list' as url_tables %}
-{% url 'customization' as url_custom %}
-{% url 'restaurant_settings' as url_settings %}
+{% url 'dashboard'           as url_dashboard %}
+{% url 'orders_list'         as url_orders    %}
+{% if user_role != 'serveur' %}{% url 'menus_list'          as url_menus     %}{% endif %}
+{% if user_role != 'cuisinier' %}{% url 'tables_list'        as url_tables    %}{% endif %}
+{% if user_role == 'owner' or user_role == 'coadmin' %}
+  {% url 'customization'        as url_custom       %}
+  {% url 'restaurant_settings'  as url_settings     %}
+  {% url 'staff_list'           as url_staff        %}
+  {% url 'subscription_status'  as url_subscription %}
+{% endif %}
 
+{% with current=request.path %}
+
+<!-- Tableau de bord — tous les rôles -->
 <a href="{{ url_dashboard }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_dashboard %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_dashboard %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
   <i class="ri-dashboard-line text-lg flex-shrink-0"></i>
-  <span x-show="sidebarOpen !== false">Tableau de bord</span>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Tableau de bord
+  </span>
 </a>
+
+<!-- Commandes — tous les rôles -->
 <a href="{{ url_orders }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_orders %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_orders %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
   <i class="ri-shopping-bag-line text-lg flex-shrink-0"></i>
-  <span x-show="sidebarOpen !== false">Commandes</span>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Commandes
+  </span>
 </a>
+
+<!-- Menu — owner, coadmin, cuisinier -->
+{% if user_role != 'serveur' %}
 <a href="{{ url_menus }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_menus %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_menus %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
   <i class="ri-restaurant-line text-lg flex-shrink-0"></i>
-  <span x-show="sidebarOpen !== false">Menu</span>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Menu
+  </span>
 </a>
+{% endif %}
+
+<!-- Tables — owner, coadmin, serveur -->
+{% if user_role != 'cuisinier' %}
 <a href="{{ url_tables }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_tables %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_tables %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
   <i class="ri-table-line text-lg flex-shrink-0"></i>
-  <span x-show="sidebarOpen !== false">Tables</span>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Tables
+  </span>
 </a>
+{% endif %}
+
+<!-- Personnalisation, Équipe, Paramètres — owner et coadmin uniquement -->
+{% if user_role == 'owner' or user_role == 'coadmin' %}
+
 <a href="{{ url_custom }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_custom %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_custom %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
   <i class="ri-palette-line text-lg flex-shrink-0"></i>
-  <span x-show="sidebarOpen !== false">Personnalisation</span>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Personnalisation
+  </span>
 </a>
+
+<a href="{{ url_staff }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_staff %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-team-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Équipe
+  </span>
+</a>
+
 <a href="{{ url_settings }}"
-   class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-colors {% if request.path == url_settings %}bg-primary text-white{% else %}text-slate-300 hover:bg-slate-700 hover:text-white{% endif %}">
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_settings %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
   <i class="ri-settings-3-line text-lg flex-shrink-0"></i>
-  <span x-show="sidebarOpen !== false">Paramètres</span>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Paramètres
+  </span>
 </a>
+
+<a href="{{ url_subscription }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_subscription %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-vip-crown-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Abonnement
+  </span>
+</a>
+
+{% endif %}
+
+{% endwith %}

@@ -1,79 +1,242 @@
 {% extends 'auth/base.html' %}
-
 {% load static %}
-{% block title %}Connexion - WAPay{% endblock %}
+
+{% block title %}Connexion — OpenFood{% endblock %}
 
 {% block content %}
-<section class="min-h-screen flex flex-col md:flex-row relative">
+<div class="min-h-screen flex">
 
-  <!-- Image gauche -->
-  <div class="md:w-1/2 hidden md:flex items-center justify-center bg-blue-100">
-    <img src="{% static 'img/hero.png' %}" alt="Connexion WAPay" class="w-3/4 h-auto object-contain rounded-lg">
-  </div>
+  <!-- ══ LEFT PANEL — branded (desktop only) ═══════════════════════════ -->
+  <div class="hidden lg:flex lg:w-[46%] xl:w-[44%] flex-col relative overflow-hidden flex-shrink-0"
+       style="background: linear-gradient(145deg, #f97316 0%, #ea580c 55%, #c2410c 100%);">
 
-  <!-- Formulaire droite -->
-  <div class="md:w-1/2 flex items-center justify-center p-6 md:p-12 bg-white">
-    <div class="w-full max-w-md text-center">
-      
-      <!-- Logo et texte -->
-      <img src="{% static 'img/logo.png' %}" alt="Logo PAYO" class="h-16 w-auto mx-auto mb-4">
-      <h3 class="text-2xl font-inter font-bold text-gray-700 mb-2">Bon retour !</h3>
+    <!-- Dot grid -->
+    <div class="absolute inset-0 pointer-events-none opacity-[0.08]"
+         style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 26px 26px;"></div>
 
-      <h2 class="text-4xl font-inter font-extrabold text-primary mb-6">Bienvenue sur Openfood
-</h2>
+    <!-- Glow orbs -->
+    <div class="absolute -top-20 -right-20 w-96 h-96 bg-white/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-orange-900/25 rounded-full blur-[80px] pointer-events-none"></div>
 
-      <form method="post" class="space-y-4 text-left">
-        {% csrf_token %}
-        
-        <div>
-          <label class="block text-gray-700 mb-2">Email</label>
-          <input type="email" name="email" placeholder="Entrez votre email"
-                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" required>
+    <div class="relative flex flex-col h-full px-10 xl:px-14 py-10">
+
+      <!-- Logo -->
+      <a href="/" class="inline-flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center">
+          <i class="ri-restaurant-2-line text-white text-xl"></i>
+        </div>
+        <span class="font-display font-black text-white text-xl tracking-tight">Open<span class="text-orange-200">Food</span></span>
+      </a>
+
+      <!-- Main copy -->
+      <div class="my-auto">
+        {% comment %} <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 text-white/90 text-xs font-semibold mb-6">
+          <i class="ri-flashlight-fill text-orange-200"></i>
+          Menu QR · Commandes · Dashboard
+        </div> {% endcomment %}
+        <br/>
+        <h2 class="font-display font-black text-white mb-4"
+            style="font-size: clamp(1.55rem, 2.2vw, 2.1rem); line-height: 1.2; text-wrap: balance;">
+          La plateforme qui fait grandir votre restaurant.
+        </h2>
+        <p class="text-orange-100 text-sm leading-relaxed mb-8 max-w-xs">
+          Créez votre menu digital, recevez des commandes en temps réel et gérez tout depuis un tableau de bord simple.
+        </p>
+
+        <!-- Features -->
+        <div class="space-y-2.5 mb-10">
+          {% for feat in "1234" %}{% endfor %}
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+              <i class="ri-qr-code-line text-white text-sm"></i>
+            </div>
+            <span class="text-white/90 text-sm">Menu QR Code sans application</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+              <i class="ri-notification-3-line text-white text-sm"></i>
+            </div>
+            <span class="text-white/90 text-sm">Commandes en temps réel</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+              <i class="ri-bar-chart-2-line text-white text-sm"></i>
+            </div>
+            <span class="text-white/90 text-sm">Statistiques & tableau de bord</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0">
+              <i class="ri-palette-line text-white text-sm"></i>
+            </div>
+            <span class="text-white/90 text-sm">Personnalisation couleurs & logo</span>
+          </div>
         </div>
 
+        <!-- Testimonial card -->
+        {% comment %} <div class="bg-white/12 backdrop-blur-sm border border-white/20 rounded-2xl p-5">
+          <div class="flex gap-0.5 mb-3">
+            <i class="ri-star-fill text-amber-300 text-sm"></i>
+            <i class="ri-star-fill text-amber-300 text-sm"></i>
+            <i class="ri-star-fill text-amber-300 text-sm"></i>
+            <i class="ri-star-fill text-amber-300 text-sm"></i>
+            <i class="ri-star-fill text-amber-300 text-sm"></i>
+          </div>
+          <p class="text-white/90 text-sm leading-relaxed mb-4 italic">
+            "Depuis OpenFood, le panier moyen a augmenté de 30% et on fait beaucoup moins d'erreurs de commande."
+          </p>
+          <div class="flex items-center gap-3">
+            <img src="https://i.pravatar.cc/40?img=12" class="w-9 h-9 rounded-full ring-2 ring-white/30 object-cover" alt="Jean K.">
+            <div>
+              <div class="text-white font-semibold text-sm">Jean Kouassi</div>
+              <div class="text-orange-200 text-xs">Restaurant Le Gourmet · Abidjan</div>
+            </div>
+          </div>
+        </div> {% endcomment %}
+      </div>
+
+      <!-- Stats footer -->
+      <div class="pt-6 border-t border-white/15 flex items-center gap-5">
         <div>
-          <label class="block text-gray-700 mb-2">Mot de passe</label>
-          <input type="password" name="password" placeholder="Entrez votre mot de passe"
-                 class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-primary focus:border-primary" required>
+          <div class="font-display font-black text-white text-xl">+300</div>
+          <div class="text-orange-200 text-xs">restaurants actifs</div>
         </div>
+        <div class="w-px h-7 bg-white/20"></div>
+        <div>
+          <div class="font-display font-black text-white text-xl">5 min</div>
+          <div class="text-orange-200 text-xs">pour démarrer</div>
+        </div>
+        <div class="w-px h-7 bg-white/20"></div>
+        <div>
+          <div class="font-display font-black text-white text-xl">Gratuit</div>
+          <div class="text-orange-200 text-xs">pour commencer</div>
+        </div>
+      </div>
 
-        <button type="submit"
-                class="w-full py-3 bg-primary text-white font-semibold rounded-lg hover:bg-secondary transition">
-          Se connecter
-        </button>
-      </form>
-
-      <p class="text-center mt-6 text-gray-600">
-        Pas encore de compte ? <a href="{% url 'inscription' %}" class="text-primary font-semibold hover:text-secondary">S’inscrire</a>
-      </p>
     </div>
   </div>
 
-  <!-- Toast Messages -->
-  <div class="fixed top-5 right-5 space-y-3 z-50">
-    {% if messages %}
-        {% for message in messages %}
-            {% if message.tags == "success" %}
-                <div class="px-4 py-3 rounded-lg bg-green-500 text-white shadow-md">
-                    {{ message }}
-                </div>
-            {% elif message.tags == "error" or message.tags == "danger" %}
-                <div class="px-4 py-3 rounded-lg bg-red-500 text-white shadow-md">
-                    {{ message }}
-                </div>
-            {% elif message.tags == "warning" %}
-                <div class="px-4 py-3 rounded-lg bg-yellow-400 text-gray-900 shadow-md">
-                    {{ message }}
-                </div>
-            {% else %}
-                <div class="px-4 py-3 rounded-lg bg-blue-500 text-white shadow-md">
-                    {{ message }}
-                </div>
-            {% endif %}
-        {% endfor %}
-    {% endif %}
+  <!-- ══ RIGHT PANEL — form ═══════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col items-center justify-center px-6 py-10 bg-white">
+
+    <!-- Mobile logo -->
+    <div class="lg:hidden mb-8 su">
+      <a href="/" class="inline-flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center">
+          <i class="ri-restaurant-2-line text-white"></i>
+        </div>
+        <span class="font-display font-black text-slate-900 text-xl">Open<span class="text-primary">Food</span></span>
+      </a>
+    </div>
+
+    <div class="w-full max-w-[22rem]">
+
+      <!-- Heading -->
+      <div class="mb-8 su">
+        <p class="text-primary text-sm font-semibold mb-1">Bon retour !</p>
+        <h1 class="font-display font-black text-slate-900 text-[1.75rem] leading-tight mb-2">
+          Connectez-vous
+        </h1>
+        <p class="text-slate-500 text-sm">Accédez à votre tableau de bord restaurant.</p>
+      </div>
+
+      <!-- Form -->
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+        {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+
+        <div class="su-1">
+          <label class="block text-slate-700 text-sm font-medium mb-1.5">Adresse email</label>
+          <input type="email" name="email" placeholder="vous@restaurant.com" autocomplete="email"
+                 class="input-field w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm" required>
+        </div>
+
+        <div class="su-2">
+          <div class="flex items-center justify-between mb-1.5">
+            <label class="block text-slate-700 text-sm font-medium">Mot de passe</label>
+            <a href="#" class="text-primary text-xs font-semibold hover:text-primary-dark transition-colors">Oublié ?</a>
+          </div>
+          <input type="password" name="password" placeholder="••••••••" autocomplete="current-password"
+                 class="input-field w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm" required>
+        </div>
+
+        <div class="su-3 pt-1">
+          <button type="submit"
+                  class="w-full py-3.5 rounded-xl bg-primary text-white font-bold text-[0.95rem] transition-all
+                         shadow-[0_4px_16px_rgba(249,115,22,0.3)] hover:bg-primary-dark hover:shadow-[0_6px_24px_rgba(249,115,22,0.4)]
+                         active:scale-[0.98]">
+            Se connecter
+            <i class="ri-arrow-right-line ml-1"></i>
+          </button>
+        </div>
+      </form>
+
+      <!-- Divider -->
+      <div class="su-4 flex items-center gap-3 my-6">
+        <div class="flex-1 h-px bg-slate-100"></div>
+        <span class="text-slate-400 text-xs">ou</span>
+        <div class="flex-1 h-px bg-slate-100"></div>
+      </div>
+
+      <!-- Signup link -->
+      <p class="su-5 text-center text-slate-500 text-sm">
+        Pas encore de compte ?
+        <a href="{% url 'inscription' %}" class="text-primary font-semibold hover:text-primary-dark transition-colors ml-1">
+          S'inscrire gratuitement →
+        </a>
+      </p>
+
+      <!-- Mobile trust -->
+      <div class="lg:hidden su-6 mt-8 pt-6 border-t border-slate-100 flex items-center justify-center gap-5 text-xs text-slate-400">
+        <div class="flex items-center gap-1"><i class="ri-shield-check-fill text-green-500"></i> Sécurisé</div>
+        <div class="flex items-center gap-1"><i class="ri-gift-fill text-primary"></i> Gratuit</div>
+        <div class="flex items-center gap-1"><i class="ri-time-fill text-blue-400"></i> 5 min setup</div>
+      </div>
+
+
+    </div>
   </div>
 
-</section>
+</div>
 
+<!-- ══ Toasts ════════════════════════════════════════════════════════ -->
+<div id="toast-zone" class="fixed top-5 right-5 space-y-2 z-50 w-72">
+  {% if messages %}
+    {% for message in messages %}
+      {% if message.tags == "success" %}
+        <div class="toast-item flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-green-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-checkbox-circle-fill text-green-500 text-base flex-shrink-0"></i>{{ message }}
+        </div>
+      {% elif message.tags == "error" or message.tags == "danger" %}
+        <div class="toast-item flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-red-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-error-warning-fill text-red-500 text-base flex-shrink-0"></i>{{ message }}
+        </div>
+      {% elif message.tags == "warning" %}
+        <div class="toast-item flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-amber-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-alert-fill text-amber-500 text-base flex-shrink-0"></i>{{ message }}
+        </div>
+      {% else %}
+        <div class="toast-item flex items-center gap-2.5 px-4 py-3 rounded-xl bg-white border border-blue-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-information-fill text-blue-500 text-base flex-shrink-0"></i>{{ message }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function(){
+    var items = document.querySelectorAll('.toast-item');
+    if(!items.length) return;
+    setTimeout(function(){
+      items.forEach(function(el){
+        el.style.transition = 'opacity 0.35s, transform 0.35s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(16px)';
+        setTimeout(function(){ el.remove(); }, 350);
+      });
+    }, 4500);
+  })();
+</script>
 {% endblock %}
