@@ -43,8 +43,8 @@
         extend: {
           colors: {
             primary: {
-              DEFAULT: '{{ customization.primary_color|default:"#f97316"|cut:"'"|cut:'"'|truncatechars:7 }}',
-              dark: '{{ customization.secondary_color|default:"#ea580c"|cut:"'"|cut:'"'|truncatechars:7 }}',
+              DEFAULT: '{{ customization.primary_color|default:"#f97316"|escapejs }}',
+              dark: '{{ customization.secondary_color|default:"#ea580c"|escapejs }}',
             },
             surface: { DEFAULT: '#ffffff', muted: '#f8fafc' },
           },
