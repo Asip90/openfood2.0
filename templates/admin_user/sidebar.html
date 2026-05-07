@@ -2,6 +2,7 @@
 {% url 'orders_list'         as url_orders    %}
 {% if user_role != 'serveur' %}{% url 'menus_list'          as url_menus     %}{% endif %}
 {% if user_role != 'cuisinier' %}{% url 'tables_list'        as url_tables    %}{% endif %}
+{% if user_role != 'cuisinier' %}{% url 'qr_settings'         as url_qr        %}{% endif %}
 {% if user_role == 'owner' or user_role == 'coadmin' %}
   {% url 'customization'        as url_custom       %}
   {% url 'restaurant_settings'  as url_settings     %}
@@ -55,6 +56,15 @@
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
     Tables
+  </span>
+</a>
+<a href="{{ url_qr }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_qr %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-qr-code-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Personnaliser QR
   </span>
 </a>
 {% endif %}

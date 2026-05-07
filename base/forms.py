@@ -1,5 +1,5 @@
 from django import forms
-from .models import Restaurant
+from .models import Restaurant, QRSettings
 
 class RestaurantCreateForm(forms.ModelForm):
     class Meta:
@@ -73,3 +73,20 @@ class TableForm(forms.ModelForm):
     class Meta:
         model = Table
         fields = ['number', 'capacity']
+
+
+class QRSettingsForm(forms.ModelForm):
+    class Meta:
+        model = QRSettings
+        fields = ['bg_type', 'bg_color', 'bg_gradient_from', 'bg_gradient_to',
+                  'bg_gradient_angle', 'bg_image', 'qr_color', 'show_logo', 'qr_scale', 'output_size']
+        widgets = {
+            'bg_type':           forms.RadioSelect(),
+            'bg_color':          forms.TextInput(attrs={'type': 'color'}),
+            'bg_gradient_from':  forms.TextInput(attrs={'type': 'color'}),
+            'bg_gradient_to':    forms.TextInput(attrs={'type': 'color'}),
+            'bg_gradient_angle': forms.NumberInput(attrs={'min': 0, 'max': 360}),
+            'qr_color':          forms.TextInput(attrs={'type': 'color'}),
+            'qr_scale':          forms.NumberInput(attrs={'min': 10, 'max': 90, 'step': 5}),
+            'output_size':       forms.NumberInput(attrs={'min': 300, 'max': 1200, 'step': 50}),
+        }

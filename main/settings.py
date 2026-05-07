@@ -1,24 +1,14 @@
-
 from pathlib import Path
+import os
+from dotenv import load_dotenv
 
-# Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
 
+load_dotenv(BASE_DIR / '.env')
 
-# Quick-start development settings - unsuitable for production
-# See https://docs.djangoproject.com/en/6.0/howto/deployment/checklist/
+SECRET_KEY = os.environ['SECRET_KEY']
 
-# SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-p*r4iv^!h02ezbb$vy2tpn*9fwn#3x(m$#xhue9(0&ma03c8#$'
-
-# SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
-
-# ALLOWED_HOSTS = []
-
-
-# Application definition
-
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 INSTALLED_APPS = [
     'jazzmin',
     'corsheaders',
@@ -40,24 +30,20 @@ MIDDLEWARE = [
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.common.CommonMiddleware",
     'corsheaders.middleware.CorsMiddleware',
-
-    # 🔴 OBLIGATOIRE : AVANT AuthenticationMiddleware
     "customer.middleware.SubdomainMiddleware",
-
     "django.middleware.csrf.CsrfViewMiddleware",
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
 ]
+
 CORS_ALLOW_ALL_ORIGINS = True
 ROOT_URLCONF = 'main.urls'
 
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [
-            BASE_DIR / 'templates'
-            ],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -72,10 +58,6 @@ TEMPLATES = [
 
 WSGI_APPLICATION = 'main.wsgi.application'
 
-
-# Database
-# https://docs.djangoproject.com/en/6.0/ref/settings/#databases
-
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -83,81 +65,49 @@ DATABASES = {
     }
 }
 
-
-# Password validation
-# https://docs.djangoproject.com/en/6.0/ref/settings/#auth-password-validators
-
 AUTH_PASSWORD_VALIDATORS = [
-    {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
-    },
+    {'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator'},
+    {'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator'},
 ]
-
-
-# Internationalization
-# https://docs.djangoproject.com/en/6.0/topics/i18n/
 
 LANGUAGE_CODE = 'en-us'
-
 TIME_ZONE = 'UTC'
-
 USE_I18N = True
-
 USE_TZ = True
 
-
-# Static files (CSS, JavaScript, Images)
-# https://docs.djangoproject.com/en/6.0/howto/static-files/
-
 STATIC_URL = '/static/'
-STATICFILES_DIRS = [
-    BASE_DIR / "static",
-]
+STATICFILES_DIRS = [BASE_DIR / "static"]
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR.joinpath('media/')
 
-
+# Email
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_PORT = 465
-# EMAIL_USE_TLS = True
-EMAIL_USE_TLS = False          # <-- On passe TLS à False
+EMAIL_USE_TLS = False
 EMAIL_USE_SSL = True
-EMAIL_HOST_USER = 'solutionasitech@gmail.com'  # Remplace par ton email
-EMAIL_HOST_PASSWORD = 'gqldkxwyvtpjxuur'  # Remplace par ton mot de passe ou un App Password
-DEFAULT_FROM_EMAIL = 'noreply@test.com'
+EMAIL_HOST_USER = os.environ['EMAIL_HOST_USER']
+EMAIL_HOST_PASSWORD = os.environ['EMAIL_HOST_PASSWORD']
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'noreply@openfood.site')
 
 AUTH_USER_MODEL = 'accounts.User'
 
 # FedaPay
-FEDAPAY_SECRET_KEY = 'sk_sandbox_your_key_here'   # remplace par ta clé sandbox puis live
-FEDAPAY_PUBLIC_KEY = 'pk_sandbox_your_key_here'
-FEDAPAY_ENV = 'sandbox'   # 'live' en production
+FEDAPAY_SECRET_KEY = os.environ['FEDAPAY_SECRET_KEY']
+FEDAPAY_PUBLIC_KEY = os.environ['FEDAPAY_PUBLIC_KEY']
+FEDAPAY_ENV = os.getenv('FEDAPAY_ENV', 'sandbox')
 
 LOGIN_URL = "/connexion"
-BACKEND_DOMAIN = 'https://openfood2-0.onrender.com'
-# BACKEND_DOMAIN="http://localhost:8000"
-FRONTEND_BASE_URL="/127.0.0.1:8000"
+BACKEND_DOMAIN = os.getenv('BACKEND_DOMAIN', 'http://localhost:8000')
+FRONTEND_BASE_URL = os.getenv('BACKEND_DOMAIN', 'http://localhost:8000')
 
 ALLOWED_HOSTS = [
     "127.0.0.1",
     "localhost",
-    ".onrender.com", # Autorise votre domaine Render et tous ses sous-domaines
+    ".localhost",
+    ".127.0.0.1",
+    ".onrender.com",
 ]
-
-# ALLOWED_HOSTS = [
-#     "127.0.0.1",
-#     "localhost",
-#     "le-luxury-house.localhost",  # <-- ton sous-domaine
-#     "*",  # temporaire pour tests, pas en prod !
-# ]

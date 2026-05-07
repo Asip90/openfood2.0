@@ -5,9 +5,11 @@ from django.contrib.auth.models import AbstractUser
 from django.utils.text import slugify
 from django.core.validators import MinLengthValidator
 import qrcode
+from qrcode.constants import ERROR_CORRECT_H
 from io import BytesIO
 from django.core.files import File
 from decimal import Decimal
+from PIL import Image, ImageDraw, ImageOps
 
 
 from accounts.models import User
@@ -223,6 +225,81 @@ class MenuItem(models.Model):
 from django.conf import settings
 
 
+def _hex_to_rgb(hex_color):
+    hex_color = hex_color.lstrip('#')
+    return tuple(int(hex_color[i:i+2], 16) for i in (0, 2, 4))
+
+
+def _build_qr_background(size, qr_settings):
+    """Retourne une image PIL de fond selon le type choisi."""
+    if qr_settings.bg_type == 'image' and qr_settings.bg_image:
+        try:
+            bg = Image.open(qr_settings.bg_image.path).convert('RGB')
+            bg = ImageOps.fit(bg, (size, size), Image.LANCZOS)
+            return bg
+        except Exception:
+            pass  # fallback to color
+
+    if qr_settings.bg_type == 'gradient':
+        r1, g1, b1 = _hex_to_rgb(qr_settings.bg_gradient_from)
+        r2, g2, b2 = _hex_to_rgb(qr_settings.bg_gradient_to)
+        bg = Image.new('RGB', (size, size))
+        draw = ImageDraw.Draw(bg)
+        for i in range(size):
+            ratio = i / size
+            r = int(r1 + (r2 - r1) * ratio)
+            g = int(g1 + (g2 - g1) * ratio)
+            b = int(b1 + (b2 - b1) * ratio)
+            draw.line([(i, 0), (i, size)], fill=(r, g, b))
+        return bg
+
+    # default: couleur unie
+    return Image.new('RGB', (size, size), _hex_to_rgb(qr_settings.bg_color))
+
+
+def _compose_qr_image(url, qr_settings, logo_path=None):
+    """Génère le QR code final composé avec fond + logo optionnel."""
+    size = qr_settings.output_size
+
+    # 1. Générer le QR code
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=ERROR_CORRECT_H,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(url)
+    qr.make(fit=True)
+
+    qr_img = qr.make_image(fill_color=qr_settings.qr_color, back_color='white').convert('RGBA')
+
+    # 2. Coller le logo au centre si demandé
+    if qr_settings.show_logo and logo_path:
+        try:
+            logo = Image.open(logo_path).convert('RGBA')
+            qr_w, qr_h = qr_img.size
+            logo_size = int(qr_w * 0.22)
+            logo = logo.resize((logo_size, logo_size), Image.LANCZOS)
+            pos = ((qr_w - logo_size) // 2, (qr_h - logo_size) // 2)
+            # Fond blanc circulaire derrière le logo
+            white_bg = Image.new('RGBA', (logo_size, logo_size), (255, 255, 255, 255))
+            qr_img.paste(white_bg, pos)
+            qr_img.paste(logo, pos, logo)
+        except Exception:
+            pass
+
+    # 3. Construire le fond
+    bg = _build_qr_background(size, qr_settings).convert('RGBA')
+
+    # 4. Redimensionner le QR à 78% du fond et le centrer
+    scale = max(10, min(90, qr_settings.qr_scale)) / 100
+    qr_display_size = int(size * scale)
+    qr_img = qr_img.resize((qr_display_size, qr_display_size), Image.LANCZOS)
+    offset = (size - qr_display_size) // 2
+    bg.paste(qr_img, (offset, offset), qr_img)
+
+    return bg.convert('RGB')
+
 
 class Table(models.Model):
     restaurant = models.ForeignKey(
@@ -248,18 +325,32 @@ class Table(models.Model):
         unique_together = ("restaurant", "number")
 
     def generate_qr_code(self):
-        # Si déjà généré, ne rien faire
-        # if self.qr_code:
-        #     return
-
         subdomain = self.restaurant.subdomain or slugify(self.restaurant.name)
-        url = f"https://{subdomain}.{settings.FRONTEND_BASE_URL}/t/{self.token}"
+        base = settings.FRONTEND_BASE_URL.rstrip('/').removeprefix('https://').removeprefix('http://')
+        url = f"https://{subdomain}.{base}/t/{self.token}"
 
-        qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        qr.add_data(url)
-        qr.make(fit=True)
+        try:
+            qr_settings = self.restaurant.qr_settings
+        except Exception:
+            qr_settings = None
 
-        img = qr.make_image(fill_color="black", back_color="white")
+        if qr_settings:
+            logo_path = None
+            if qr_settings.show_logo:
+                try:
+                    logo_path = self.restaurant.customization.logo.path
+                except Exception:
+                    try:
+                        logo_path = self.restaurant.logo.path
+                    except Exception:
+                        pass
+            img = _compose_qr_image(url, qr_settings, logo_path)
+        else:
+            qr = qrcode.QRCode(version=1, box_size=10, border=5)
+            qr.add_data(url)
+            qr.make(fit=True)
+            img = qr.make_image(fill_color="black", back_color="white")
+
         buffer = BytesIO()
         img.save(buffer, format="PNG")
         buffer.seek(0)
@@ -489,3 +580,26 @@ class RestaurantCustomization(models.Model):
 
     def __str__(self):
         return f"Customisation - {self.restaurant.name}"
+
+
+class QRSettings(models.Model):
+    BG_TYPE_CHOICES = [
+        ('color',    'Couleur unie'),
+        ('gradient', 'Dégradé'),
+        ('image',    'Image'),
+    ]
+
+    restaurant        = models.OneToOneField(Restaurant, on_delete=models.CASCADE, related_name='qr_settings')
+    bg_type           = models.CharField(max_length=10, choices=BG_TYPE_CHOICES, default='color')
+    bg_color          = models.CharField(max_length=7, default='#ffffff')
+    bg_gradient_from  = models.CharField(max_length=7, default='#f97316')
+    bg_gradient_to    = models.CharField(max_length=7, default='#ea580c')
+    bg_gradient_angle = models.IntegerField(default=135)
+    bg_image          = models.ImageField(upload_to='qr_backgrounds/', blank=True, null=True)
+    qr_color          = models.CharField(max_length=7, default='#000000')
+    show_logo         = models.BooleanField(default=False)
+    output_size       = models.IntegerField(default=600)
+    qr_scale          = models.IntegerField(default=60, help_text="Taille du QR en % de l'image (10–90)")
+
+    def __str__(self):
+        return f"QR Settings - {self.restaurant.name}"

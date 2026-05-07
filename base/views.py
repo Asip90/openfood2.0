@@ -9,8 +9,8 @@ from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
 from base.models import Category, Table
-from .forms import RestaurantCreateForm, OrderForm, OrderItemFormSet, TableForm, OrderItemForm
-from .models import SubscriptionPlan, PromoCode, PromoCodeUse, Restaurant, MenuItem, Order, OrderItem, RestaurantCustomization
+from .forms import RestaurantCreateForm, OrderForm, OrderItemFormSet, TableForm, OrderItemForm, QRSettingsForm
+from .models import SubscriptionPlan, PromoCode, PromoCodeUse, Restaurant, MenuItem, Order, OrderItem, RestaurantCustomization, QRSettings
 from django.forms import inlineformset_factory
 from django.utils.text import slugify
 from .utils import generate_unique_subdomain
@@ -854,6 +854,34 @@ def table_regenerate_qr(request, table_id):
     return redirect(request.META.get('HTTP_REFERER', 'tables_list'))
 
 
+@restaurant_required(allowed_roles=['owner', 'coadmin'])
+def qr_settings_view(request):
+    restaurant = request.restaurant
+    qr_settings, _ = QRSettings.objects.get_or_create(restaurant=restaurant)
+
+    if request.method == 'POST':
+        form = QRSettingsForm(request.POST, request.FILES, instance=qr_settings)
+        if form.is_valid():
+            form.save()
+            # Régénérer tous les QR des tables actives
+            tables = restaurant.tables.filter(is_active=True)
+            for table in tables:
+                table.generate_qr_code()
+                table.save(update_fields=['qr_code'])
+            count = tables.count()
+            messages.success(request, f"Paramètres sauvegardés. {count} QR code(s) régénéré(s).")
+            return redirect('qr_settings')
+    else:
+        form = QRSettingsForm(instance=qr_settings)
+
+    first_table = restaurant.tables.filter(is_active=True, qr_code__isnull=False).exclude(qr_code='').first()
+    return render(request, 'admin_user/tables/qr_settings.html', {
+        'form': form,
+        'qr_settings': qr_settings,
+        'first_table': first_table,
+    })
+
+
 @owner_or_coadmin_required
 def table_update(request, table_id):
     restaurant = request.restaurant
@@ -903,3 +931,11 @@ def pwa_manifest(request, slug):
         "lang": "fr"
     }
     return JsonResponse(manifest, content_type='application/manifest+json')
+
+
+@owner_or_coadmin_required
+def settings_hub(request):
+    restaurant = request.restaurant
+    return render(request, "admin_user/settings_hub.html", {
+        "restaurant": restaurant,
+    })

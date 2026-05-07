@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr" class="h-full">
 <head>
@@ -15,8 +16,9 @@
             sidebar: { DEFAULT: '#0f172a', hover: '#1e293b' },
           },
           fontFamily: {
-            display: ['Syne', 'system-ui', 'sans-serif'],
-            sans: ['DM Sans', 'system-ui', 'sans-serif'],
+            display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+            
+            sans: ['Outfit', 'system-ui', 'sans-serif'],
           },
           boxShadow: {
             soft:  '0 2px 12px rgba(0,0,0,0.06)',
@@ -31,7 +33,7 @@
 
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=Syne:wght@700;800;900&display=swap" rel="stylesheet">
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
   <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
 
@@ -43,6 +45,19 @@
     .bottom-safe { padding-bottom: env(safe-area-inset-bottom, 0); }
     /* Smooth sidebar collapse */
     .sidebar-label { transition: opacity 0.2s ease, width 0.2s ease; }
+
+    /* ── Sidebar scrollbar — themed, thin, unobtrusive ── */
+    aside nav::-webkit-scrollbar        { width: 3px; }
+    aside nav::-webkit-scrollbar-track  { background: transparent; }
+    aside nav::-webkit-scrollbar-thumb  {
+      background: rgba(255,255,255,0.08);
+      border-radius: 999px;
+      transition: background 0.2s;
+    }
+    aside nav:hover::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.14); }
+    aside nav::-webkit-scrollbar-thumb:hover { background: rgba(249,115,22,0.5); }
+    /* Firefox */
+    aside nav { scrollbar-width: thin; scrollbar-color: rgba(255,255,255,0.08) transparent; }
   </style>
 
   {% block extra_css %}{% endblock %}
@@ -65,8 +80,8 @@
           <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }}"
                class="h-8 w-8 rounded-xl object-cover flex-shrink-0 ring-1 ring-white/10">
         {% else %}
-          <div class="h-8 w-8 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-glow">
-            <i class="ri-restaurant-2-line text-white text-sm"></i>
+          <div class="h-8 w-8 rounded-xl bg-primary flex items-center justify-center flex-shrink-0 shadow-glow overflow-hidden">
+            <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
           </div>
         {% endif %}
         <div class="overflow-hidden" x-show="sidebarOpen"
@@ -135,8 +150,8 @@
 
         <!-- Mobile: brand -->
         <a href="{% url 'dashboard' %}" class="lg:hidden flex items-center gap-2">
-          <div class="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-glow flex-shrink-0">
-            <i class="ri-restaurant-2-line text-white text-xs"></i>
+          <div class="h-7 w-7 rounded-lg bg-primary flex items-center justify-center shadow-glow flex-shrink-0 overflow-hidden">
+            <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
           </div>
           <span class="font-display font-black text-slate-900 text-base tracking-tight">
             Open<span class="text-primary">Food</span>
@@ -199,10 +214,13 @@
 {% url 'orders_list' as url_orders    %}
 {% if user_role != 'serveur'   %}{% url 'menus_list'          as url_menus    %}{% endif %}
 {% if user_role != 'cuisinier' %}{% url 'tables_list'         as url_tables   %}{% endif %}
+{% if user_role != 'cuisinier' %}{% url 'qr_settings'          as url_qr       %}{% endif %}
 {% if user_role == 'owner' or user_role == 'coadmin' %}
   {% url 'customization'       as url_custom   %}
   {% url 'restaurant_settings' as url_settings %}
   {% url 'staff_list'          as url_staff    %}
+  {% url 'settings_hub'        as url_hub      %}
+  {% url 'subscription_status' as url_sub      %}
 {% endif %}
 
 <nav class="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-slate-100 shadow-bottom-nav bottom-safe"
@@ -259,14 +277,14 @@
     </a>
     {% endif %}
 
-    <!-- Paramètres — owner et coadmin uniquement (Design + Équipe accessibles depuis Paramètres) -->
+    <!-- Réglages hub — owner et coadmin uniquement -->
     {% if user_role == 'owner' or user_role == 'coadmin' %}
 
-    <a href="{{ url_settings }}"
+    <a href="{{ url_hub }}"
        class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors
-              {% if current == url_settings or current == url_custom or current == url_staff %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
+              {% if current == url_hub or current == url_settings or current == url_custom or current == url_staff or current == url_sub %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
       <div class="relative w-7 h-7 flex items-center justify-center">
-        {% if current == url_settings or current == url_custom or current == url_staff %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
+        {% if current == url_hub or current == url_settings or current == url_custom or current == url_staff or current == url_sub %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
         <i class="ri-settings-3-line text-[1.15rem] leading-none relative"></i>
       </div>
       <span class="text-[9.5px] font-semibold leading-none">Réglages</span>

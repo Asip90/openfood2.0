@@ -39,6 +39,7 @@ urlpatterns = [
     path("tables/<int:table_id>/toggle_active/", table_toggle_active, name="table_toggle_active"),
     path("tables/<int:table_id>/regenerate_qr/", table_regenerate_qr, name="table_regenerate_qr"),
     path("tables/<int:table_id>/update/", table_update, name="table_update"),
+    path("tables/qr-settings/", qr_settings_view, name="qr_settings"),
 
     # Personnalisation
     path("customization/", customization, name="customization"),
@@ -46,6 +47,7 @@ urlpatterns = [
 
     # Paramètres restaurant
     path("settings/", restaurant_settings, name="restaurant_settings"),
+    path("reglages/", settings_hub, name="settings_hub"),
 
     # PWA
     path("manifest/<slug:slug>.json", pwa_manifest, name="pwa_manifest"),
