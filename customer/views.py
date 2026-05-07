@@ -121,8 +121,11 @@ def update_cart(request, table_token):
 
     return JsonResponse({
         "success": True,
+        "cart_total": total,
+        "cart_count": len(cart),
+        # legacy aliases kept for backward compatibility (cart.html / cart_modal.html)
         "total": total,
-        "count": len(cart)
+        "count": len(cart),
     })
 
 # checkout
