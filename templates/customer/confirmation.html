@@ -6,70 +6,77 @@
 {% block cart_fab %}{% endblock %}
 
 {% block content %}
-<div class="max-w-xl mx-auto px-4 py-8">
-  <!-- Success animation -->
-  <div class="text-center mb-8">
-    <div class="w-20 h-20 bg-green-50 rounded-full flex items-center justify-center mx-auto mb-4">
-      <i class="ri-check-line text-4xl text-green-500"></i>
-    </div>
-    <h1 class="text-2xl font-bold text-slate-900">Commande envoyée !</h1>
-    <p class="text-slate-500 mt-2 text-sm">Notre équipe prépare vos plats avec soin.</p>
-  </div>
+<div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12">
 
-  <!-- Order card -->
-  <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5 mb-6">
-    <div class="flex items-center justify-between mb-4">
-      <span class="text-xs text-slate-500 uppercase tracking-wide font-medium">Commande</span>
-      <span class="text-xs font-bold text-primary bg-primary/10 px-3 py-1 rounded-full">
-        #{{ order.order_number|slice:"-6:" }}
-      </span>
-    </div>
+  <div class="w-full max-w-sm space-y-5">
 
-    <div class="grid grid-cols-2 gap-3 mb-4">
-      <div class="bg-slate-50 rounded-xl p-3">
-        <p class="text-xs text-slate-400 mb-0.5">Table</p>
-        <p class="font-semibold text-slate-900 text-sm">
-          {% if order.table %}{{ order.table.number }}{% else %}—{% endif %}
-        </p>
-      </div>
-      <div class="bg-slate-50 rounded-xl p-3">
-        <p class="text-xs text-slate-400 mb-0.5">Heure</p>
-        <p class="font-semibold text-slate-900 text-sm">{{ order.created_at|time:"H:i" }}</p>
+    <!-- Success icon -->
+    <div class="flex justify-center">
+      <div class="w-20 h-20 rounded-3xl flex items-center justify-center"
+           style="background-color: var(--color-primary);">
+        <i class="ri-check-line text-4xl text-white"></i>
       </div>
     </div>
 
-    <!-- Items -->
-    <div class="border-t border-slate-100 pt-4 space-y-2">
-      {% for item in order.items.all %}
-      <div class="flex justify-between text-sm">
-        <span class="text-slate-700">{{ item.quantity }}× {{ item.menu_item.name }}</span>
-        <span class="font-medium text-slate-900">{{ item.get_total|floatformat:0 }} FCFA</span>
-      </div>
-      {% endfor %}
+    <!-- Title -->
+    <div class="text-center">
+      <h1 class="font-black text-slate-900 text-2xl">Commande envoyée !</h1>
+      <p class="text-slate-400 text-sm mt-1">La cuisine a bien reçu votre commande.</p>
     </div>
 
-    <div class="border-t border-slate-100 mt-3 pt-3 flex justify-between">
-      <span class="font-bold text-slate-900">Total payé</span>
-      <span class="font-bold text-xl text-primary">{{ order.total|floatformat:0 }} FCFA</span>
-    </div>
-  </div>
+    <!-- Order card -->
+    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden"
+         style="box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
 
-  <!-- Module fidélité (WhatsApp + partage) -->
-  <div class="bg-gradient-to-br from-primary/10 to-amber-50 rounded-2xl border border-primary/20 p-5 mb-6">
-    <div class="flex items-center gap-3 mb-4">
-      <div class="w-10 h-10 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
-        <i class="ri-gift-line text-white text-xl"></i>
+      <div class="px-4 py-3 border-b border-slate-50 flex items-center justify-between">
+        <h2 class="font-bold text-slate-900 text-sm">
+          #{{ order.order_number|slice:"-6:" }}
+        </h2>
+        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
+          En attente
+        </span>
       </div>
+
+      <div class="divide-y divide-slate-50">
+        {% for item in order.items.all %}
+        <div class="flex items-center justify-between px-4 py-3">
+          <div class="flex items-center gap-2">
+            <span class="w-5 h-5 rounded bg-slate-100 text-[10px] font-bold flex items-center justify-center text-slate-500">
+              {{ item.quantity }}
+            </span>
+            <span class="text-slate-700 text-sm">{{ item.menu_item.name }}</span>
+          </div>
+          <span class="text-slate-900 font-semibold text-sm">{{ item.get_total|floatformat:0 }} FCFA</span>
+        </div>
+        {% empty %}
+        <p class="text-slate-400 text-sm text-center py-4">—</p>
+        {% endfor %}
+      </div>
+
+      <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
+        <span class="text-slate-500 text-sm">Total</span>
+        <span class="font-black text-slate-900">{{ order.total|floatformat:0 }} FCFA</span>
+      </div>
+
+    </div>
+
+    <!-- Table info -->
+    {% if order.table %}
+    <div class="bg-white rounded-xl border border-slate-100 px-4 py-3 flex items-center gap-3">
+      <i class="ri-table-line text-slate-400 text-lg"></i>
       <div>
-        <h3 class="font-bold text-slate-900 text-sm">Merci pour votre commande !</h3>
-        <p class="text-xs text-slate-500">Profitez de nos offres exclusives</p>
+        <p class="text-slate-900 font-semibold text-sm">Table {{ order.table.number }}</p>
+        <p class="text-slate-400 text-xs">{{ restaurant.name }}</p>
       </div>
     </div>
+    {% endif %}
 
+    <!-- WhatsApp ticket -->
     {% if restaurant.phone %}
     <a href="https://wa.me/{{ restaurant.phone|cut:'+' }}?text=Bonjour%20{{ restaurant.name|urlencode }}%20!%20Ma%20commande%20%23{{ order.order_number|slice:'-6:' }}%20est%20pass%C3%A9e.%20Total%20%3A%20{{ order.total|floatformat:0 }}%20FCFA."
        target="_blank" rel="noopener noreferrer"
-       class="flex items-center gap-3 bg-white rounded-xl p-3 mb-3 border border-slate-100 hover:border-green-300 transition-colors group">
+       class="flex items-center gap-3 bg-white rounded-2xl border border-slate-100 px-4 py-3 hover:border-green-300 transition-colors group"
+       style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
       <div class="w-9 h-9 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
         <i class="ri-whatsapp-line text-white text-lg"></i>
       </div>
@@ -81,25 +88,35 @@
     </a>
     {% endif %}
 
-    <div class="bg-white rounded-xl p-3 border border-slate-100">
+    <!-- Share menu -->
+    <div class="bg-white rounded-2xl border border-slate-100 px-4 py-3"
+         style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
       <p class="font-semibold text-xs text-slate-900 mb-1">Partagez notre menu</p>
-      <p class="text-xs text-slate-400 mb-3">Invitez un ami — partagez le lien du menu en un tap</p>
+      <p class="text-xs text-slate-400 mb-3">Invitez un ami — partagez le lien en un tap</p>
       <button onclick="shareMenu()"
-              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border border-primary text-primary text-sm font-semibold hover:bg-primary hover:text-white transition-colors">
+              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-semibold transition-colors"
+              style="border-color: var(--color-primary); color: var(--color-primary);"
+              onmouseover="this.style.backgroundColor='var(--color-primary)';this.style.color='#fff';"
+              onmouseout="this.style.backgroundColor='';this.style.color='var(--color-primary)';">
         <i class="ri-share-forward-line"></i>
         Partager le menu
       </button>
     </div>
-  </div>
 
-  <!-- Retour menu -->
-  {% if order.table %}
-  <a href="{% url 'client_menu' table_token=order.table.token %}"
-     class="block w-full text-center bg-white border border-slate-200 text-slate-700 font-semibold py-3.5 rounded-2xl hover:bg-slate-50 transition-colors text-sm">
-    <i class="ri-arrow-left-line mr-1"></i>
-    Commander à nouveau
-  </a>
-  {% endif %}
+    <!-- Back to menu CTA -->
+    {% if order.table %}
+    <a href="{% url 'client_menu' table_token=order.table.token %}"
+       class="block w-full py-3.5 rounded-2xl text-white font-bold text-center text-base transition-all active:scale-[0.98]"
+       style="background-color: var(--color-primary);">
+      Retour au menu
+    </a>
+    {% endif %}
+
+    <p class="text-slate-400 text-xs text-center">
+      Un serveur passera bientôt vous voir.
+    </p>
+
+  </div>
 </div>
 
 <script>
@@ -121,10 +138,6 @@
 
   // Vider le panier Alpine.js si Alpine est disponible
   document.addEventListener('alpine:initialized', () => {
-    const store = document.body._x_dataStack;
-    if (store && store[0] && store[0].cart) {
-      store[0].cart = [];
-    }
     localStorage.removeItem('cart_{% if order.table %}{{ order.table.token }}{% endif %}');
   });
 </script>
