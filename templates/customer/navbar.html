@@ -1,22 +1,37 @@
-<nav class="sticky top-0 z-40 bg-white border-b border-slate-100 shadow-soft">
-  <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between">
-    <div class="flex items-center gap-3">
-      {% if restaurant.logo %}
-        <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }}" class="h-9 w-9 rounded-xl object-cover">
+{% load static %}
+<nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100"
+     style="box-shadow: 0 1px 12px rgba(0,0,0,0.06);">
+  <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
+
+    <!-- Logo + nom -->
+    <div class="flex items-center gap-2.5 min-w-0">
+      {% if customization.logo %}
+        <img src="{{ customization.logo.url }}" alt="{{ restaurant.name }}"
+             class="h-8 w-8 rounded-xl object-cover flex-shrink-0">
+      {% elif restaurant.logo %}
+        <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }}"
+             class="h-8 w-8 rounded-xl object-cover flex-shrink-0">
       {% else %}
-        <div class="h-9 w-9 rounded-xl bg-primary flex items-center justify-center">
-          <i class="ri-restaurant-line text-white"></i>
+        <div class="h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-xs font-black"
+             style="background-color: var(--color-primary);">
+          {{ restaurant.name|slice:":2"|upper }}
         </div>
       {% endif %}
-      <div>
-        <p class="font-semibold text-sm text-slate-900 leading-tight">{{ restaurant.name }}</p>
-        {% if table %}<p class="text-xs text-slate-500">Table {{ table.number }}</p>{% endif %}
-      </div>
+      <span class="font-bold text-slate-900 text-sm truncate">{{ restaurant.name }}</span>
     </div>
-    <div class="flex items-center gap-2">
-      <button class="p-2 rounded-xl hover:bg-slate-100 transition-colors text-slate-600" aria-label="Rechercher">
-        <i class="ri-search-line text-lg"></i>
-      </button>
-    </div>
+
+    <!-- Bouton panier -->
+    <button @click="cartOpen = true"
+            class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl text-white text-sm font-semibold transition-all active:scale-95"
+            style="background-color: var(--color-primary);">
+      <i class="ri-shopping-bag-line text-base"></i>
+      <span class="hidden sm:inline">Panier</span>
+      <span x-text="cartCount"
+            x-show="cartCount > 0"
+            x-cloak
+            class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-slate-900 text-white text-[10px] font-black flex items-center justify-center px-1">
+      </span>
+    </button>
+
   </div>
 </nav>
