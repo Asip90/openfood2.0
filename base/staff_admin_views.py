@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 
 from base.models import StaffMember, StaffInvitation
 from base.decorators import owner_or_coadmin_required, get_user_restaurant
-from base.emails import send_staff_invitation_email
+from base.emails import send_staff_invitation_email, send_staff_added_notification_email
 
 User = get_user_model()
 
@@ -73,12 +73,23 @@ def staff_invite(request):
         messages.error(request, "Cette personne fait déjà partie de l'équipe d'un autre restaurant.")
         return redirect('staff_list')
 
-    # If user already exists in the system, create StaffMember directly
+    # If user already exists in the system, create StaffMember and notify them
     existing_user = User.objects.filter(email=email).first()
     if existing_user:
         StaffMember.objects.create(
             user=existing_user, restaurant=restaurant, role=role
         )
+        try:
+            base_url = request.build_absolute_uri('/').rstrip('/')
+            class _Notif:
+                pass
+            notif = _Notif()
+            notif.restaurant = restaurant
+            notif.role = role
+            notif.email = email
+            send_staff_added_notification_email(base_url=base_url, invitation=notif)
+        except Exception:
+            pass  # Email failure must not block the action
         messages.success(request, f"{existing_user.first_name} {existing_user.last_name} a été ajouté(e) à l'équipe.")
         return redirect('staff_list')
 
@@ -91,7 +102,10 @@ def staff_invite(request):
         expires_at=timezone.now() + timezone.timedelta(days=7),
     )
     base_url = request.build_absolute_uri('/').rstrip('/')
-    send_staff_invitation_email(base_url=base_url, invitation=invitation)
+    try:
+        send_staff_invitation_email(base_url=base_url, invitation=invitation)
+    except Exception:
+        pass  # Email failure must not block the action
     messages.success(request, f"Invitation envoyée à {email}.")
     return redirect('staff_list')
 

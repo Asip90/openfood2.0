@@ -360,8 +360,47 @@ class InvitationViewTest(TestCase):
 
 # ─── Task 7: Staff added notification email tests ─────────────────────────────
 
-from unittest.mock import patch
+from unittest.mock import patch, MagicMock
+from django.test import RequestFactory
+from django.contrib.messages.storage.fallback import FallbackStorage
 from base.emails import send_staff_added_notification_email
+
+
+class StaffInviteExistingUserEmailTest(TestCase):
+    def setUp(self):
+        self.factory = RequestFactory()
+        self.owner = User.objects.create_user(
+            email='owner2@example.com', password='pass12345',
+            first_name='Owner', last_name='Test', email_verified=True,
+        )
+        self.restaurant = Restaurant.objects.create(
+            owner=self.owner, name='Test Resto2', address='123 rue test'
+        )
+        self.candidate = User.objects.create_user(
+            email='candidate@example.com', password='pass12345',
+            first_name='Jean', last_name='Dupont', email_verified=True,
+        )
+
+    @patch('base.staff_admin_views.send_staff_invitation_email')
+    @patch('base.staff_admin_views.send_staff_added_notification_email')
+    def test_sends_notification_to_existing_user(self, mock_notify, mock_invite):
+        from base import staff_admin_views
+        request = self.factory.post('/equipe/inviter/', {
+            'email': 'candidate@example.com',
+            'role': 'serveur',
+        })
+        request.user = self.owner
+        request.restaurant = self.restaurant
+        request.user_role = 'owner'
+        setattr(request, 'session', {})
+        messages_storage = FallbackStorage(request)
+        setattr(request, '_messages', messages_storage)
+
+        staff_admin_views.staff_invite(request)
+
+        mock_notify.assert_called_once()
+        mock_invite.assert_not_called()
+        assert StaffMember.objects.filter(user=self.candidate, restaurant=self.restaurant).exists()
 
 
 class StaffAddedEmailTest(TestCase):
