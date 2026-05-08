@@ -374,9 +374,10 @@ class StaffAddedEmailTest(TestCase):
             role = 'serveur'
             email = 'emp@example.com'
 
-        send_staff_added_notification_email(invitation=FakeInvitation())
+        send_staff_added_notification_email(base_url='https://example.com', invitation=FakeInvitation())
 
         mock_send.assert_called_once()
         call_kwargs = mock_send.call_args
         assert 'emp@example.com' in call_kwargs[1]['recipient_list']
         assert 'Chez Dupont' in call_kwargs[1]['message']
+        assert 'https://example.com/connexion/' in call_kwargs[1]['message']

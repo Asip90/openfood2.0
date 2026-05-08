@@ -33,10 +33,11 @@ Si vous avez déjà un compte OpenFood, connectez-vous puis cliquez sur ce lien.
     )
 
 
-def send_staff_added_notification_email(invitation) -> None:
+def send_staff_added_notification_email(base_url: str, invitation) -> None:
     """
     Notify an existing user that they were directly added to a restaurant team.
     Called when the invited email already has an account (no token needed).
+    base_url: scheme + host, e.g. 'https://app.openfood.com'
     """
     try:
         role_display = dict(invitation.restaurant.staff.model.ROLE_CHOICES).get(
@@ -50,7 +51,7 @@ def send_staff_added_notification_email(invitation) -> None:
 Vous avez été ajouté(e) à l'équipe de {invitation.restaurant.name} en tant que {role_display}.
 
 Connectez-vous à OpenFood pour accéder à votre espace :
-https://openfood.com/connexion/
+{base_url}/connexion/
 
 — L'équipe OpenFood
 """
