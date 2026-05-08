@@ -43,3 +43,12 @@ class ConnexionPendingInvitationTest(TestCase):
             'password': 'pass12345',
         })
         self.assertRedirects(response, reverse('create_restaurant'), fetch_redirect_response=False)
+
+    def test_accepted_invitation_does_not_redirect(self):
+        self.invitation.accepted = True
+        self.invitation.save()
+        response = self.client.post(reverse('connexion'), {
+            'email': 'invited@example.com',
+            'password': 'pass12345',
+        })
+        self.assertRedirects(response, reverse('create_restaurant'), fetch_redirect_response=False)
