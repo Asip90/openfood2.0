@@ -80,13 +80,9 @@ def staff_invite(request):
             user=existing_user, restaurant=restaurant, role=role
         )
         try:
+            from types import SimpleNamespace
             base_url = request.build_absolute_uri('/').rstrip('/')
-            class _Notif:
-                pass
-            notif = _Notif()
-            notif.restaurant = restaurant
-            notif.role = role
-            notif.email = email
+            notif = SimpleNamespace(restaurant=restaurant, role=role, email=email)
             send_staff_added_notification_email(base_url=base_url, invitation=notif)
         except Exception:
             pass  # Email failure must not block the action
