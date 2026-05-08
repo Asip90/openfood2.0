@@ -356,3 +356,27 @@ class InvitationViewTest(TestCase):
         resp = self.client.post(reverse('staff_delete', args=[other_sm.pk]))
         self.assertRedirects(resp, reverse('staff_list'), fetch_redirect_response=False)
         self.assertTrue(StaffMember.objects.filter(pk=other_sm.pk).exists())
+
+
+# ─── Task 7: Staff added notification email tests ─────────────────────────────
+
+from unittest.mock import patch
+from base.emails import send_staff_added_notification_email
+
+
+class StaffAddedEmailTest(TestCase):
+    @patch('base.emails.send_mail')
+    def test_sends_email_to_existing_user(self, mock_send):
+        class FakeRestaurant:
+            name = "Chez Dupont"
+        class FakeInvitation:
+            restaurant = FakeRestaurant()
+            role = 'serveur'
+            email = 'emp@example.com'
+
+        send_staff_added_notification_email(invitation=FakeInvitation())
+
+        mock_send.assert_called_once()
+        call_kwargs = mock_send.call_args
+        assert 'emp@example.com' in call_kwargs[1]['recipient_list']
+        assert 'Chez Dupont' in call_kwargs[1]['message']
