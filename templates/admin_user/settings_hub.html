@@ -17,6 +17,7 @@
   .hub-card:nth-child(2) { animation-delay: 0.10s; }
   .hub-card:nth-child(3) { animation-delay: 0.16s; }
   .hub-card:nth-child(4) { animation-delay: 0.22s; }
+  .hub-card:nth-child(5) { animation-delay: 0.28s; }
 
   @keyframes fadeSlideDown {
     from { opacity: 0; transform: translateY(-10px); }
@@ -252,6 +253,20 @@
         </a>
       </div>
 
+      <!-- QR Code -->
+      <div class="hub-card">
+        <a href="{% url 'qr_settings' %}" class="hub-card-inner">
+          <div class="hub-icon" style="background: linear-gradient(135deg, #f0fdf4, #bbf7d0);">
+            <i class="ri-qr-code-line text-green-500"></i>
+          </div>
+          <div class="hub-text">
+            <p class="hub-title">Personnaliser QR</p>
+            <p class="hub-desc">Couleurs, logo et style des QR codes tables</p>
+          </div>
+          <i class="ri-arrow-right-s-line hub-arrow"></i>
+        </a>
+      </div>
+
       <!-- Équipe -->
       <div class="hub-card">
         <a href="{% url 'staff_list' %}" class="hub-card-inner">
@@ -300,7 +315,7 @@
   <!-- ── Version / info ── -->
   <div class="text-center pt-2 pb-6">
     <p class="text-xs text-slate-300 font-semibold tracking-widest uppercase">
-      Open<span class="text-primary">Food</span>
+      <span class="notranslate">Open<span class="text-primary">Food</span></span>
     </p>
   </div>
 
