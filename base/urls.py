@@ -12,10 +12,15 @@ urlpatterns = [
     # Dashboard
     path("dashboard/", dashboard, name="dashboard"),
 
+    # Analytiques
+    path("analytiques/", analytics_view, name="analytics"),
+
     # Commandes
     path("orders/check/", check_new_orders, name="check_new_orders"),
+    path("orders/export-csv/", export_orders_csv, name="export_orders_csv"),
     path("orders/", orders_list, name="orders_list"),
     path("orders/create-manual-order/", create_manual_order, name="create_manual_order"),
+    path("orders/<int:pk>/recu/", order_receipt, name="order_receipt"),
     path("orders/<int:pk>/", order_detail, name="order_detail"),
     path('orders/<int:order_id>/update/', update_order, name='update_order'),
     path('orders/<int:order_id>/delete/', delete_order, name='delete_order'),

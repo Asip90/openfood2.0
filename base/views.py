@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from base.decorators import get_user_restaurant, restaurant_required, owner_or_coadmin_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, Sum, Prefetch
+from django.db.models import Count, Sum, Avg, Prefetch
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -101,6 +101,9 @@ def create_restaurant(request):
             plan = SubscriptionPlan.objects.filter(plan_type='gratuit', is_active=True).first()
             if not plan:
                 plan = SubscriptionPlan.objects.filter(is_active=True).order_by('price').first()
+            if plan is None:
+                messages.error(request, "Aucun plan d'abonnement actif n'est disponible. Veuillez contacter le support.")
+                return render(request, 'admin_user/create_restaurant.html', {'form': form})
 
             promo_code_input = request.POST.get('promo_code', '').strip().upper()
             promo = None
@@ -216,7 +219,11 @@ def dashboard(request):
     days = []
     orders_count = []
     for item in orders_by_day:
-        day_obj = datetime.strptime(item['day'], "%Y-%m-%d").date()
+        day = item['day']
+        if isinstance(day, str):
+            day_obj = datetime.strptime(day, "%Y-%m-%d").date()
+        else:
+            day_obj = day
         days.append(day_obj.strftime("%d/%m"))
         orders_count.append(item['count'])
 
@@ -248,6 +255,204 @@ def dashboard(request):
     }
 
     return render(request, "admin_user/index.html", context)
+
+
+@restaurant_required()
+@owner_or_coadmin_required
+def analytics_view(request):
+    restaurant = request.restaurant
+    plan = restaurant.subscription_plan
+
+    if not plan or not plan.analytics:
+        return render(request, "admin_user/analytics/index.html", {
+            "restaurant": restaurant,
+            "access_denied": True,
+        })
+
+    today = timezone.now().date()
+    last_30_days = today - timedelta(days=29)
+    last_12_months = today - timedelta(days=364)
+
+    # Revenus par jour sur 30 jours
+    revenue_by_day = (
+        Order.objects.filter(
+            restaurant=restaurant,
+            status__in=["confirmed", "preparing", "ready", "delivered"],
+            created_at__date__gte=last_30_days,
+        )
+        .extra(select={"day": "date(created_at)"})
+        .values("day")
+        .annotate(revenue=Sum("total"))
+        .order_by("day")
+    )
+    revenue_labels, revenue_values = [], []
+    for item in revenue_by_day:
+        day = item["day"]
+        if isinstance(day, str):
+            day_obj = datetime.strptime(day, "%Y-%m-%d").date()
+        else:
+            day_obj = day
+        revenue_labels.append(day_obj.strftime("%d/%m"))
+        revenue_values.append(float(item["revenue"] or 0))
+
+    # Top 5 plats les plus commandés
+    top_items = list(
+        OrderItem.objects.filter(order__restaurant=restaurant)
+        .values("menu_item__name")
+        .annotate(total_qty=Sum("quantity"))
+        .order_by("-total_qty")[:5]
+    )
+
+    # Top 5 menus les plus consultés (view_count)
+    top_viewed = list(
+        MenuItem.objects.filter(restaurant=restaurant)
+        .order_by("-view_count")
+        .values("name", "view_count")[:5]
+    )
+
+    # Valeur moyenne par commande
+    avg_order = (
+        Order.objects.filter(
+            restaurant=restaurant,
+            status__in=["confirmed", "preparing", "ready", "delivered"],
+        ).aggregate(avg=Avg("total"))["avg"] or 0
+    )
+
+    # Heures de pointe (0–23)
+    orders_by_hour = (
+        Order.objects.filter(restaurant=restaurant)
+        .extra(select={"hour": "CAST(strftime('%H', created_at) AS INTEGER)"})
+        .values("hour")
+        .annotate(count=Count("id"))
+        .order_by("hour")
+    )
+    hour_map = {int(row["hour"]): row["count"] for row in orders_by_hour}
+    peak_labels = [f"{h:02d}h" for h in range(24)]
+    peak_values = [hour_map.get(h, 0) for h in range(24)]
+
+    # Jours de la semaine les plus chargés (0=lundi … 6=dimanche)
+    DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
+    orders_by_dow = (
+        Order.objects.filter(restaurant=restaurant)
+        .extra(select={"dow": "CAST(strftime('%w', created_at) AS INTEGER)"})
+        .values("dow")
+        .annotate(count=Count("id"))
+        .order_by("dow")
+    )
+    # SQLite %w : 0=dimanche … 6=samedi → on réordonne en lundi-dimanche
+    dow_map_raw = {int(row["dow"]): row["count"] for row in orders_by_dow}
+    # convert: 1=lundi…6=samedi, 0=dimanche → index 0..6 lun-dim
+    dow_reordered = [dow_map_raw.get(i if i > 0 else 7 % 7, 0) for i in range(1, 8)]
+    # fix: dimanche = key 0 in SQLite
+    dow_reordered[6] = dow_map_raw.get(0, 0)
+    dow_labels = DAY_NAMES
+    dow_values = dow_reordered
+
+    # Tables les plus utilisées (top 5)
+    top_tables = list(
+        Order.objects.filter(restaurant=restaurant, table__isnull=False)
+        .values("table__number")
+        .annotate(count=Count("id"))
+        .order_by("-count")[:5]
+    )
+
+    context = {
+        "restaurant": restaurant,
+        "access_denied": False,
+        "has_advanced": plan.advanced_analytics,
+        "revenue_labels": revenue_labels,
+        "revenue_values": revenue_values,
+        "top_items": top_items,
+        "top_viewed": top_viewed,
+        "avg_order": round(avg_order, 0),
+        "peak_labels": peak_labels,
+        "peak_values": peak_values,
+        "dow_labels": dow_labels,
+        "dow_values": dow_values,
+        "top_tables": top_tables,
+    }
+
+    if plan.advanced_analytics:
+        # Revenus par mois sur 12 mois
+        monthly_revenue = (
+            Order.objects.filter(
+                restaurant=restaurant,
+                status__in=["confirmed", "preparing", "ready", "delivered"],
+                created_at__date__gte=last_12_months,
+            )
+            .extra(select={"month": "strftime('%Y-%m', created_at)"})
+            .values("month")
+            .annotate(revenue=Sum("total"))
+            .order_by("month")
+        )
+        context["monthly_labels"] = [r["month"] for r in monthly_revenue]
+        context["monthly_values"] = [float(r["revenue"] or 0) for r in monthly_revenue]
+
+        # Performance par catégorie
+        context["category_perf"] = list(
+            OrderItem.objects.filter(order__restaurant=restaurant)
+            .values("menu_item__category__name")
+            .annotate(total_qty=Sum("quantity"), total_rev=Sum("price"))
+            .order_by("-total_rev")
+        )
+
+        # Taux d'annulation
+        total = Order.objects.filter(restaurant=restaurant).count()
+        cancelled = Order.objects.filter(restaurant=restaurant, status="cancelled").count()
+        context["cancellation_rate"] = round((cancelled / total * 100) if total else 0, 1)
+
+    return render(request, "admin_user/analytics/index.html", context)
+
+
+@restaurant_required()
+@owner_or_coadmin_required
+def export_orders_csv(request):
+    import csv
+    restaurant = request.restaurant
+    plan = restaurant.subscription_plan
+
+    if not plan or not plan.advanced_analytics:
+        from django.http import HttpResponseForbidden
+        return HttpResponseForbidden("Accès réservé au plan Max.")
+
+    from django.http import HttpResponse
+    response = HttpResponse(content_type="text/csv")
+    response["Content-Disposition"] = f'attachment; filename="commandes_{restaurant.slug}.csv"'
+
+    writer = csv.writer(response)
+    writer.writerow([
+        "Numéro", "Date", "Type", "Statut", "Client", "Téléphone",
+        "Table", "Sous-total", "Total", "Notes"
+    ])
+
+    orders = Order.objects.filter(restaurant=restaurant).select_related("table").order_by("-created_at")
+    for order in orders:
+        writer.writerow([
+            order.order_number,
+            order.created_at.strftime("%Y-%m-%d %H:%M"),
+            order.get_order_type_display(),
+            order.get_status_display(),
+            order.customer_name,
+            order.customer_phone,
+            order.table.number if order.table else "",
+            order.subtotal,
+            order.total,
+            order.notes,
+        ])
+
+    return response
+
+
+@restaurant_required()
+def order_receipt(request, pk):
+    restaurant = request.restaurant
+    order = get_object_or_404(Order, pk=pk, restaurant=restaurant)
+    items = order.items.select_related("menu_item").all()
+    return render(request, "admin_user/orders/receipt.html", {
+        "order": order,
+        "items": items,
+        "restaurant": restaurant,
+    })
 
 
 @restaurant_required()
