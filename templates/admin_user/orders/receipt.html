@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Reçu {{ order.order_number }}</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      color: #000;
+      background: #f5f5f5;
+      padding: 24px 16px;
+    }
+    .receipt-wrapper {
+      background: #fff;
+      max-width: 380px;
+      margin: 0 auto;
+      padding: 24px;
+      border-radius: 8px;
+      box-shadow: 0 2px 12px rgba(0,0,0,.08);
+    }
+    .actions {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      margin-bottom: 20px;
+    }
+    .btn-print {
+      padding: 9px 24px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #111;
+      color: #fff;
+      border: none;
+      border-radius: 6px;
+      font-family: inherit;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .btn-back {
+      padding: 9px 16px;
+      font-size: 13px;
+      cursor: pointer;
+      background: transparent;
+      color: #555;
+      border: 1px solid #ddd;
+      border-radius: 6px;
+      font-family: inherit;
+      text-decoration: none;
+      display: flex;
+      align-items: center;
+    }
+    .header { text-align: center; padding-bottom: 14px; margin-bottom: 14px; border-bottom: 2px dashed #000; }
+    .header img { max-height: 52px; max-width: 120px; margin-bottom: 8px; display: block; margin-left: auto; margin-right: auto; }
+    .header h1 { font-size: 17px; font-weight: bold; text-transform: uppercase; letter-spacing: 1px; }
+    .header p { font-size: 11px; color: #555; margin-top: 2px; }
+    .section { margin-bottom: 12px; }
+    .section-title {
+      font-weight: bold;
+      text-transform: uppercase;
+      font-size: 10px;
+      letter-spacing: 1.5px;
+      color: #666;
+      border-bottom: 1px dashed #ccc;
+      padding-bottom: 4px;
+      margin-bottom: 7px;
+    }
+    .row { display: flex; justify-content: space-between; margin-bottom: 3px; font-size: 12px; }
+    .row .label { color: #666; }
+    .badge {
+      display: inline-block;
+      padding: 1px 7px;
+      border: 1px solid #000;
+      border-radius: 3px;
+      font-size: 10px;
+      font-weight: bold;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    table { width: 100%; border-collapse: collapse; margin-bottom: 4px; }
+    table th {
+      font-size: 10px;
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+      border-bottom: 1px solid #000;
+      padding: 4px 0;
+      text-align: left;
+      color: #444;
+    }
+    table th:last-child, table td:last-child { text-align: right; }
+    table td { padding: 5px 0; vertical-align: top; font-size: 12px; }
+    table td small { display: block; color: #888; font-size: 10px; }
+    .totals { border-top: 2px dashed #000; padding-top: 10px; margin-top: 2px; }
+    .totals .subtotal-row { display: flex; justify-content: space-between; font-size: 12px; color: #555; margin-bottom: 3px; }
+    .totals .total-row { display: flex; justify-content: space-between; font-weight: bold; font-size: 16px; margin-top: 5px; }
+    .footer { text-align: center; border-top: 1px dashed #ccc; margin-top: 16px; padding-top: 12px; font-size: 11px; color: #777; }
+    .footer p + p { margin-top: 3px; }
+
+    @media print {
+      body { background: #fff; padding: 0; }
+      .receipt-wrapper { box-shadow: none; border-radius: 0; padding: 0; max-width: 100%; }
+      .actions { display: none !important; }
+      @page { margin: 8mm; size: 80mm auto; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="actions no-print">
+  <button class="btn-print" onclick="window.print()">🖨 Imprimer</button>
+  <a href="javascript:history.back()" class="btn-back">← Retour</a>
+</div>
+
+<div class="receipt-wrapper">
+
+  <!-- En-tête restaurant -->
+  <div class="header">
+    {% if restaurant.logo %}
+      <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }}">
+    {% endif %}
+    <h1>{{ restaurant.name }}</h1>
+    {% if restaurant.address %}<p>{{ restaurant.address }}</p>{% endif %}
+    {% if restaurant.phone %}<p>{{ restaurant.phone }}</p>{% endif %}
+    {% if restaurant.email %}<p>{{ restaurant.email }}</p>{% endif %}
+  </div>
+
+  <!-- Infos commande -->
+  <div class="section">
+    <div class="section-title">Commande</div>
+    <div class="row">
+      <span class="label">Numéro :</span>
+      <span><strong>{{ order.order_number }}</strong></span>
+    </div>
+    <div class="row">
+      <span class="label">Date :</span>
+      <span>{{ order.created_at|date:"d/m/Y à H:i" }}</span>
+    </div>
+    <div class="row">
+      <span class="label">Type :</span>
+      <span>{{ order.get_order_type_display }}</span>
+    </div>
+    {% if order.table %}
+    <div class="row">
+      <span class="label">Table :</span>
+      <span>{{ order.table.number }}</span>
+    </div>
+    {% endif %}
+    <div class="row">
+      <span class="label">Statut :</span>
+      <span class="badge">{{ order.get_status_display }}</span>
+    </div>
+  </div>
+
+  <!-- Client -->
+  {% if order.customer_name %}
+  <div class="section">
+    <div class="section-title">Client</div>
+    <div class="row">
+      <span class="label">Nom :</span>
+      <span>{{ order.customer_name }}</span>
+    </div>
+    {% if order.customer_phone %}
+    <div class="row">
+      <span class="label">Téléphone :</span>
+      <span>{{ order.customer_phone }}</span>
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Articles -->
+  <div class="section">
+    <div class="section-title">Articles</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Article</th>
+          <th style="text-align:center;width:32px">Qté</th>
+          <th>Prix</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for item in items %}
+        <tr>
+          <td>
+            {{ item.menu_item.name }}
+            {% if item.notes %}<small>{{ item.notes }}</small>{% endif %}
+          </td>
+          <td style="text-align:center">{{ item.quantity }}</td>
+          <td>{{ item.get_total }} F</td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Totaux -->
+  <div class="totals">
+    {% if order.tax > 0 %}
+    <div class="subtotal-row">
+      <span>Sous-total</span>
+      <span>{{ order.subtotal }} FCFA</span>
+    </div>
+    <div class="subtotal-row">
+      <span>Taxes</span>
+      <span>{{ order.tax }} FCFA</span>
+    </div>
+    {% endif %}
+    <div class="total-row">
+      <span>TOTAL</span>
+      <span>{{ order.total }} FCFA</span>
+    </div>
+  </div>
+
+  <!-- Notes -->
+  {% if order.notes %}
+  <div class="section" style="margin-top:12px;">
+    <div class="section-title">Notes</div>
+    <p style="font-size:12px;color:#444;">{{ order.notes }}</p>
+  </div>
+  {% endif %}
+
+  <!-- Pied de page -->
+  <div class="footer">
+    <p>Merci de votre visite !</p>
+    <p style="font-size:10px;margin-top:6px;">Propulsé par OpenFood</p>
+  </div>
+
+</div>
+</body>
+</html>

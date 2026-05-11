@@ -1,14 +1,14 @@
 {% extends "admin_user/base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block title %}Commandes – OpenFood{% endblock %}
-{% block page_title %}Commandes{% endblock %}
+{% block title %}{% trans "Orders" %} – OpenFood{% endblock %}
+{% block page_title %}{% trans "Orders" %}{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'create_manual_order' %}"
    class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors shadow-glow">
   <i class="ri-add-line text-base"></i>
-  <span class="hidden sm:block">Commande manuelle</span>
+  <span class="hidden sm:block">{% trans "Manual order" %}</span>
 </a>
 {% endblock %}
 
@@ -20,7 +20,7 @@
   <a href="{% url 'orders_list' %}"
      class="px-4 py-2 rounded-xl text-sm font-semibold whitespace-nowrap flex-shrink-0 transition-all
        {% if not current_status %}bg-primary text-white shadow-glow{% else %}bg-white border border-slate-200 text-slate-600 hover:border-primary/50 hover:text-primary{% endif %}">
-    Toutes
+    {% trans "All" %}
   </a>
 
   {% for value, label in status_choices %}
@@ -95,13 +95,13 @@
               {{ order.get_status_display }}
             </span>
             {% if order.status == 'pending' %}
-            <span class="text-[10px] text-amber-500 font-semibold animate-pulse hidden sm:inline">● En attente</span>
+            <span class="text-[10px] text-amber-500 font-semibold animate-pulse hidden sm:inline">● {% trans "Pending" %}</span>
             {% endif %}
           </div>
 
           <!-- Ligne 2: table + heure + client -->
           <p class="text-xs text-slate-400 mt-0.5 truncate">
-            {% if order.table %}<i class="ri-table-line mr-0.5"></i>Table {{ order.table.number }}{% else %}<i class="ri-map-pin-line mr-0.5"></i>À emporter{% endif %}
+            {% if order.table %}<i class="ri-table-line mr-0.5"></i>{% trans "Table" %} {{ order.table.number }}{% else %}<i class="ri-map-pin-line mr-0.5"></i>{% trans "Takeaway" %}{% endif %}
             · {{ order.created_at|timesince }} ago
             {% if order.customer_name %} · <span class="text-slate-500">{{ order.customer_name }}</span>{% endif %}
           </p>
@@ -109,7 +109,7 @@
           <!-- Ligne 3: articles -->
           <p class="text-xs text-slate-500 mt-1 truncate">
             {% for item in order.items.all|slice:":3" %}{{ item.quantity }}× {{ item.menu_item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
-            {% if order.items.count > 3 %}<span class="text-slate-400"> +{{ order.items.count|add:"-3" }} autres</span>{% endif %}
+            {% if order.items.count > 3 %}<span class="text-slate-400"> +{{ order.items.count|add:"-3" }} {% trans "more" %}</span>{% endif %}
           </p>
         </div>
 
@@ -121,9 +121,15 @@
           <div class="flex items-center gap-1">
             <!-- Voir détail -->
             <button onclick="openDetail({{ order.pk }})"
-               class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="Voir détails">
+               class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="{% trans "View details" %}">
               <i class="ri-eye-line text-sm"></i>
             </button>
+
+            <!-- Imprimer le reçu -->
+            <a href="{% url 'order_receipt' order.pk %}" target="_blank"
+               class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="Imprimer le reçu">
+              <i class="ri-printer-line text-sm"></i>
+            </a>
 
             <!-- Dropdown statut -->
             <div x-data="{ open: false, top: 0, right: 0 }">
@@ -136,7 +142,7 @@
                   }
                   open = !open
                 "
-                class="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" title="Changer statut">
+                class="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" title="{% trans "Change status" %}">
                 <i class="ri-arrow-down-s-line text-sm"></i>
               </button>
               <div x-show="open" @click.outside="open = false" x-cloak
@@ -177,9 +183,9 @@
     <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-slate-100 flex items-center justify-center">
       <i class="ri-shopping-bag-line text-3xl text-slate-400"></i>
     </div>
-    <p class="font-display font-black text-slate-900 text-lg mb-1">Aucune commande</p>
+    <p class="font-display font-black text-slate-900 text-lg mb-1">{% trans "No orders" %}</p>
     <p class="text-slate-500 text-sm">
-      {% if current_status %}Aucune commande avec ce statut{% else %}Vos commandes apparaîtront ici{% endif %}
+      {% if current_status %}{% trans "No orders with this status" %}{% else %}{% trans "Your orders will appear here" %}{% endif %}
     </p>
   </div>
   {% endfor %}
@@ -191,7 +197,7 @@
   {% if orders.has_previous %}
   <a href="?page={{ orders.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}"
      class="px-5 py-2.5 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary hover:text-primary transition-colors">
-    ← Précédent
+    ← {% trans "Previous" %}
   </a>
   {% endif %}
   <span class="px-5 py-2.5 rounded-2xl bg-primary text-white text-sm font-bold">
@@ -200,7 +206,7 @@
   {% if orders.has_next %}
   <a href="?page={{ orders.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}"
      class="px-5 py-2.5 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary hover:text-primary transition-colors">
-    Suivant →
+    {% trans "Next" %} →
   </a>
   {% endif %}
 </div>
@@ -255,22 +261,22 @@
 
       <!-- Articles -->
       <div>
-        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">Articles</p>
+        <p class="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">{% trans "Items" %}</p>
         <div id="modalItems" class="space-y-2"></div>
       </div>
 
       <!-- Totaux -->
       <div class="border-t border-slate-100 pt-3 space-y-1.5">
         <div class="flex justify-between text-sm text-slate-500">
-          <span>Sous-total</span>
+          <span>{% trans "Subtotal" %}</span>
           <span id="modalSubtotal" class="font-semibold"></span>
         </div>
         <div class="flex justify-between text-sm text-slate-500">
-          <span>Taxes (10%)</span>
+          <span>{% trans "Taxes (10%)" %}</span>
           <span id="modalTax" class="font-semibold"></span>
         </div>
         <div class="flex justify-between text-base font-black text-slate-900 pt-1 border-t border-slate-100">
-          <span>Total</span>
+          <span>{% trans "Total" %}</span>
           <span id="modalTotal"></span>
         </div>
       </div>
