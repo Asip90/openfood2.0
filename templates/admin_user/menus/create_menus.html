@@ -1,12 +1,13 @@
 {% extends "admin_user/base.html" %}
-{% block title %}Ajouter un plat – OpenFood{% endblock %}
-{% block page_title %}Nouveau plat{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Add a dish" %} – OpenFood{% endblock %}
+{% block page_title %}{% trans "New dish" %}{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'menus_list' %}"
    class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
   <i class="ri-arrow-left-line"></i>
-  <span class="hidden sm:block">Menu</span>
+  <span class="hidden sm:block">{% trans "Menu" %}</span>
 </a>
 {% endblock %}
 
@@ -21,7 +22,7 @@
         <i class="ri-restaurant-line text-primary text-lg"></i>
       </div>
       <div>
-        <h2 class="font-display font-black text-slate-900 text-base">Ajouter un plat</h2>
+        <h2 class="font-display font-black text-slate-900 text-base">{% trans "Add a dish" %}</h2>
         <p class="text-xs text-slate-400 mt-0.5">{{ restaurant.name }}</p>
       </div>
     </div>
@@ -29,47 +30,65 @@
     <form method="post" enctype="multipart/form-data" class="p-6 space-y-5">
       {% csrf_token %}
 
-      <!-- Zone upload image -->
+      <!-- Images (max 3) -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-3">
+          {% trans "Photos du plat" %} <span class="text-slate-300 font-normal normal-case">({% trans "max 3" %})</span>
+        </label>
+        <div class="grid grid-cols-3 gap-3" id="images-grid">
+          {% for i in "123" %}
+          <div class="relative">
+            <label for="image-upload-{{ i }}" class="cursor-pointer block">
+              <div id="preview-{{ i }}"
+                   class="relative w-full aspect-square rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-all overflow-hidden group">
+                <i class="ri-image-add-line text-slate-300 group-hover:text-primary text-2xl transition-colors"></i>
+                <span class="text-[10px] text-slate-400 group-hover:text-primary transition-colors">{% trans "Photo" %} {{ i }}</span>
+              </div>
+            </label>
+            <input id="image-upload-{{ i }}" type="file" name="image_{{ i }}" accept="image/png,image/jpeg,image/webp" class="hidden"
+                   data-preview="preview-{{ i }}">
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Vidéo (optionnelle) -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Photo du plat
+          {% trans "Vidéo" %} <span class="text-slate-300 font-normal normal-case">({% trans "optional" %})</span>
         </label>
-        <label for="image-upload" class="cursor-pointer block">
-          <div id="upload-preview"
-               class="relative w-full h-44 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/3 transition-all overflow-hidden group">
-            <div id="upload-placeholder" class="flex flex-col items-center gap-2 text-center px-4">
-              <div class="w-12 h-12 rounded-xl bg-slate-100 group-hover:bg-primary/10 flex items-center justify-center transition-colors">
-                <i class="ri-image-add-line text-slate-400 group-hover:text-primary text-xl transition-colors"></i>
-              </div>
-              <div>
-                <p class="text-sm font-semibold text-slate-600 group-hover:text-primary transition-colors">Choisir une photo</p>
-                <p class="text-xs text-slate-400 mt-0.5">PNG, JPG, WEBP · max 5 MB</p>
-              </div>
+        <label for="video-upload" class="cursor-pointer block">
+          <div id="video-preview"
+               class="relative w-full h-24 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center gap-3 hover:border-primary/50 transition-all overflow-hidden group">
+            <i class="ri-video-add-line text-slate-300 group-hover:text-primary text-2xl transition-colors"></i>
+            <div>
+              <p class="text-sm font-semibold text-slate-500 group-hover:text-primary transition-colors">{% trans "Ajouter une vidéo" %}</p>
+              <p class="text-xs text-slate-400">MP4, MOV · max 100 MB</p>
             </div>
           </div>
         </label>
-        <input id="image-upload" type="file" name="image" accept="image/png,image/jpeg,image/webp" class="hidden">
+        <input id="video-upload" type="file" name="video" accept="video/*" class="hidden">
       </div>
 
       <!-- Nom -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Nom du plat <span class="text-red-400">*</span>
+          {% trans "Dish name" %} <span class="text-red-400">*</span>
         </label>
         <input type="text" name="name" required
           class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300"
-          placeholder="Ex : Poulet Yassa, Thiéboudiène…">
+          placeholder="{% trans "Ex: Chicken Yassa, Thiéboudiène…" %}">
       </div>
 
       <!-- Catégorie + nouveau -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Catégorie <span class="text-red-400">*</span>
+          {% trans "Category" %} <span class="text-red-400">*</span>
         </label>
         <div class="flex gap-2">
           <select name="category" id="categorySelect" required
             class="flex-1 px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none">
-            <option value="">Sélectionner…</option>
+            <option value="">{% trans "Select…" %}</option>
             {% for category in categories %}
               <option value="{{ category.id }}">{{ category.name }}</option>
             {% endfor %}
@@ -84,7 +103,7 @@
       <!-- Prix -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Prix <span class="text-red-400">*</span>
+          {% trans "Price" %} <span class="text-red-400">*</span>
         </label>
         <div class="relative">
           <input type="number" name="price" step="1" required
@@ -97,22 +116,22 @@
       <!-- Description -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Description <span class="text-slate-300">(optionnel)</span>
+          {% trans "Description" %} <span class="text-slate-300">({% trans "optional" %})</span>
         </label>
         <textarea name="description" rows="3"
           class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300 resize-none"
-          placeholder="Ingrédients, accompagnements, spécificités…"></textarea>
+          placeholder="{% trans "Ingredients, sides, special notes…" %}"></textarea>
       </div>
 
       <!-- Actions -->
       <div class="flex gap-3 pt-1">
         <a href="{% url 'menus_list' %}"
            class="flex-1 py-3 text-center text-sm font-semibold text-slate-600 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors">
-          Annuler
+          {% trans "Cancel" %}
         </a>
         <button type="submit"
           class="flex-1 py-3 text-sm font-bold text-white bg-primary rounded-2xl hover:bg-primary-dark transition-colors shadow-glow">
-          <i class="ri-check-line mr-1"></i> Enregistrer
+          <i class="ri-check-line mr-1"></i> {% trans "Save" %}
         </button>
       </div>
     </form>
@@ -129,20 +148,20 @@
       <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
         <i class="ri-tag-line text-primary"></i>
       </div>
-      <h3 class="font-display font-black text-slate-900 text-base">Nouvelle catégorie</h3>
+      <h3 class="font-display font-black text-slate-900 text-base">{% trans "New category" %}</h3>
     </div>
     <input type="text" id="categoryName"
       class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300 mb-2"
-      placeholder="Ex : Entrées, Plats, Desserts…">
-    <p class="text-xs text-slate-400 mb-5">La catégorie sera sélectionnée automatiquement.</p>
+      placeholder="{% trans "Ex: Starters, Main dishes, Desserts…" %}">
+    <p class="text-xs text-slate-400 mb-5">{% trans "The category will be selected automatically." %}</p>
     <div class="flex gap-3">
       <button onclick="closeCategoryModal()"
         class="flex-1 py-3 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-        Annuler
+        {% trans "Cancel" %}
       </button>
       <button onclick="submitCategory()"
         class="flex-1 py-3 rounded-2xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors">
-        Créer
+        {% trans "Create" %}
       </button>
     </div>
   </div>
@@ -185,21 +204,37 @@ function submitCategory() {
   .catch(() => alert('Erreur réseau'));
 }
 
-/* ─── Image preview ─── */
-document.getElementById('image-upload').addEventListener('change', function(e) {
-  const file = e.target.files[0];
+/* ─── Image previews ─── */
+document.querySelectorAll('input[type=file][data-preview]').forEach(input => {
+  input.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const preview = document.getElementById(this.dataset.preview);
+    const reader = new FileReader();
+    reader.onload = ev => {
+      preview.innerHTML = `
+        <img src="${ev.target.result}" class="w-full h-full object-cover" alt="Aperçu">
+        <div class="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+          <span class="text-white text-[10px] font-semibold bg-black/50 px-2 py-1 rounded-lg">Changer</span>
+        </div>
+      `;
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+/* ─── Video preview ─── */
+document.getElementById('video-upload').addEventListener('change', function() {
+  const file = this.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const preview = document.getElementById('upload-preview');
-    preview.innerHTML = `
-      <img src="${ev.target.result}" class="w-full h-full object-cover" alt="Aperçu">
-      <div class="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
-        <span class="text-white text-xs font-semibold bg-black/50 px-3 py-1.5 rounded-xl">Changer</span>
-      </div>
-    `;
-  };
-  reader.readAsDataURL(file);
+  const url = URL.createObjectURL(file);
+  const preview = document.getElementById('video-preview');
+  preview.innerHTML = `
+    <video src="${url}" class="w-full h-full object-contain" muted></video>
+    <div class="absolute inset-0 bg-black/0 hover:bg-black/10 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+      <span class="text-white text-[10px] font-semibold bg-black/50 px-2 py-1 rounded-lg">Changer</span>
+    </div>
+  `;
 });
 
 /* ─── Toast ─── */

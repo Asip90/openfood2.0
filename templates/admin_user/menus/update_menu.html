@@ -1,12 +1,13 @@
 {% extends "admin_user/base.html" %}
-{% block title %}Modifier un plat – OpenFood{% endblock %}
+{% load i18n %}
+{% block title %}{% trans "Edit a dish" %} – OpenFood{% endblock %}
 {% block page_title %}{{ menu_item.name }}{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'menus_list' %}"
    class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
   <i class="ri-arrow-left-line"></i>
-  <span class="hidden sm:block">Menu</span>
+  <span class="hidden sm:block">{% trans "Menu" %}</span>
 </a>
 {% endblock %}
 
@@ -17,9 +18,9 @@
 
     <!-- Header carte -->
     <div class="px-6 py-5 border-b border-slate-100 flex items-center gap-3">
-      {% if menu_item.image %}
+      {% if existing_images %}
       <div class="w-10 h-10 rounded-xl overflow-hidden flex-shrink-0">
-        <img src="{{ menu_item.image.url }}" alt="{{ menu_item.name }}" class="w-full h-full object-cover">
+        <img src="{{ existing_images.0.url }}" alt="{{ menu_item.name }}" class="w-full h-full object-cover">
       </div>
       {% else %}
       <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center flex-shrink-0">
@@ -35,49 +36,77 @@
       <span class="inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-[10px] font-bold flex-shrink-0
         {% if menu_item.is_available %}bg-green-50 text-green-700{% else %}bg-slate-100 text-slate-500{% endif %}">
         <span class="w-1.5 h-1.5 rounded-full {% if menu_item.is_available %}bg-green-500{% else %}bg-slate-400{% endif %}"></span>
-        {% if menu_item.is_available %}Disponible{% else %}Indisponible{% endif %}
+        {% if menu_item.is_available %}{% trans "Available" %}{% else %}{% trans "Unavailable" %}{% endif %}
       </span>
     </div>
 
     <form method="post" enctype="multipart/form-data" class="p-6 space-y-5">
       {% csrf_token %}
 
-      <!-- Zone image -->
+      <!-- Images existantes -->
+      {% if existing_images %}
       <div>
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">Photo du plat</label>
-
-        {% if menu_item.image %}
-        <div class="relative mb-3">
-          <div id="current-image" class="w-full h-44 rounded-2xl overflow-hidden border border-slate-100">
-            <img src="{{ menu_item.image.url }}" alt="{{ menu_item.name }}"
-                 class="w-full h-full object-cover">
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{% trans "Images actuelles" %}</label>
+        <div class="flex gap-2 flex-wrap">
+          {% for media in existing_images %}
+          <div class="relative">
+            <img src="{{ media.url }}" class="h-20 w-20 object-cover rounded-xl border border-slate-100" alt="Image {{ forloop.counter }}">
+            <span class="absolute bottom-1 left-1 px-1.5 py-0.5 bg-black/50 text-white text-[9px] font-bold rounded-md">{{ forloop.counter }}</span>
           </div>
-          <span class="absolute bottom-2 left-2 px-2.5 py-1 bg-black/50 text-white text-[10px] font-semibold rounded-lg backdrop-blur-sm">
-            Image actuelle
-          </span>
+          {% endfor %}
         </div>
-        {% endif %}
+      </div>
+      {% endif %}
 
-        <label for="image-upload" class="cursor-pointer block">
-          <div id="upload-preview"
-               class="relative w-full h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-2 hover:border-primary/50 hover:bg-primary/3 transition-all overflow-hidden group">
-            <div id="upload-placeholder" class="flex flex-col items-center gap-1.5 text-center px-4">
-              <i class="ri-upload-cloud-2-line text-slate-400 group-hover:text-primary text-2xl transition-colors"></i>
-              <p class="text-xs font-semibold text-slate-500 group-hover:text-primary transition-colors">
-                {% if menu_item.image %}Changer l'image{% else %}Ajouter une image{% endif %}
-              </p>
-              <p class="text-[10px] text-slate-400">PNG, JPG, WEBP</p>
-            </div>
+      <!-- Nouvelles images (max 3) -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          {% trans "Nouvelles images" %} <span class="text-slate-300 font-normal normal-case">({% trans "remplace les existantes si renseignées" %})</span>
+        </label>
+        <div class="grid grid-cols-3 gap-3">
+          {% for i in "123" %}
+          <div>
+            <label for="image-upload-{{ i }}" class="cursor-pointer block">
+              <div id="preview-{{ i }}"
+                   class="relative w-full aspect-square rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center gap-1 hover:border-primary/50 transition-all overflow-hidden group">
+                <i class="ri-image-add-line text-slate-300 group-hover:text-primary text-2xl transition-colors"></i>
+                <span class="text-[10px] text-slate-400 group-hover:text-primary transition-colors">{{ i }}</span>
+              </div>
+            </label>
+            <input id="image-upload-{{ i }}" type="file" name="image_{{ i }}" accept="image/png,image/jpeg,image/webp" class="hidden"
+                   data-preview="preview-{{ i }}">
+          </div>
+          {% endfor %}
+        </div>
+      </div>
+
+      <!-- Vidéo existante -->
+      {% if existing_video %}
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">{% trans "Vidéo actuelle" %}</label>
+        <video src="{{ existing_video.url }}" class="w-full h-32 rounded-2xl object-contain bg-black" controls muted></video>
+      </div>
+      {% endif %}
+
+      <!-- Nouvelle vidéo -->
+      <div>
+        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
+          {% trans "Vidéo" %} <span class="text-slate-300 font-normal normal-case">({% if existing_video %}{% trans "remplace l'existante" %}{% else %}{% trans "optional" %}{% endif %})</span>
+        </label>
+        <label for="video-upload" class="cursor-pointer block">
+          <div id="video-preview"
+               class="relative w-full h-20 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex items-center justify-center gap-3 hover:border-primary/50 transition-all overflow-hidden group">
+            <i class="ri-video-add-line text-slate-300 group-hover:text-primary text-xl transition-colors"></i>
+            <span class="text-xs font-semibold text-slate-500 group-hover:text-primary transition-colors">{% trans "Ajouter / remplacer la vidéo" %}</span>
           </div>
         </label>
-        <input id="image-upload" type="file" name="image" accept="image/png,image/jpeg,image/webp" class="hidden">
-        <p class="text-[10px] text-slate-400 mt-1.5">Laisser vide pour conserver l'image actuelle</p>
+        <input id="video-upload" type="file" name="video" accept="video/*" class="hidden">
       </div>
 
       <!-- Nom -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Nom du plat <span class="text-red-400">*</span>
+          {% trans "Dish name" %} <span class="text-red-400">*</span>
         </label>
         <input type="text" name="name" required value="{{ menu_item.name }}"
           class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all">
@@ -86,12 +115,12 @@
       <!-- Catégorie -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Catégorie <span class="text-red-400">*</span>
+          {% trans "Category" %} <span class="text-red-400">*</span>
         </label>
         <div class="flex gap-2">
           <select name="category" id="categorySelect" required
             class="flex-1 px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all appearance-none">
-            <option value="">Sélectionner…</option>
+            <option value="">{% trans "Select…" %}</option>
             {% for category in categories %}
               <option value="{{ category.id }}" {% if menu_item.category_id == category.id %}selected{% endif %}>
                 {{ category.name }}
@@ -108,7 +137,7 @@
       <!-- Prix -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Prix <span class="text-red-400">*</span>
+          {% trans "Price" %} <span class="text-red-400">*</span>
         </label>
         <div class="relative">
           <input type="number" name="price" step="1" required value="{{ menu_item.price }}"
@@ -120,22 +149,22 @@
       <!-- Description -->
       <div>
         <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          Description <span class="text-slate-300">(optionnel)</span>
+          {% trans "Description" %} <span class="text-slate-300">({% trans "optional" %})</span>
         </label>
         <textarea name="description" rows="3"
           class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300 resize-none"
-          placeholder="Ingrédients, accompagnements…">{{ menu_item.description }}</textarea>
+          placeholder="{% trans "Ingredients, sides…" %}">{{ menu_item.description }}</textarea>
       </div>
 
       <!-- Actions -->
       <div class="flex gap-3 pt-1">
         <a href="{% url 'menus_list' %}"
            class="flex-1 py-3 text-center text-sm font-semibold text-slate-600 border border-slate-200 rounded-2xl hover:bg-slate-50 transition-colors">
-          Annuler
+          {% trans "Cancel" %}
         </a>
         <button type="submit"
           class="flex-1 py-3 text-sm font-bold text-white bg-primary rounded-2xl hover:bg-primary-dark transition-colors shadow-glow">
-          <i class="ri-save-line mr-1"></i> Mettre à jour
+          <i class="ri-save-line mr-1"></i> {% trans "Update" %}
         </button>
       </div>
     </form>
@@ -152,20 +181,20 @@
       <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
         <i class="ri-tag-line text-primary"></i>
       </div>
-      <h3 class="font-display font-black text-slate-900 text-base">Nouvelle catégorie</h3>
+      <h3 class="font-display font-black text-slate-900 text-base">{% trans "New category" %}</h3>
     </div>
     <input type="text" id="categoryName"
       class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300 mb-2"
-      placeholder="Ex : Entrées, Plats, Desserts…">
-    <p class="text-xs text-slate-400 mb-5">La catégorie sera sélectionnée automatiquement.</p>
+      placeholder="{% trans "Ex: Starters, Main dishes, Desserts…" %}">
+    <p class="text-xs text-slate-400 mb-5">{% trans "The category will be selected automatically." %}</p>
     <div class="flex gap-3">
       <button onclick="closeCategoryModal()"
         class="flex-1 py-3 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-        Annuler
+        {% trans "Cancel" %}
       </button>
       <button onclick="submitCategory()"
         class="flex-1 py-3 rounded-2xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors">
-        Créer
+        {% trans "Create" %}
       </button>
     </div>
   </div>
@@ -207,21 +236,37 @@ function submitCategory() {
   .catch(() => alert('Erreur réseau'));
 }
 
-/* ─── Image preview ─── */
-document.getElementById('image-upload').addEventListener('change', function(e) {
-  const file = e.target.files[0];
+/* ─── Image previews ─── */
+document.querySelectorAll('input[type=file][data-preview]').forEach(input => {
+  input.addEventListener('change', function() {
+    const file = this.files[0];
+    if (!file) return;
+    const preview = document.getElementById(this.dataset.preview);
+    const reader = new FileReader();
+    reader.onload = ev => {
+      preview.innerHTML = `
+        <img src="${ev.target.result}" class="w-full h-full object-cover" alt="Aperçu">
+        <div class="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
+          <span class="text-white text-[10px] font-semibold bg-black/50 px-2 py-1 rounded-lg">Changer</span>
+        </div>
+      `;
+    };
+    reader.readAsDataURL(file);
+  });
+});
+
+/* ─── Video preview ─── */
+document.getElementById('video-upload').addEventListener('change', function() {
+  const file = this.files[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = ev => {
-    const preview = document.getElementById('upload-preview');
-    preview.innerHTML = `
-      <img src="${ev.target.result}" class="w-full h-full object-cover" alt="Aperçu">
-      <div class="absolute inset-0 bg-black/0 hover:bg-black/20 transition-colors flex items-center justify-center opacity-0 hover:opacity-100">
-        <span class="text-white text-xs font-semibold bg-black/50 px-3 py-1.5 rounded-xl">Changer</span>
-      </div>
-    `;
-  };
-  reader.readAsDataURL(file);
+  const url = URL.createObjectURL(file);
+  const preview = document.getElementById('video-preview');
+  preview.innerHTML = `
+    <video src="${url}" class="w-full h-full object-contain" muted></video>
+    <div class="absolute inset-0 bg-black/0 hover:bg-black/10 flex items-center justify-center opacity-0 hover:opacity-100">
+      <span class="text-white text-[10px] font-semibold bg-black/50 px-2 py-1 rounded-lg">Changer</span>
+    </div>
+  `;
 });
 </script>
 
