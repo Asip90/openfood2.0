@@ -207,9 +207,10 @@ class MenuItem(models.Model):
     preparation_time = models.IntegerField(help_text="Temps en minutes", default=15)
     
     order = models.IntegerField(default=0)
+    view_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
-    
+
     class Meta:
         ordering = ['order', 'name']
     
@@ -422,8 +423,8 @@ class Order(models.Model):
             (item.get_total() for item in self.items.all()),
             Decimal("0.00")
         )
-        self.tax = self.subtotal * Decimal("0.10")
-        self.total = self.subtotal + self.tax
+        self.tax = Decimal("0.00")
+        self.total = self.subtotal
         self.save(update_fields=["subtotal", "tax", "total"])
 
         
