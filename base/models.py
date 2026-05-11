@@ -223,6 +223,34 @@ class MenuItem(models.Model):
         return f"{self.name} - {self.price}€"
 
 
+from cloudinary.models import CloudinaryField as _CloudinaryField
+
+
+class MenuItemMedia(models.Model):
+    MEDIA_TYPE = [('image', 'Image'), ('video', 'Vidéo')]
+    menu_item = models.ForeignKey(
+        MenuItem, on_delete=models.CASCADE, related_name='media'
+    )
+    file = _CloudinaryField('media', resource_type='auto', blank=True)
+    media_type = models.CharField(max_length=10, choices=MEDIA_TYPE, default='image')
+    order = models.PositiveSmallIntegerField(default=0)
+
+    class Meta:
+        ordering = ['media_type', 'order']
+
+    def __str__(self):
+        return f"{self.menu_item.name} — {self.media_type} #{self.order}"
+
+    @property
+    def url(self):
+        import cloudinary
+        if not self.file:
+            return ''
+        if self.media_type == 'video':
+            return cloudinary.CloudinaryVideo(str(self.file)).build_url()
+        return cloudinary.CloudinaryImage(str(self.file)).build_url()
+
+
 from django.conf import settings
 
 
