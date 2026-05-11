@@ -10,66 +10,133 @@
      @keydown.escape.window="closeModal()"
      x-cloak>
 
-  <!-- Overlay -->
-  <div class="absolute inset-0 bg-black/50 backdrop-blur-sm" @click="closeModal()"></div>
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-slate-900/55 backdrop-blur-sm" @click="closeModal()"></div>
 
-  <!-- Panel -->
-  <div class="relative bg-white w-full sm:max-w-sm sm:rounded-3xl rounded-t-3xl overflow-hidden z-10 max-h-[90vh] flex flex-col"
+  <!-- Sheet -->
+  <div class="relative bg-white w-full sm:max-w-sm sm:rounded-3xl rounded-t-3xl z-10 max-h-[92vh] flex flex-col shadow-modal"
        x-transition:enter="transition ease-out duration-300"
-       x-transition:enter-start="translate-y-full sm:translate-y-4 sm:opacity-0"
+       x-transition:enter-start="translate-y-full sm:translate-y-6 sm:opacity-0"
        x-transition:enter-end="translate-y-0 sm:opacity-100"
        x-transition:leave="transition ease-in duration-200"
        x-transition:leave-start="translate-y-0 sm:opacity-100"
-       x-transition:leave-end="translate-y-full sm:translate-y-4 sm:opacity-0">
+       x-transition:leave-end="translate-y-full sm:translate-y-6 sm:opacity-0">
 
-    <!-- Drag handle -->
-    <div class="flex justify-center pt-3 pb-1 flex-shrink-0 sm:hidden">
-      <div class="w-10 h-1 rounded-full bg-slate-200"></div>
+    <!-- Drag handle (mobile) -->
+    <div class="flex justify-center pt-3 pb-0 flex-shrink-0 sm:hidden">
+      <div class="w-9 h-1 rounded-full bg-slate-200"></div>
     </div>
 
-    <!-- Scrollable content -->
-    <div class="overflow-y-auto flex-1">
+    <!-- Close button -->
+    <button @click="closeModal()"
+            class="absolute top-4 right-4 w-8 h-8 rounded-full bg-black/20 backdrop-blur-sm flex items-center justify-center text-white transition-all active:scale-90 z-20">
+      <i class="ri-close-line text-sm"></i>
+    </button>
 
-      <!-- Image -->
-      <template x-if="modalItem && modalItem.image">
-        <div class="w-full h-52 overflow-hidden">
-          <img :src="modalItem.image" :alt="modalItem.name" class="w-full h-full object-cover">
+    <!-- Scrollable body -->
+    <div class="overflow-y-auto flex-1 scrollbar-none">
+
+      <!-- ── Media carousel ── -->
+      <template x-if="modalItem && (modalItem.images?.length || modalItem.video)">
+        <div class="w-full relative overflow-hidden" style="height: 240px;">
+
+          <!-- Carousel track -->
+          <div class="flex h-full transition-transform duration-300 ease-out will-change-transform"
+               :style="'transform: translateX(-' + (carouselIndex * 100) + '%)'">
+
+            <!-- Image slides -->
+            <template x-for="(img, idx) in (modalItem?.images || [])" :key="'img-' + idx">
+              <div class="w-full h-full flex-shrink-0 relative" style="min-width:100%">
+                <img :src="img" :alt="modalItem?.name"
+                     class="w-full h-full object-cover">
+                <div class="absolute inset-0"
+                     style="background: linear-gradient(to top, rgba(0,0,0,0.35) 0%, transparent 55%);"></div>
+              </div>
+            </template>
+
+            <!-- Video slide (last) -->
+            <template x-if="modalItem?.video">
+              <div class="w-full h-full flex-shrink-0 bg-black flex items-center justify-center" style="min-width:100%">
+                <video :src="modalItem.video"
+                       class="w-full h-full object-contain"
+                       controls playsinline preload="metadata">
+                </video>
+              </div>
+            </template>
+
+          </div>
+
+          <!-- Dot indicators -->
+          <div class="absolute bottom-3 left-0 right-0 flex justify-center gap-1.5 z-10"
+               x-show="(modalItem?.images?.length || 0) + (modalItem?.video ? 1 : 0) > 1">
+            <template x-for="(_, idx) in [...(modalItem?.images || []), ...(modalItem?.video ? [1] : [])]" :key="'dot-' + idx">
+              <button @click="carouselIndex = idx"
+                      class="rounded-full transition-all duration-200"
+                      :class="carouselIndex === idx ? 'w-5 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'">
+              </button>
+            </template>
+          </div>
+
+          <!-- Prev arrow -->
+          <button x-show="carouselIndex > 0"
+                  @click.stop="carouselIndex--"
+                  class="absolute left-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white z-10 active:scale-90 transition-all">
+            <i class="ri-arrow-left-s-line text-lg"></i>
+          </button>
+
+          <!-- Next arrow -->
+          <button x-show="carouselIndex < (modalItem?.images?.length || 0) + (modalItem?.video ? 1 : 0) - 1"
+                  @click.stop="carouselIndex++"
+                  class="absolute right-2 top-1/2 -translate-y-1/2 w-8 h-8 rounded-full bg-black/30 backdrop-blur-sm flex items-center justify-center text-white z-10 active:scale-90 transition-all">
+            <i class="ri-arrow-right-s-line text-lg"></i>
+          </button>
+
         </div>
       </template>
-      <template x-if="!modalItem || !modalItem.image">
-        <div class="w-full h-36 bg-slate-50 flex items-center justify-center">
+
+      <!-- Placeholder when no media -->
+      <template x-if="!modalItem || (!modalItem.images?.length && !modalItem.video)">
+        <div class="w-full h-32 flex items-center justify-center"
+             style="background: linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%);">
           <i class="ri-restaurant-line text-5xl text-slate-200"></i>
         </div>
       </template>
 
-      <div class="px-5 pt-4 pb-6">
+      <!-- Content -->
+      <div class="px-5 pt-4 pb-4">
 
-        <!-- Badges -->
+        <!-- Dietary badges -->
         <div class="flex gap-1.5 flex-wrap mb-3"
              x-show="modalItem && (modalItem.is_vegetarian || modalItem.is_vegan || modalItem.is_spicy)">
           <span x-show="modalItem && modalItem.is_vegetarian"
-                class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-green-100 text-green-700">🥦 Végétarien</span>
+                class="text-[10px] font-black px-2.5 py-1 rounded-full bg-green-100 text-green-700 uppercase tracking-wide">🥦 Végétarien</span>
           <span x-show="modalItem && modalItem.is_vegan"
-                class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 text-emerald-700">🌱 Vegan</span>
+                class="text-[10px] font-black px-2.5 py-1 rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wide">🌱 Vegan</span>
           <span x-show="modalItem && modalItem.is_spicy"
-                class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">🌶 Épicé</span>
+                class="text-[10px] font-black px-2.5 py-1 rounded-full bg-red-100 text-red-700 uppercase tracking-wide">🌶 Épicé</span>
         </div>
 
-        <!-- Name + price -->
-        <h2 class="text-slate-900 font-black text-xl leading-tight" x-text="modalItem && modalItem.name"></h2>
+        <!-- Name -->
+        <h2 class="text-slate-900 font-black text-xl leading-snug" x-text="modalItem && modalItem.name"></h2>
+
+        <!-- Price row -->
         <div class="flex items-baseline gap-2 mt-1.5">
-          <span class="font-black text-lg" style="color: var(--color-primary);"
-                x-text="modalItem ? (modalItem.discount_price || modalItem.price) + ' FCFA' : ''"></span>
+          <span class="font-black text-xl leading-none" style="color: var(--color-primary);"
+                x-text="modalItem ? (Number(modalItem.discount_price || modalItem.price)).toLocaleString('fr-FR') + ' FCFA' : ''"></span>
           <span class="text-slate-300 text-sm line-through"
                 x-show="modalItem && modalItem.discount_price"
-                x-text="modalItem ? modalItem.price + ' FCFA' : ''"></span>
+                x-text="modalItem ? Number(modalItem.price).toLocaleString('fr-FR') + ' FCFA' : ''"></span>
+          <template x-if="modalItem && modalItem.discount_price">
+            <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full text-white"
+                  style="background-color: var(--color-primary);">Promo</span>
+          </template>
         </div>
 
         <!-- Prep time -->
-        <p class="text-slate-400 text-xs mt-2 flex items-center gap-1"
+        <p class="text-slate-400 text-xs mt-2 flex items-center gap-1.5"
            x-show="modalItem && modalItem.preparation_time">
           <i class="ri-time-line"></i>
-          Préparation : <span x-text="modalItem && modalItem.preparation_time"></span> min
+          Préparation · <span class="font-semibold text-slate-500" x-text="modalItem && modalItem.preparation_time"></span> min
         </p>
 
         <!-- Description -->
@@ -79,29 +146,52 @@
 
         <!-- Ingredients -->
         <div x-show="modalItem && modalItem.ingredients" class="mt-4">
-          <h4 class="text-xs font-bold text-slate-700 uppercase tracking-wide mb-1">Ingrédients</h4>
-          <p class="text-slate-400 text-xs" x-text="modalItem && modalItem.ingredients"></p>
+          <h4 class="text-[11px] font-black text-slate-600 uppercase tracking-widest mb-1.5">Ingrédients</h4>
+          <p class="text-slate-400 text-xs leading-relaxed" x-text="modalItem && modalItem.ingredients"></p>
         </div>
 
         <!-- Allergens -->
         <div x-show="modalItem && modalItem.allergens"
-             class="mt-3 bg-amber-50 border border-amber-100 rounded-xl px-3 py-2.5">
-          <p class="text-xs font-semibold text-amber-700">
-            <i class="ri-alert-line"></i> Allergènes :
-            <span class="font-normal" x-text="modalItem && modalItem.allergens"></span>
-          </p>
+             class="mt-4 rounded-2xl px-4 py-3 flex items-start gap-2.5"
+             style="background: #fff7ed; border: 1px solid #fed7aa;">
+          <i class="ri-alert-line text-orange-500 text-base mt-0.5 flex-shrink-0"></i>
+          <div>
+            <p class="text-xs font-black text-orange-800 uppercase tracking-wide mb-0.5">Allergènes</p>
+            <p class="text-xs text-orange-700" x-text="modalItem && modalItem.allergens"></p>
+          </div>
         </div>
 
       </div>
     </div>
 
-    <!-- Footer: add to cart -->
-    <div class="px-5 py-4 border-t border-slate-100 flex-shrink-0 bg-white">
-      <button @click="addToCart(modalItem.id, modalItem.name, modalItem.discount_price || modalItem.price, modalItem.image); closeModal();"
-              class="w-full py-3.5 rounded-2xl text-white font-bold text-base transition-all active:scale-[0.98]"
-              style="background-color: var(--color-primary);">
-        Ajouter au panier · <span x-text="modalItem ? (modalItem.discount_price || modalItem.price) + ' FCFA' : ''"></span>
-      </button>
+    <!-- Footer: quantity + add to cart -->
+    <div class="flex-shrink-0 px-5 py-4 border-t border-slate-100 bg-white">
+      <div class="flex items-center gap-4">
+
+        <!-- Quantity stepper -->
+        <div class="flex items-center gap-2 bg-slate-50 rounded-2xl p-1">
+          <button @click="decrementModalQty()"
+                  class="w-9 h-9 rounded-xl bg-white border border-slate-200 flex items-center justify-center text-slate-600 active:bg-slate-100 transition-colors text-lg font-light shadow-soft">
+            <i class="ri-subtract-line text-sm"></i>
+          </button>
+          <span class="font-black text-slate-900 text-base min-w-[2rem] text-center"
+                x-text="modalQuantity"></span>
+          <button @click="incrementModalQty()"
+                  class="w-9 h-9 rounded-xl flex items-center justify-center text-white active:opacity-80 transition-all shadow-soft"
+                  style="background-color: var(--color-primary);">
+            <i class="ri-add-line text-sm"></i>
+          </button>
+        </div>
+
+        <!-- Add to cart -->
+        <button @click="addToCart({...modalItem, quantity: modalQuantity}); closeModal();"
+                class="flex-1 py-3 rounded-2xl text-white font-bold text-sm transition-all active:scale-[.97]"
+                style="background-color: var(--color-primary);">
+          Ajouter ·
+          <span x-text="modalItem ? (Number(modalItem.discount_price || modalItem.price) * modalQuantity).toLocaleString('fr-FR') + ' FCFA' : ''"></span>
+        </button>
+
+      </div>
     </div>
 
   </div>
