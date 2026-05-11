@@ -1,5 +1,7 @@
+{% load i18n %}
 {% url 'dashboard'           as url_dashboard %}
 {% url 'orders_list'         as url_orders    %}
+{% if user_role == 'owner' or user_role == 'coadmin' %}{% url 'analytics' as url_analytics %}{% endif %}
 {% if user_role != 'serveur' %}{% url 'menus_list'          as url_menus     %}{% endif %}
 {% if user_role != 'cuisinier' %}{% url 'tables_list'        as url_tables    %}{% endif %}
 {% if user_role != 'cuisinier' %}{% url 'qr_settings'         as url_qr        %}{% endif %}
@@ -19,9 +21,22 @@
   <i class="ri-dashboard-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Tableau de bord
+    {% trans "Dashboard" %}
   </span>
 </a>
+
+<!-- Analytiques — owner / coadmin uniquement -->
+{% if user_role == 'owner' or user_role == 'coadmin' %}
+<a href="{{ url_analytics }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_analytics %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-bar-chart-2-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    {% trans "Analytiques" %}
+  </span>
+</a>
+{% endif %}
 
 <!-- Commandes — tous les rôles -->
 <a href="{{ url_orders }}"
@@ -30,7 +45,7 @@
   <i class="ri-shopping-bag-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Commandes
+    {% trans "Orders" %}
   </span>
 </a>
 
@@ -42,7 +57,7 @@
   <i class="ri-restaurant-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Menu
+    {% trans "Menu" %}
   </span>
 </a>
 {% endif %}
@@ -55,7 +70,7 @@
   <i class="ri-table-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Tables
+    {% trans "Tables" %}
   </span>
 </a>
 <a href="{{ url_qr }}"
@@ -64,7 +79,7 @@
   <i class="ri-qr-code-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Personnaliser QR
+    {% trans "Customize QR" %}
   </span>
 </a>
 {% endif %}
@@ -78,7 +93,7 @@
   <i class="ri-palette-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Personnalisation
+    {% trans "Customization" %}
   </span>
 </a>
 
@@ -88,7 +103,7 @@
   <i class="ri-team-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Équipe
+    {% trans "Team" %}
   </span>
 </a>
 
@@ -98,7 +113,7 @@
   <i class="ri-settings-3-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Paramètres
+    {% trans "Settings" %}
   </span>
 </a>
 
@@ -108,7 +123,7 @@
   <i class="ri-vip-crown-line text-lg flex-shrink-0"></i>
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
-    Abonnement
+    {% trans "Subscription" %}
   </span>
 </a>
 
