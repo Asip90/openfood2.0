@@ -25,7 +25,7 @@ def client_menu(request, table_token):
             queryset=MenuItem.objects.filter(
                 restaurant=restaurant,
                 is_available=True
-            )
+            ).prefetch_related('media')
         )
     ).order_by("order")
 
