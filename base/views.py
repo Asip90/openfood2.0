@@ -10,7 +10,7 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from base.models import Category, Table
 from .forms import RestaurantCreateForm, OrderForm, OrderItemFormSet, TableForm, OrderItemForm, QRSettingsForm
-from .models import SubscriptionPlan, PromoCode, PromoCodeUse, Restaurant, MenuItem, Order, OrderItem, RestaurantCustomization, QRSettings
+from .models import SubscriptionPlan, PromoCode, PromoCodeUse, Restaurant, MenuItem, MenuItemMedia, Order, OrderItem, RestaurantCustomization, QRSettings
 from django.forms import inlineformset_factory
 from django.utils.text import slugify
 from .utils import generate_unique_subdomain
@@ -745,15 +745,28 @@ def menu_create(request):
                 messages.error(request, f"Votre plan {plan.name} est limité à {plan.max_menu_items} plats. Passez au plan supérieur pour en ajouter davantage.")
                 return redirect("menus_list")
 
-        MenuItem.objects.create(
+        menu_item = MenuItem.objects.create(
             restaurant=restaurant,
             category_id=request.POST.get("category"),
             name=request.POST.get("name"),
             price=request.POST.get("price"),
             description=request.POST.get("description"),
             is_available=True,
-            image=request.FILES.get("image"),
         )
+
+        for i in range(1, 4):
+            f = request.FILES.get(f"image_{i}")
+            if f:
+                MenuItemMedia.objects.create(
+                    menu_item=menu_item, file=f, media_type='image', order=i
+                )
+
+        video_f = request.FILES.get("video")
+        if video_f:
+            MenuItemMedia.objects.create(
+                menu_item=menu_item, file=video_f, media_type='video', order=0
+            )
+
         return redirect("menus_list")
 
     return render(request, "admin_user/menus/create_menus.html", {
@@ -776,18 +789,37 @@ def menu_update(request, pk):
         if category_id:
             menu_item.category_id = category_id
 
-        if request.FILES.get("image"):
-            menu_item.image = request.FILES.get("image")
-
         menu_item.save()
+
+        any_new_image = any(request.FILES.get(f"image_{i}") for i in range(1, 4))
+        if any_new_image:
+            menu_item.media.filter(media_type='image').delete()
+            for i in range(1, 4):
+                f = request.FILES.get(f"image_{i}")
+                if f:
+                    MenuItemMedia.objects.create(
+                        menu_item=menu_item, file=f, media_type='image', order=i
+                    )
+
+        video_f = request.FILES.get("video")
+        if video_f:
+            menu_item.media.filter(media_type='video').delete()
+            MenuItemMedia.objects.create(
+                menu_item=menu_item, file=video_f, media_type='video', order=0
+            )
+
         return redirect("menus_list")
 
     categories = Category.objects.filter(restaurant=restaurant)
+    existing_images = list(menu_item.media.filter(media_type='image').order_by('order'))
+    existing_video = menu_item.media.filter(media_type='video').first()
 
     return render(request, "admin_user/menus/update_menu.html", {
         "restaurant": restaurant,
         "menu_item": menu_item,
-        "categories": categories
+        "categories": categories,
+        "existing_images": existing_images,
+        "existing_video": existing_video,
     })
 
 
