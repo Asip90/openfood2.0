@@ -17,3 +17,5 @@ qrcode==8.2
 requests==2.33.1
 sqlparse==0.5.5
 urllib3==2.6.3
+cloudinary==1.42.1
+django-cloudinary-storage==0.3.0
