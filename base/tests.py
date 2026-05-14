@@ -476,3 +476,30 @@ class GetEffectivePlanTest(TestCase):
         self.restaurant.save()
         plan = get_effective_plan(self.restaurant)
         self.assertIsNone(plan)
+
+
+class AnalyticsExpiryTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.owner = make_user('anaowner@test.com', 'Ana', 'Owner')
+        self.restaurant = make_restaurant(self.owner)
+        self.gratuit = make_plan('gratuit', analytics=False, price=0)
+        self.pro = make_plan('pro', analytics=True, price=9900)
+        self.client.force_login(self.owner)
+
+    def test_active_pro_can_access_analytics(self):
+        self.restaurant.subscription_plan = self.pro
+        self.restaurant.subscription_end = timezone.now() + timedelta(days=10)
+        self.restaurant.save()
+        resp = self.client.get(reverse('analytics'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertFalse(resp.context.get('access_denied', True))
+
+    def test_expired_pro_is_denied_analytics(self):
+        self.restaurant.subscription_plan = self.pro
+        self.restaurant.subscription_end = timezone.now() - timedelta(seconds=1)
+        self.restaurant.save()
+        resp = self.client.get(reverse('analytics'))
+        self.assertEqual(resp.status_code, 200)
+        self.assertTrue(resp.context['access_denied'])

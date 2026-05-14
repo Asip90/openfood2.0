@@ -17,6 +17,7 @@ from django.utils.text import slugify
 from django.conf import settings
 from .utils import generate_unique_subdomain
 from django.views.decorators.http import require_GET
+from base.services.subscription import get_effective_plan
 
 FAQS = [
     {
@@ -276,7 +277,7 @@ def dashboard(request):
 @owner_or_coadmin_required
 def analytics_view(request):
     restaurant = request.restaurant
-    plan = restaurant.subscription_plan
+    plan = get_effective_plan(restaurant)
 
     if not plan or not plan.analytics:
         return render(request, "admin_user/analytics/index.html", {
@@ -420,7 +421,7 @@ def analytics_view(request):
 def export_orders_csv(request):
     import csv
     restaurant = request.restaurant
-    plan = restaurant.subscription_plan
+    plan = get_effective_plan(restaurant)
 
     if not plan or not plan.advanced_analytics:
         from django.http import HttpResponseForbidden
@@ -1219,4 +1220,5 @@ def settings_hub(request):
     restaurant = request.restaurant
     return render(request, "admin_user/settings_hub.html", {
         "restaurant": restaurant,
+        "plan": restaurant.subscription_plan,
     })
