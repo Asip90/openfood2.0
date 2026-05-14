@@ -97,7 +97,14 @@ def create_restaurant(request):
         if form.is_valid():
             restaurant = form.save(commit=False)
             restaurant.owner = request.user
-            restaurant.slug = slugify(restaurant.name)
+            base_slug = slugify(restaurant.name)
+            slug = base_slug
+            counter = 1
+            from base.models import Restaurant as _R
+            while _R.objects.filter(slug=slug).exists():
+                slug = f"{base_slug}-{counter}"
+                counter += 1
+            restaurant.slug = slug
             restaurant.subdomain = generate_unique_subdomain(restaurant.name)
 
             plan = SubscriptionPlan.objects.filter(plan_type='gratuit', is_active=True).first()
