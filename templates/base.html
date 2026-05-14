@@ -1,3 +1,4 @@
+{% load static %}
 <!DOCTYPE html>
 <html lang="fr" class="scroll-smooth">
 <head>
@@ -13,7 +14,7 @@
   {% endblock %}
   {% block schema_org %}{% endblock %}
 
-  <script src="https://cdn.tailwindcss.com"></script>
+  <script src="{% static 'vendor/tailwind.js' %}"></script>
   <script>
     tailwind.config = {
       theme: {
@@ -55,8 +56,8 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;1,9..40,400&family=Space+Grotesk:wght@700;800&display=swap" rel="stylesheet">
-  <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
-  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.0/dist/cdn.min.js"></script>
+  <link href="{% static 'vendor/remixicon.css' %}" rel="stylesheet">
+  <script defer src="{% static 'vendor/alpine.min.js' %}"></script>
 
   <style>
     /* Google Translate — hide toolbar */
