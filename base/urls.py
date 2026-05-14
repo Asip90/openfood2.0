@@ -71,4 +71,5 @@ urlpatterns = [
     path('abonnement/<str:plan_type>/payer/', subscription_views.subscribe_initiate, name='subscribe_initiate'),
     path('abonnement/callback/<str:plan_type>/', subscription_views.subscribe_callback, name='subscribe_callback'),
     path('abonnement/statut/', subscription_views.subscription_status, name='subscription_status'),
+    path('abonnement/webhook/', subscription_views.fedapay_webhook, name='fedapay_webhook'),
 ]

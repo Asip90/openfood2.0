@@ -110,6 +110,7 @@ AUTH_USER_MODEL = 'accounts.User'
 FEDAPAY_SECRET_KEY = os.environ['FEDAPAY_SECRET_KEY']
 FEDAPAY_PUBLIC_KEY = os.environ['FEDAPAY_PUBLIC_KEY']
 FEDAPAY_ENV = os.getenv('FEDAPAY_ENV', 'sandbox')
+FEDAPAY_WEBHOOK_SECRET = os.getenv('FEDAPAY_WEBHOOK_SECRET', '')
 
 LOGIN_URL = "/connexion"
 BACKEND_DOMAIN = os.getenv('BACKEND_DOMAIN', 'http://localhost:8000')

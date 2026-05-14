@@ -1,3 +1,6 @@
+import hashlib
+import hmac
+import json
 import logging
 from datetime import timedelta
 
@@ -5,8 +8,10 @@ import requests as http_requests
 from django.conf import settings
 from django.contrib import messages
 from django.contrib.auth.decorators import login_required
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import redirect, render
 from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 
 from base.decorators import get_user_restaurant
 from base.models import PromoCode, PromoCodeUse, SubscriptionPlan
@@ -101,6 +106,10 @@ def subscribe_initiate(request, plan_type):
             'email': request.user.email,
             'firstname': request.user.first_name or 'Client',
             'lastname': request.user.last_name or 'OpenFood',
+        },
+        'metadata': {
+            'restaurant_id': restaurant.pk,
+            'plan_type': plan_type,
         },
     }
     try:
@@ -199,3 +208,52 @@ def subscription_status(request):
         'days_left': days_left,
         'all_plans': SubscriptionPlan.objects.filter(is_active=True).order_by('price'),
     })
+
+
+@csrf_exempt
+def fedapay_webhook(request):
+    if request.method != 'POST':
+        return HttpResponse(status=405)
+
+    secret = getattr(settings, 'FEDAPAY_WEBHOOK_SECRET', '')
+    sig = request.headers.get('X-Fedapay-Signature', '')
+
+    if secret:
+        expected = hmac.new(secret.encode(), request.body, hashlib.sha256).hexdigest()
+        if not hmac.compare_digest(expected, sig):
+            return HttpResponse('Invalid signature', status=400)
+
+    try:
+        payload = json.loads(request.body)
+    except json.JSONDecodeError:
+        return HttpResponse('Bad JSON', status=400)
+
+    event = payload.get('name', '')
+    obj = payload.get('data', {}).get('object', {})
+
+    if event == 'transaction.approved' and obj.get('status') == 'approved':
+        meta = obj.get('metadata') or {}
+        restaurant_id = meta.get('restaurant_id')
+        plan_type = meta.get('plan_type')
+
+        if restaurant_id and plan_type:
+            from base.models import Restaurant
+            try:
+                restaurant = Restaurant.objects.get(pk=restaurant_id)
+                plan = SubscriptionPlan.objects.filter(plan_type=plan_type, is_active=True).first()
+                if plan:
+                    now = timezone.now()
+                    if (restaurant.subscription_plan == plan
+                            and restaurant.subscription_end
+                            and restaurant.subscription_end > now):
+                        new_end = restaurant.subscription_end + timedelta(days=plan.duration_days)
+                    else:
+                        new_end = now + timedelta(days=plan.duration_days)
+                    restaurant.subscription_plan = plan
+                    restaurant.subscription_start = now
+                    restaurant.subscription_end = new_end
+                    restaurant.save(update_fields=['subscription_plan', 'subscription_start', 'subscription_end'])
+            except Restaurant.DoesNotExist:
+                logger.warning("Webhook: restaurant %s not found", restaurant_id)
+
+    return JsonResponse({'received': True})

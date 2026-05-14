@@ -544,7 +544,88 @@ class PlanLimitsExpiryTest(TestCase):
         self.assertEqual(MenuItem.objects.filter(restaurant=self.restaurant).count(), 5)
 
 
+import hashlib
+import hmac as _hmac
+import json as _json
+
 import base.subscription_views as sub_views
+
+
+class FedapayWebhookTest(TestCase):
+
+    def setUp(self):
+        from django.contrib.auth import get_user_model
+        User = get_user_model()
+        self.owner = User.objects.create_user(
+            email='webhook@test.com', password='pw', first_name='W', last_name='H'
+        )
+        from base.models import Restaurant
+        self.restaurant = Restaurant.objects.create(
+            name='WebhookResto', owner=self.owner, slug='webhook-resto',
+        )
+        self.gratuit = make_plan('gratuit_wh', analytics=False, max_items=5, max_tables=3, price=0)
+        self.pro = make_plan('pro_wh', analytics=True, max_items=0, max_tables=0, price=9900)
+
+    def _post_webhook(self, payload, secret='testsecret'):
+        body = _json.dumps(payload).encode()
+        sig = _hmac.new(secret.encode(), body, hashlib.sha256).hexdigest()
+        return self.client.post(
+            reverse('fedapay_webhook'),
+            data=body,
+            content_type='application/json',
+            HTTP_X_FEDAPAY_SIGNATURE=sig,
+        )
+
+    @override_settings(FEDAPAY_WEBHOOK_SECRET='testsecret')
+    def test_valid_approved_webhook_activates_plan(self):
+        payload = {
+            'name': 'transaction.approved',
+            'data': {
+                'object': {
+                    'id': 999,
+                    'status': 'approved',
+                    'metadata': {
+                        'restaurant_id': self.restaurant.pk,
+                        'plan_type': 'pro_wh',
+                    },
+                }
+            },
+        }
+        resp = self._post_webhook(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.restaurant.refresh_from_db()
+        self.assertEqual(self.restaurant.subscription_plan, self.pro)
+
+    @override_settings(FEDAPAY_WEBHOOK_SECRET='testsecret')
+    def test_invalid_signature_returns_400(self):
+        payload = {'name': 'transaction.approved', 'data': {}}
+        body = _json.dumps(payload).encode()
+        resp = self.client.post(
+            reverse('fedapay_webhook'),
+            data=body,
+            content_type='application/json',
+            HTTP_X_FEDAPAY_SIGNATURE='badsignature',
+        )
+        self.assertEqual(resp.status_code, 400)
+
+    @override_settings(FEDAPAY_WEBHOOK_SECRET='testsecret')
+    def test_non_approved_event_ignored(self):
+        payload = {
+            'name': 'transaction.declined',
+            'data': {
+                'object': {
+                    'status': 'declined',
+                    'metadata': {
+                        'restaurant_id': self.restaurant.pk,
+                        'plan_type': 'pro_wh',
+                    },
+                }
+            },
+        }
+        resp = self._post_webhook(payload)
+        self.assertEqual(resp.status_code, 200)
+        self.restaurant.refresh_from_db()
+        self.assertNotEqual(self.restaurant.subscription_plan, self.pro)
 
 
 class FedapayUrlTest(TestCase):
