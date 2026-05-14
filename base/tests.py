@@ -420,3 +420,59 @@ class StaffAddedEmailTest(TestCase):
         assert 'emp@example.com' in call_kwargs[1]['recipient_list']
         assert 'Chez Dupont' in call_kwargs[1]['message']
         assert 'https://example.com/connexion/' in call_kwargs[1]['message']
+
+
+# ─── Subscription enforcement tests ──────────────────────────────────────────
+
+from datetime import timedelta
+from base.models import SubscriptionPlan
+from base.services.subscription import get_effective_plan
+
+
+def make_plan(plan_type='pro', analytics=True, max_items=0, max_tables=0, max_staff=0, price=9900):
+    return SubscriptionPlan.objects.create(
+        name=plan_type.capitalize(),
+        plan_type=plan_type,
+        price=price,
+        analytics=analytics,
+        advanced_analytics=(plan_type == 'max'),
+        max_menu_items=max_items,
+        max_tables=max_tables,
+        max_staff=max_staff,
+    )
+
+
+class GetEffectivePlanTest(TestCase):
+
+    def setUp(self):
+        self.owner = make_user('subowner@test.com', 'Sub', 'Owner')
+        self.restaurant = make_restaurant(self.owner)
+        self.gratuit = make_plan('gratuit', analytics=False, price=0)
+        self.pro = make_plan('pro', analytics=True, price=9900)
+
+    def test_active_plan_is_returned(self):
+        self.restaurant.subscription_plan = self.pro
+        self.restaurant.subscription_end = timezone.now() + timedelta(days=10)
+        self.restaurant.save()
+        plan = get_effective_plan(self.restaurant)
+        self.assertEqual(plan.plan_type, 'pro')
+
+    def test_expired_plan_returns_gratuit(self):
+        self.restaurant.subscription_plan = self.pro
+        self.restaurant.subscription_end = timezone.now() - timedelta(seconds=1)
+        self.restaurant.save()
+        plan = get_effective_plan(self.restaurant)
+        self.assertEqual(plan.plan_type, 'gratuit')
+
+    def test_no_subscription_end_is_perpetual(self):
+        self.restaurant.subscription_plan = self.pro
+        self.restaurant.subscription_end = None
+        self.restaurant.save()
+        plan = get_effective_plan(self.restaurant)
+        self.assertEqual(plan.plan_type, 'pro')
+
+    def test_no_plan_returns_none(self):
+        self.restaurant.subscription_plan = None
+        self.restaurant.save()
+        plan = get_effective_plan(self.restaurant)
+        self.assertIsNone(plan)
