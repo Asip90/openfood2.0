@@ -11,54 +11,141 @@
     --orange-glow: rgba(249,115,22,0.18);
   }
 
+  /* ── Hero ── */
   .pricing-hero {
+    position: relative;
     text-align: center;
-    padding: 5rem 1.5rem 3rem;
+    padding: 6rem 1.5rem 4rem;
+    overflow: hidden;
   }
+
+  /* Mesh background */
+  .pricing-hero::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+      radial-gradient(ellipse 80% 60% at 50% -10%, rgba(249,115,22,0.09) 0%, transparent 70%),
+      radial-gradient(ellipse 50% 40% at 90% 60%, rgba(249,115,22,0.05) 0%, transparent 60%),
+      radial-gradient(ellipse 40% 30% at 10% 80%, rgba(249,115,22,0.04) 0%, transparent 60%);
+    pointer-events: none;
+  }
+  /* Grid overlay */
+  .pricing-hero::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background-image: linear-gradient(rgba(241,245,249,0.5) 1px, transparent 1px),
+                      linear-gradient(90deg, rgba(241,245,249,0.5) 1px, transparent 1px);
+    background-size: 40px 40px;
+    mask-image: radial-gradient(ellipse 70% 50% at 50% 0%, black, transparent);
+    pointer-events: none;
+  }
+
+  .hero-inner { position: relative; z-index: 1; }
+
+  /* Eyebrow badge */
   .pricing-badge {
     display: inline-flex;
     align-items: center;
-    gap: 0.4rem;
-    background: rgba(249,115,22,0.1);
+    gap: 0.45rem;
+    background: rgba(249,115,22,0.08);
     color: var(--orange);
-    border: 1px solid rgba(249,115,22,0.25);
-    padding: 0.3rem 0.85rem;
+    border: 1px solid rgba(249,115,22,0.22);
+    padding: 0.35rem 1rem;
     border-radius: 999px;
-    font-size: 0.78rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    margin-bottom: 1.25rem;
+    font-size: 0.75rem;
+    font-weight: 700;
+    letter-spacing: 0.07em;
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    animation: fadeUp 0.5s ease both;
   }
+
+  /* Title */
   .pricing-title {
     font-family: 'Syne', sans-serif;
     font-weight: 900;
-    font-size: clamp(2rem, 5vw, 3.25rem);
+    font-size: clamp(2.1rem, 5.5vw, 3.75rem);
     color: #0f172a;
     letter-spacing: -0.04em;
-    line-height: 1.1;
-    margin-bottom: 1rem;
+    line-height: 1.05;
+    margin-bottom: 1.1rem;
+    animation: fadeUp 0.5s 0.07s ease both;
   }
-  .pricing-title span { color: var(--orange); }
+  .pricing-title .accent {
+    color: var(--orange);
+    position: relative;
+    display: inline-block;
+  }
+  .pricing-title .accent::after {
+    content: '';
+    position: absolute;
+    bottom: 2px;
+    left: 0;
+    width: 100%;
+    height: 3px;
+    background: linear-gradient(90deg, var(--orange), #fbbf24);
+    border-radius: 2px;
+    opacity: 0.6;
+  }
+
   .pricing-sub {
     color: #64748b;
     font-size: 1.05rem;
-    max-width: 42ch;
-    margin: 0 auto 0.5rem;
-    line-height: 1.65;
+    max-width: 44ch;
+    margin: 0 auto 2rem;
+    line-height: 1.7;
+    animation: fadeUp 0.5s 0.14s ease both;
   }
 
-  /* Currency toggle */
-  .currency-note {
+  /* Trust row */
+  .hero-trust {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.75rem 1.5rem;
+    margin-bottom: 2rem;
+    animation: fadeUp 0.5s 0.21s ease both;
+  }
+  .trust-item {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.8rem;
+    color: #475569;
+    font-weight: 500;
+  }
+  .trust-dot { width: 4px; height: 4px; border-radius: 50%; background: #cbd5e1; }
+
+  /* Payment pills */
+  .payment-pills {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    animation: fadeUp 0.5s 0.28s ease both;
+  }
+  .payment-pill {
     display: inline-flex;
     align-items: center;
-    gap: 0.5rem;
-    background: #f8fafc;
+    gap: 0.35rem;
+    background: white;
     border: 1px solid #e2e8f0;
-    padding: 0.4rem 1rem;
     border-radius: 999px;
-    font-size: 0.8rem;
-    color: #64748b;
-    margin-top: 1rem;
+    padding: 0.35rem 0.85rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #374151;
+    box-shadow: 0 1px 4px rgba(0,0,0,0.05);
+  }
+  .pill-dot { width: 7px; height: 7px; border-radius: 50%; }
+
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(16px); }
+    to   { opacity: 1; transform: translateY(0); }
   }
 
   /* Cards */
@@ -254,12 +341,56 @@
 {% include 'home/header.html' %}
 
 <section class="pricing-hero">
-  <div class="pricing-badge"><i class="ri-price-tag-3-line"></i> Tarifs simples et transparents</div>
-  <h1 class="pricing-title">Un plan pour<br>chaque <span>étape</span> de votre croissance</h1>
-  <p class="pricing-sub">Commencez gratuitement. Évoluez quand vous en avez besoin. Sans engagement, sans surprise.</p>
-  <div class="currency-note">
-    <i class="ri-money-franc-circle-line"></i>
-    Tous les prix sont en <strong>Francs CFA (XOF)</strong> — paiement mobile money (MTN, Orange, Wave)
+  <div class="hero-inner">
+
+    <div class="pricing-badge">
+      <i class="ri-price-tag-3-line"></i> Tarifs simples &amp; transparents
+    </div>
+
+    <h1 class="pricing-title">
+      Un plan pour chaque<br><span class="accent">étape</span> de votre croissance
+    </h1>
+
+    <p class="pricing-sub">
+      Commencez gratuitement. Évoluez quand vous en avez besoin.<br>
+      <strong style="color:#0f172a;">Sans engagement, sans surprise.</strong>
+    </p>
+
+    <!-- Trust signals -->
+    <div class="hero-trust">
+      <div class="trust-item">
+        <i class="ri-shield-check-fill" style="color:#16a34a;font-size:0.95rem;"></i>
+        Paiement 100% sécurisé
+      </div>
+      <div class="trust-dot"></div>
+      <div class="trust-item">
+        <i class="ri-refresh-line" style="color:var(--orange);font-size:0.95rem;"></i>
+        Annulable à tout moment
+      </div>
+      <div class="trust-dot"></div>
+      <div class="trust-item">
+        <i class="ri-customer-service-2-line" style="color:#2563eb;font-size:0.95rem;"></i>
+        Support WhatsApp inclus
+      </div>
+    </div>
+
+    <!-- Payment methods -->
+    <div class="payment-pills">
+      <span style="font-size:0.72rem;color:#94a3b8;font-weight:600;text-transform:uppercase;letter-spacing:0.06em;">Paiement via</span>
+      <span class="payment-pill">
+        <span class="pill-dot" style="background:#f59e0b;"></span> MTN MoMo
+      </span>
+      <span class="payment-pill">
+        <span class="pill-dot" style="background:#f97316;"></span> Orange Money
+      </span>
+      <span class="payment-pill">
+        <span class="pill-dot" style="background:#06b6d4;"></span> Wave
+      </span>
+      <span class="payment-pill" style="color:#64748b;">
+        <i class="ri-money-franc-circle-line" style="font-size:0.85rem;"></i> Francs CFA (XOF)
+      </span>
+    </div>
+
   </div>
 </section>
 
