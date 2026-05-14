@@ -7,6 +7,7 @@ from django.contrib.auth import get_user_model
 from base.models import StaffMember, StaffInvitation
 from base.decorators import owner_or_coadmin_required, get_user_restaurant
 from base.emails import send_staff_invitation_email, send_staff_added_notification_email
+from base.services.subscription import get_effective_plan
 
 User = get_user_model()
 
@@ -51,7 +52,7 @@ def staff_invite(request):
         return redirect('staff_list')
 
     # Check staff limit for current plan
-    plan = restaurant.subscription_plan
+    plan = get_effective_plan(restaurant)
     if plan and plan.max_staff > 0:
         current_staff = StaffMember.objects.filter(restaurant=restaurant).count()
         if current_staff >= plan.max_staff:

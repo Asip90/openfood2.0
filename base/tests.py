@@ -503,3 +503,42 @@ class AnalyticsExpiryTest(TestCase):
         resp = self.client.get(reverse('analytics'))
         self.assertEqual(resp.status_code, 200)
         self.assertTrue(resp.context['access_denied'])
+
+
+class PlanLimitsExpiryTest(TestCase):
+
+    def setUp(self):
+        self.client = Client()
+        self.owner = make_user('limowner@test.com', 'Lim', 'Owner')
+        self.restaurant = make_restaurant(self.owner)
+        self.gratuit = make_plan('gratuit', analytics=False, max_items=5, max_tables=3, price=0)
+        self.pro = make_plan('pro', analytics=True, max_items=0, max_tables=0, price=9900)
+        self.restaurant.subscription_plan = self.pro
+        self.restaurant.subscription_end = timezone.now() - timedelta(seconds=1)
+        self.restaurant.save()
+        self.client.force_login(self.owner)
+        from base.models import Category
+        self.category = Category.objects.create(
+            restaurant=self.restaurant, name='Test Cat', order=1
+        )
+
+    def _fill_menu_items(self, count):
+        from base.models import MenuItem
+        for i in range(count):
+            MenuItem.objects.create(
+                restaurant=self.restaurant,
+                category=self.category,
+                name=f'Plat {i}',
+                price=1000,
+            )
+
+    def test_expired_pro_enforces_gratuit_menu_limit(self):
+        self._fill_menu_items(5)
+        self.client.post(reverse('menu_create'), {
+            'name': 'Plat de trop',
+            'price': '1500',
+            'category': self.category.pk,
+            'description': '',
+        })
+        from base.models import MenuItem
+        self.assertEqual(MenuItem.objects.filter(restaurant=self.restaurant).count(), 5)

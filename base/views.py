@@ -783,7 +783,7 @@ def menu_create(request):
     categories = Category.objects.filter(restaurant=restaurant)
 
     if request.method == "POST":
-        plan = restaurant.subscription_plan
+        plan = get_effective_plan(restaurant)
         if plan and plan.max_menu_items > 0:
             current_count = MenuItem.objects.filter(restaurant=restaurant).count()
             if current_count >= plan.max_menu_items:
@@ -1080,7 +1080,7 @@ def table_create(request):
     restaurant = request.restaurant
 
     if request.method == 'POST':
-        plan = restaurant.subscription_plan
+        plan = get_effective_plan(restaurant)
         if plan and plan.max_tables > 0:
             current_count = Table.objects.filter(restaurant=restaurant).count()
             if current_count >= plan.max_tables:
