@@ -225,7 +225,7 @@
     </header>
 
     <!-- Page content -->
-    <main class="flex-1 p-4 lg:p-6 pb-safe lg:pb-6">
+    <main class="flex-1 p-4 pb-24 lg:p-6 lg:pb-6">
 
       {% if messages %}
         {% for message in messages %}
@@ -359,5 +359,136 @@
   }
 </script>
 <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+
+<!-- ══ WAITER CALL POLLING ═══════════════════════════ -->
+{% if request.user.is_authenticated %}
+<script>
+(function() {
+  var _seenCallIds = new Set();
+  var _audioUnlocked = false;
+
+  // Unlock audio on first user interaction
+  document.addEventListener('click', function() { _audioUnlocked = true; }, { once: true });
+
+  function playDing() {
+    if (!_audioUnlocked) return;
+    try {
+      var ctx = new (window.AudioContext || window.webkitAudioContext)();
+      var osc = ctx.createOscillator();
+      var gain = ctx.createGain();
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.frequency.value = 880;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.4, ctx.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.6);
+      osc.start(ctx.currentTime);
+      osc.stop(ctx.currentTime + 0.6);
+      var osc2 = ctx.createOscillator();
+      var gain2 = ctx.createGain();
+      osc2.connect(gain2);
+      gain2.connect(ctx.destination);
+      osc2.frequency.value = 660;
+      osc2.type = 'sine';
+      gain2.gain.setValueAtTime(0.3, ctx.currentTime + 0.2);
+      gain2.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.8);
+      osc2.start(ctx.currentTime + 0.2);
+      osc2.stop(ctx.currentTime + 0.8);
+    } catch(e) {}
+  }
+
+  function updateBadge(pendingCount) {
+    var badge = document.getElementById('waiterCallBadge');
+    if (!badge) return;
+    if (pendingCount > 0) {
+      badge.textContent = pendingCount;
+      badge.style.display = 'flex';
+    } else {
+      badge.style.display = 'none';
+    }
+  }
+
+  function renderCallsPanel(calls) {
+    var panel = document.getElementById('waiterCallsPanel');
+    if (!panel) return;
+    if (calls.length === 0) {
+      panel.innerHTML = '<p class="text-slate-400 text-xs text-center py-4">Aucun appel en cours</p>';
+      return;
+    }
+    panel.innerHTML = calls.map(function(c) {
+      var ago = _timeAgo(c.created_at);
+      if (c.status === 'claimed') {
+        return '<div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-0">' +
+          '<div><p class="text-sm font-semibold text-slate-700">Table ' + c.table_number + '</p>' +
+          '<p class="text-xs text-slate-400">' + ago + '</p></div>' +
+          '<span class="text-xs text-slate-400 italic">Pris par ' + (c.claimed_by || 'quelqu\'un') + '</span>' +
+          '</div>';
+      }
+      return '<div class="flex items-center justify-between px-4 py-3 border-b border-gray-100 last:border-0">' +
+        '<div><p class="text-sm font-semibold text-slate-800">Table ' + c.table_number + '</p>' +
+        '<p class="text-xs text-slate-400">' + ago + '</p></div>' +
+        '<button onclick="claimWaiterCall(' + c.id + ', this)" ' +
+        'class="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all active:scale-95" ' +
+        'style="background-color: var(--color-primary, #6366f1);">Prendre en charge</button>' +
+        '</div>';
+    }).join('');
+  }
+
+  function _timeAgo(isoString) {
+    var diff = Math.floor((Date.now() - new Date(isoString).getTime()) / 1000);
+    if (diff < 60) return 'il y a ' + diff + 's';
+    return 'il y a ' + Math.floor(diff / 60) + ' min';
+  }
+
+  var _firstPoll = true;
+
+  async function pollWaiterCalls() {
+    try {
+      var r = await fetch('{% url "list_waiter_calls" %}', { credentials: 'same-origin' });
+      if (!r.ok) return;
+      var data = await r.json();
+      var calls = data.calls || [];
+
+      var hasNew = false;
+      calls.forEach(function(c) {
+        if (c.status === 'pending' && !_seenCallIds.has(c.id)) {
+          _seenCallIds.add(c.id);
+          if (!_firstPoll) hasNew = true;
+        }
+      });
+      _firstPoll = false;
+
+      if (hasNew) playDing();
+
+      var pendingCount = calls.filter(function(c) { return c.status === 'pending'; }).length;
+      updateBadge(pendingCount);
+      renderCallsPanel(calls);
+    } catch(e) {}
+  }
+
+  pollWaiterCalls();
+  setInterval(pollWaiterCalls, 6000);
+
+  window.claimWaiterCall = async function(callId, btn) {
+    btn.disabled = true;
+    btn.textContent = '...';
+    try {
+      var r = await fetch('/api/waiter-calls/' + callId + '/claim/', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: { 'X-CSRFToken': _getCsrf() },
+      });
+      if (r.ok) { pollWaiterCalls(); }
+      else { btn.disabled = false; btn.textContent = 'Prendre en charge'; }
+    } catch(e) { btn.disabled = false; btn.textContent = 'Prendre en charge'; }
+  };
+
+  function _getCsrf() {
+    var m = document.cookie.match(/csrftoken=([^;]+)/);
+    return m ? m[1] : '';
+  }
+})();
+</script>
+{% endif %}
 </body>
 </html>
