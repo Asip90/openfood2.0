@@ -87,6 +87,28 @@
   <!-- ══ ITEMS ══════════════════════════════════════════ -->
   <div class="max-w-2xl mx-auto px-4 pt-5 pb-36 space-y-8">
 
+    {% if not has_active_items %}
+    <div class="flex flex-col items-center justify-center py-20 px-6 text-center">
+      <!-- Assiette vide SVG -->
+      <svg class="w-24 h-24 mb-6 text-slate-200" viewBox="0 0 96 96" fill="none" xmlns="http://www.w3.org/2000/svg">
+        <circle cx="48" cy="52" r="32" stroke="currentColor" stroke-width="3" stroke-dasharray="6 4"/>
+        <path d="M32 52 Q48 38 64 52" stroke="currentColor" stroke-width="2.5" stroke-linecap="round"/>
+        <path d="M48 20 C48 20 44 14 48 10 C52 14 48 20 48 20Z" fill="currentColor" opacity="0.3"/>
+        <circle cx="48" cy="8" r="3" fill="currentColor" opacity="0.3"/>
+        <path d="M38 24 C34 18 30 22 34 26" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+        <path d="M58 24 C62 18 66 22 62 26" stroke="currentColor" stroke-width="2" stroke-linecap="round" opacity="0.5"/>
+      </svg>
+      <h2 class="text-slate-800 font-black text-xl mb-2">Oups, les repas ont pris congé !</h2>
+      <p class="text-slate-400 text-sm max-w-xs leading-relaxed">Le menu n'est pas encore disponible. Appelez un serveur pour en savoir plus.</p>
+      <button id="callWaiterEmpty"
+              class="mt-6 flex items-center gap-2 px-5 py-2.5 rounded-full text-white text-sm font-bold shadow-md active:scale-95 transition-all"
+              style="background-color: var(--color-primary);">
+        <i class="ri-customer-service-2-line text-base"></i>
+        Appeler un serveur
+      </button>
+    </div>
+    {% endif %}
+
     {% for category in categories %}
     <section x-show="activeCategory === 'all' || activeCategory === '{{ category.id }}'">
 
@@ -197,4 +219,41 @@
   </div>
 
 </div>
+
+<!-- ══ FLOATING WAITER BUTTON ════════════════════════ -->
+<script>var _waiterCallUrl = "{% url 'create_waiter_call' table_token=table.token %}";</script>
+<div id="waiterCallBtn"
+     class="fixed bottom-6 right-6 z-50"
+     x-data="{
+       called: false,
+       cooldown: false,
+       async callWaiter() {
+         if (this.cooldown) return;
+         try {
+           const r = await fetch(window._waiterCallUrl, {
+             method: 'POST',
+             headers: {'X-CSRFToken': '{{ csrf_token }}'}
+           });
+           const d = await r.json();
+           this.called = true;
+           this.cooldown = true;
+           setTimeout(() => { this.called = false; }, 4000);
+           setTimeout(() => { this.cooldown = false; }, 30000);
+         } catch(e) {}
+       }
+     }">
+  <button @click="callWaiter()"
+          :disabled="cooldown"
+          class="flex items-center gap-2 px-4 py-3 rounded-full text-white text-sm font-bold shadow-lg transition-all duration-200 active:scale-95 disabled:opacity-60"
+          style="background-color: var(--color-primary);">
+    <i class="ri-customer-service-2-line text-lg"></i>
+    <span x-text="called ? 'Serveur appelé ✓' : 'Appeler un serveur'"></span>
+  </button>
+</div>
+
+<script>
+document.getElementById('callWaiterEmpty')?.addEventListener('click', function() {
+  document.getElementById('waiterCallBtn').__x.$data.callWaiter();
+});
+</script>
 {% endblock %}

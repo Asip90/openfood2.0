@@ -29,6 +29,9 @@ def client_menu(request, table_token):
         )
     ).order_by("order")
 
+    categories = list(categories)  # evaluate queryset to allow reuse below
+    has_active_items = any(list(cat.items.all()) for cat in categories)
+
     cart_key = f"cart_{restaurant.id}_{table_token}"
     cart = request.session.get(cart_key, {})
 
@@ -58,6 +61,7 @@ def client_menu(request, table_token):
         "table": table,
         "customization": customization,
         "categories": categories,
+        "has_active_items": has_active_items,
         "cart": cart_items,
         "cart_total": cart_total,
         "cart_count": cart_count,
