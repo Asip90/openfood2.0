@@ -13,7 +13,12 @@ from base.models import PromoCode, PromoCodeUse, SubscriptionPlan
 
 logger = logging.getLogger(__name__)
 
-FEDAPAY_BASE = 'https://sandbox-api.fedapay.com/v1'  # switch to api.fedapay.com for live
+from django.conf import settings as _settings
+FEDAPAY_BASE = (
+    'https://api.fedapay.com/v1'
+    if getattr(_settings, 'FEDAPAY_ENV', 'sandbox') == 'live'
+    else 'https://sandbox-api.fedapay.com/v1'
+)
 
 
 def _fedapay_headers():

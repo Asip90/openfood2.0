@@ -542,3 +542,22 @@ class PlanLimitsExpiryTest(TestCase):
         })
         from base.models import MenuItem
         self.assertEqual(MenuItem.objects.filter(restaurant=self.restaurant).count(), 5)
+
+
+import base.subscription_views as sub_views
+
+
+class FedapayUrlTest(TestCase):
+
+    @override_settings(FEDAPAY_ENV='live')
+    def test_live_env_uses_live_url(self):
+        from importlib import reload
+        reload(sub_views)
+        self.assertIn('api.fedapay.com', sub_views.FEDAPAY_BASE)
+        self.assertNotIn('sandbox', sub_views.FEDAPAY_BASE)
+
+    @override_settings(FEDAPAY_ENV='sandbox')
+    def test_sandbox_env_uses_sandbox_url(self):
+        from importlib import reload
+        reload(sub_views)
+        self.assertIn('sandbox', sub_views.FEDAPAY_BASE)
