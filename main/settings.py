@@ -112,6 +112,9 @@ FEDAPAY_PUBLIC_KEY = os.environ['FEDAPAY_PUBLIC_KEY']
 FEDAPAY_ENV = os.getenv('FEDAPAY_ENV', 'sandbox')
 FEDAPAY_WEBHOOK_SECRET = os.getenv('FEDAPAY_WEBHOOK_SECRET', '')
 
+# Google Analytics 4
+GA_MEASUREMENT_ID = os.getenv('GA_MEASUREMENT_ID', '')
+
 LOGIN_URL = "/connexion"
 BACKEND_DOMAIN = os.getenv('BACKEND_DOMAIN', 'http://localhost:8000')
 FRONTEND_BASE_URL = os.getenv('BACKEND_DOMAIN', 'http://localhost:8000')

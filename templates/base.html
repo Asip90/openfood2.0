@@ -10,9 +10,29 @@
   <meta property="og:title" content="{% block og_title %}Open Food{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Menu digital QR Code pour restaurants{% endblock %}">
   <meta property="og:type" content="website">
+  <meta property="og:image" content="{% static 'favicon/android-chrome-512x512.png' %}">
+  <meta name="twitter:card" content="summary_large_image">
   {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
   {% endblock %}
   {% block schema_org %}{% endblock %}
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/x-icon" href="{% static 'favicon/favicon.ico' %}">
+  <link rel="icon" type="image/png" sizes="32x32" href="{% static 'favicon/favicon-32x32.png' %}">
+  <link rel="icon" type="image/png" sizes="16x16" href="{% static 'favicon/favicon-16x16.png' %}">
+  <link rel="apple-touch-icon" sizes="180x180" href="{% static 'favicon/apple-touch-icon.png' %}">
+  <link rel="manifest" href="{% static 'favicon/site.webmanifest' %}">
+
+  <!-- Google Analytics 4 -->
+  {% if GA_MEASUREMENT_ID %}
+  <script async src="https://www.googletagmanager.com/gtag/js?id={{ GA_MEASUREMENT_ID }}"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+    gtag('config', '{{ GA_MEASUREMENT_ID }}');
+  </script>
+  {% endif %}
 
   <script src="{% static 'vendor/tailwind.js' %}"></script>
   <script>

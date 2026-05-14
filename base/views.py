@@ -1298,3 +1298,10 @@ def claim_waiter_call(request, call_id):
     call.claimed_by = request.user
     call.save(update_fields=['status', 'claimed_by'])
     return JsonResponse({'status': 'ok'})
+
+
+def sitemap_view(request):
+    return render(request, "sitemap.xml", {
+        "base_url": request.build_absolute_uri("/").rstrip("/"),
+    }, content_type="application/xml")
+

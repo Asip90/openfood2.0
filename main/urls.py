@@ -7,6 +7,8 @@ from django.views.generic import TemplateView
 from django.conf.urls.i18n import i18n_patterns
 import django.views.i18n
 
+from base.views import sitemap_view
+
 handler400 = 'django.views.defaults.bad_request'
 handler403 = 'django.views.defaults.permission_denied'
 handler404 = 'django.views.defaults.page_not_found'
@@ -17,6 +19,7 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('robots.txt', TemplateView.as_view(template_name='robots.txt', content_type='text/plain')),
     path('llms.txt', TemplateView.as_view(template_name='llms.txt', content_type='text/plain')),
+    path('sitemap.xml', sitemap_view, name='sitemap'),
     path('', include('accounts.urls')),
     path('', include('base.urls')),
     path('', include('customer.urls')),
