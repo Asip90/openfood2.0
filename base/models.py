@@ -541,6 +541,32 @@ class StaffInvitation(models.Model):
         return f"Invitation {self.email} → {self.restaurant.name} ({self.role})"
 
 
+class WaiterCall(models.Model):
+    STATUS_CHOICES = [
+        ('pending', 'En attente'),
+        ('claimed', 'Pris en charge'),
+    ]
+
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='waiter_calls'
+    )
+    table = models.ForeignKey(
+        Table, on_delete=models.CASCADE, related_name='waiter_calls'
+    )
+    status = models.CharField(max_length=20, choices=STATUS_CHOICES, default='pending')
+    created_at = models.DateTimeField(auto_now_add=True)
+    claimed_by = models.ForeignKey(
+        'accounts.User',
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        related_name='claimed_waiter_calls',
+    )
+
+    def __str__(self):
+        return f"Appel Table {self.table.number} — {self.restaurant.name} [{self.status}]"
+
+
 class Payment(models.Model):
     PAYMENT_METHOD = [
         ('cash', 'Espèces'),
