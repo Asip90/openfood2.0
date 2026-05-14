@@ -151,6 +151,7 @@ class Restaurant(models.Model):
         img = qr.make_image(fill_color=self.primary_color, back_color="white")
         buffer = BytesIO()
         img.save(buffer, format='PNG')
+        buffer.seek(0)
         filename = f'qr_{self.slug}.png'
         self.qr_code.save(filename, File(buffer), save=False)
         super().save(update_fields=['qr_code'])
