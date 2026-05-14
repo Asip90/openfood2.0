@@ -15,6 +15,14 @@ from PIL import Image, ImageDraw, ImageOps
 from accounts.models import User
 
 import uuid
+import random
+import string
+
+_SHORT_ID_CHARS = string.ascii_letters + string.digits  # base62
+
+
+def _generate_table_token():
+    return ''.join(random.choices(_SHORT_ID_CHARS, k=10))
 
 
 
@@ -345,8 +353,9 @@ class Table(models.Model):
         null=True
     )
     is_active = models.BooleanField(default=True)
-    token = models.UUIDField(
-        default=uuid.uuid4,
+    token = models.CharField(
+        max_length=10,
+        default=_generate_table_token,
         editable=False,
         unique=True
     )

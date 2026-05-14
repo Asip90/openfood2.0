@@ -5,18 +5,18 @@ from .views import *
 urlpatterns = [
     path("api/customer/", include("customer.api.urls")),
 
-    path("t/<uuid:table_token>/", client_menu, name="client_menu"),
+    path("t/<str:table_token>/", client_menu, name="client_menu"),
 
     # Panier (AJAX)
-    path("t/<uuid:table_token>/cart/", update_cart, name="update_cart"),
+    path("t/<str:table_token>/cart/", update_cart, name="update_cart"),
 
     # Checkout
-    path("t/<uuid:table_token>/checkout/", checkout, name="checkout"),
+    path("t/<str:table_token>/checkout/", checkout, name="checkout"),
 
     # Confirmation
     path("order/<int:order_id>/confirmation/", order_confirmation, name="order_confirmation"),
     path('item/<str:item_id>/details/', get_item_details, name='get_item_details'),
-    path("api/customer/menu/<uuid:table_token>/", menu_api),
+    path("api/customer/menu/<str:table_token>/", menu_api),
 
 ]
 
