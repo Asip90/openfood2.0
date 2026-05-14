@@ -393,7 +393,7 @@
     <p>Entrez votre code pour activer un plan Pro ou Max gratuitement.</p>
     <form method="post" action="{% url 'subscribe_initiate' 'pro' %}" class="promo-form">
       {% csrf_token %}
-      <input type="text" name="promo_code" class="promo-input" placeholder="Ex. PREMIER ou ELITE" oninput="this.value=this.value.toUpperCase()">
+      <input type="text" name="promo_code" class="promo-input" placeholder="Ex. PLUSVITE ou DESSERT" oninput="this.value=this.value.toUpperCase()">
       <button type="submit" class="promo-submit">Appliquer</button>
     </form>
   </div>
