@@ -99,7 +99,7 @@ def subscribe_initiate(request, plan_type):
     callback_url = request.build_absolute_uri(f'/abonnement/callback/{plan_type}/')
     payload = {
         'description': f'OpenFood — Plan {plan.name} (1 mois)',
-        'amount': plan.price,
+        'amount': int(plan.price),
         'currency': {'iso': 'XOF'},
         'callback_url': callback_url,
         'customer': {
