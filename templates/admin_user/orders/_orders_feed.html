@@ -1,0 +1,165 @@
+{% load i18n %}
+<div id="orders-container">
+
+  <!-- ── Liste commandes ───────────────────────────────── -->
+  <div class="space-y-2.5" id="orders-feed">
+    {% for order in orders %}
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-soft hover:shadow-card hover:border-slate-200 transition-all duration-200 group overflow-visible">
+      <div class="flex items-stretch gap-0">
+
+        <!-- Bande couleur statut -->
+        <div class="w-1 flex-shrink-0
+          {% if order.status == 'pending' %}bg-amber-400
+          {% elif order.status == 'confirmed' %}bg-blue-400
+          {% elif order.status == 'preparing' %}bg-indigo-500
+          {% elif order.status == 'ready' %}bg-green-500
+          {% elif order.status == 'delivered' %}bg-slate-300
+          {% else %}bg-red-400{% endif %}">
+        </div>
+
+        <div class="flex-1 flex items-center gap-3 p-3.5 sm:p-4 min-w-0">
+
+          <!-- Icône statut -->
+          <div class="w-11 h-11 flex-shrink-0 rounded-xl flex items-center justify-center
+            {% if order.status == 'pending' %}bg-amber-50 text-amber-500
+            {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-500
+            {% elif order.status == 'preparing' %}bg-indigo-50 text-indigo-600
+            {% elif order.status == 'ready' %}bg-green-50 text-green-600
+            {% elif order.status == 'delivered' %}bg-slate-100 text-slate-500
+            {% else %}bg-red-50 text-red-500{% endif %}">
+            {% if order.status == 'pending' %}<i class="ri-time-line text-lg"></i>
+            {% elif order.status == 'confirmed' %}<i class="ri-check-line text-lg"></i>
+            {% elif order.status == 'preparing' %}<i class="ri-fire-line text-lg"></i>
+            {% elif order.status == 'ready' %}<i class="ri-checkbox-circle-line text-lg"></i>
+            {% elif order.status == 'delivered' %}<i class="ri-shopping-bag-check-line text-lg"></i>
+            {% else %}<i class="ri-close-circle-line text-lg"></i>{% endif %}
+          </div>
+
+          <!-- Infos commande -->
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2 flex-wrap">
+              <span class="font-display font-black text-slate-900 text-sm">#{{ order.order_number|slice:"-6:" }}</span>
+              <span class="text-[10px] font-bold px-2 py-0.5 rounded-full
+                {% if order.status == 'pending' %}bg-amber-50 text-amber-700
+                {% elif order.status == 'confirmed' %}bg-blue-50 text-blue-700
+                {% elif order.status == 'preparing' %}bg-indigo-50 text-indigo-700
+                {% elif order.status == 'ready' %}bg-green-50 text-green-700
+                {% elif order.status == 'delivered' %}bg-slate-100 text-slate-600
+                {% else %}bg-red-50 text-red-700{% endif %}">
+                {{ order.get_status_display }}
+              </span>
+              {% if order.status == 'pending' %}
+              <span class="text-[10px] text-amber-500 font-semibold animate-pulse hidden sm:inline">● {% trans "Pending" %}</span>
+              {% endif %}
+            </div>
+
+            <p class="text-xs text-slate-400 mt-0.5 truncate">
+              {% if order.table %}<i class="ri-table-line mr-0.5"></i>{% trans "Table" %} {{ order.table.number }}{% else %}<i class="ri-map-pin-line mr-0.5"></i>{% trans "Takeaway" %}{% endif %}
+              · {{ order.created_at|timesince }} ago
+              {% if order.customer_name %} · <span class="text-slate-500">{{ order.customer_name }}</span>{% endif %}
+            </p>
+
+            <p class="text-xs text-slate-500 mt-1 truncate">
+              {% for item in order.items.all|slice:":3" %}{{ item.quantity }}× {{ item.menu_item.name }}{% if not forloop.last %}, {% endif %}{% endfor %}
+              {% if order.items.count > 3 %}<span class="text-slate-400"> +{{ order.items.count|add:"-3" }} {% trans "more" %}</span>{% endif %}
+            </p>
+          </div>
+
+          <!-- Montant + CTA -->
+          <div class="flex-shrink-0 text-right flex flex-col items-end gap-2">
+            <p class="font-display font-black text-slate-900 text-sm leading-none">{{ order.total|floatformat:0 }}</p>
+            <p class="text-[10px] text-slate-400 -mt-1">FCFA</p>
+
+            <div class="flex items-center gap-1">
+              <button onclick="openDetail({{ order.pk }})"
+                 class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="{% trans "View details" %}">
+                <i class="ri-eye-line text-sm"></i>
+              </button>
+
+              <a href="{% url 'order_receipt' order.pk %}" target="_blank"
+                 class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="Imprimer le reçu">
+                <i class="ri-printer-line text-sm"></i>
+              </a>
+
+              <div x-data="{ open: false, top: 0, right: 0 }">
+                <button
+                  @click.stop="
+                    if (!open) {
+                      const r = $el.getBoundingClientRect();
+                      top = r.bottom + 6;
+                      right = window.innerWidth - r.right;
+                    }
+                    open = !open
+                  "
+                  class="p-2 rounded-xl bg-primary/10 text-primary hover:bg-primary hover:text-white transition-colors" title="{% trans "Change status" %}">
+                  <i class="ri-arrow-down-s-line text-sm"></i>
+                </button>
+                <div x-show="open" @click.outside="open = false" x-cloak
+                     :style="`position:fixed; top:${top}px; right:${right}px; z-index:9999`"
+                     x-transition:enter="transition ease-out duration-100"
+                     x-transition:enter-start="opacity-0 scale-95"
+                     x-transition:enter-end="opacity-100 scale-100"
+                     x-transition:leave="transition ease-in duration-75"
+                     x-transition:leave-start="opacity-100 scale-100"
+                     x-transition:leave-end="opacity-0 scale-95"
+                     class="w-44 bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
+                  {% for value, label in status_choices %}
+                  <button @click="changeStatus({{ order.pk }}, '{{ value }}'); open = false"
+                    class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2
+                      {% if order.status == value %}bg-primary/5 text-primary{% else %}text-slate-600{% endif %}">
+                    <span class="w-2 h-2 rounded-full flex-shrink-0
+                      {% if value == 'pending' %}bg-amber-400
+                      {% elif value == 'confirmed' %}bg-blue-400
+                      {% elif value == 'preparing' %}bg-indigo-500
+                      {% elif value == 'ready' %}bg-green-500
+                      {% elif value == 'delivered' %}bg-slate-400
+                      {% else %}bg-red-400{% endif %}"></span>
+                    {{ label }}
+                    {% if order.status == value %}<i class="ri-check-line ml-auto text-primary text-xs"></i>{% endif %}
+                  </button>
+                  {% endfor %}
+                </div>
+              </div>
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </div>
+
+    {% empty %}
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-soft py-20 text-center">
+      <div class="w-16 h-16 mx-auto mb-5 rounded-2xl bg-slate-100 flex items-center justify-center">
+        <i class="ri-shopping-bag-line text-3xl text-slate-400"></i>
+      </div>
+      <p class="font-display font-black text-slate-900 text-lg mb-1">{% trans "No orders" %}</p>
+      <p class="text-slate-500 text-sm">
+        {% if current_status or current_q %}{% trans "No orders match your search" %}{% else %}{% trans "Your orders will appear here" %}{% endif %}
+      </p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- ── Pagination ────────────────────────────────────── -->
+  {% if orders.has_other_pages %}
+  <div class="flex justify-center gap-2 mt-6">
+    {% if orders.has_previous %}
+    <a href="?page={{ orders.previous_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_q %}&q={{ current_q }}{% endif %}"
+       class="px-5 py-2.5 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary hover:text-primary transition-colors">
+      ← {% trans "Previous" %}
+    </a>
+    {% endif %}
+    <span class="px-5 py-2.5 rounded-2xl bg-primary text-white text-sm font-bold">
+      {{ orders.number }} / {{ orders.paginator.num_pages }}
+    </span>
+    {% if orders.has_next %}
+    <a href="?page={{ orders.next_page_number }}{% if current_status %}&status={{ current_status }}{% endif %}{% if current_q %}&q={{ current_q }}{% endif %}"
+       class="px-5 py-2.5 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary hover:text-primary transition-colors">
+      {% trans "Next" %} →
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>

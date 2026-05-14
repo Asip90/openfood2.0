@@ -124,17 +124,47 @@ ALLOWED_HOSTS = [
 ]
 
 # Cloudinary
+# Cloudinary Configuration
 import cloudinary
-CLOUDINARY_STORAGE = {
-    'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
-    'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
-    'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
-}
-if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+import cloudinary.uploader
+import cloudinary.api
+
+# On récupère les valeurs
+CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
+CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
+CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+
+if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
+    CLOUDINARY_STORAGE = {
+        'CLOUD_NAME': CLOUDINARY_CLOUD_NAME,
+        'API_KEY': CLOUDINARY_API_KEY,
+        'API_SECRET': CLOUDINARY_API_SECRET,
+    }
+    
+    # Obligatoire pour que le stockage par défaut utilise Cloudinary
     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+    
+    # Configuration explicite du SDK Cloudinary
     cloudinary.config(
-        cloud_name=os.environ['CLOUDINARY_CLOUD_NAME'],
-        api_key=os.environ['CLOUDINARY_API_KEY'],
-        api_secret=os.environ['CLOUDINARY_API_SECRET'],
-        secure=True,
+        cloud_name = CLOUDINARY_CLOUD_NAME,
+        api_key = CLOUDINARY_API_KEY,
+        api_secret = CLOUDINARY_API_SECRET,
+        secure = True
     )
+else:
+    # Optionnel : Fallback sur le stockage local si les clés manquent en dév
+    print("ATTENTION : Clés Cloudinary manquantes dans le fichier .env")
+# import cloudinary
+# CLOUDINARY_STORAGE = {
+#     'CLOUD_NAME': os.environ.get('CLOUDINARY_CLOUD_NAME', ''),
+#     'API_KEY': os.environ.get('CLOUDINARY_API_KEY', ''),
+#     'API_SECRET': os.environ.get('CLOUDINARY_API_SECRET', ''),
+# }
+# if os.environ.get('CLOUDINARY_CLOUD_NAME'):
+#     DEFAULT_FILE_STORAGE = 'cloudinary_storage.storage.MediaCloudinaryStorage'
+#     cloudinary.config(
+#         cloud_name=os.environ['CLOUDINARY_CLOUD_NAME'],
+#         api_key=os.environ['CLOUDINARY_API_KEY'],
+#         api_secret=os.environ['CLOUDINARY_API_SECRET'],
+#         secure=True,
+#     )

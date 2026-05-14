@@ -1,13 +1,13 @@
 {% extends "admin_user/base.html" %}
-{% load static %}
-{% block title %}Menu – OpenFood{% endblock %}
-{% block page_title %}Menu{% endblock %}
+{% load static i18n menu_extras %}
+{% block title %}{% trans "Menu" %} – OpenFood{% endblock %}
+{% block page_title %}{% trans "Menu" %}{% endblock %}
 
 {% block header_actions %}
 <a href="{% url 'menu_create' %}"
    class="flex items-center gap-2 px-4 py-2 bg-primary text-white rounded-xl text-sm font-semibold hover:bg-primary-dark transition-colors shadow-glow">
   <i class="ri-add-line text-base"></i>
-  <span class="hidden sm:block">Ajouter un plat</span>
+  <span class="hidden sm:block">{% trans "Add a dish" %}</span>
 </a>
 {% endblock %}
 
@@ -37,23 +37,65 @@
 
         <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden flex flex-col group hover:shadow-card hover:border-primary/20 transition-all duration-200">
 
-          <!-- Image ou placeholder -->
-          <div class="relative h-36 sm:h-40 bg-slate-50 flex-shrink-0 overflow-hidden">
-            {% if item.image %}
-              <img src="{{ item.image.url }}" alt="{{ item.name }}"
-                   class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-300">
-            {% else %}
+          <!-- Image carousel -->
+          <div class="relative h-36 sm:h-40 bg-slate-50 flex-shrink-0 overflow-hidden"
+               x-data="{ idx: 0, imgs: {{ item|image_urls }} }">
+
+            <!-- Slides track -->
+            <template x-if="imgs.length > 0">
+              <div class="w-full h-full">
+                <div class="flex h-full transition-transform duration-300 ease-out will-change-transform"
+                     :style="'transform: translateX(-' + (idx * 100) + '%)'">
+                  <template x-for="(img, i) in imgs" :key="i">
+                    <div class="w-full h-full flex-shrink-0" style="min-width:100%">
+                      <img :src="img" alt="{{ item.name|escapejs }}"
+                           class="w-full h-full object-cover">
+                    </div>
+                  </template>
+                </div>
+
+                <!-- Flèche gauche -->
+                <button x-show="imgs.length > 1 && idx > 0"
+                        @click.stop="idx--"
+                        class="absolute left-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white z-10 active:scale-90 transition-all
+                               opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                  <i class="ri-arrow-left-s-line text-base"></i>
+                </button>
+
+                <!-- Flèche droite -->
+                <button x-show="imgs.length > 1 && idx < imgs.length - 1"
+                        @click.stop="idx++"
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2 w-7 h-7 rounded-full bg-black/40 backdrop-blur-sm flex items-center justify-center text-white z-10 active:scale-90 transition-all
+                               opacity-100 sm:opacity-0 sm:group-hover:opacity-100">
+                  <i class="ri-arrow-right-s-line text-base"></i>
+                </button>
+
+                <!-- Points indicateurs -->
+                <div x-show="imgs.length > 1"
+                     class="absolute bottom-2 left-0 right-0 flex justify-center gap-1.5 z-10">
+                  <template x-for="(_, i) in imgs" :key="'d'+i">
+                    <button @click.stop="idx = i"
+                            class="rounded-full transition-all duration-200"
+                            :class="idx === i ? 'w-4 h-1.5 bg-white' : 'w-1.5 h-1.5 bg-white/50'">
+                    </button>
+                  </template>
+                </div>
+              </div>
+            </template>
+
+            <!-- Placeholder si aucune image -->
+            <template x-if="imgs.length === 0">
               <div class="w-full h-full flex flex-col items-center justify-center text-slate-200">
                 <i class="ri-image-line text-4xl mb-1"></i>
-                <span class="text-xs text-slate-300">Aucune image</span>
+                <span class="text-xs text-slate-300">{% trans "No image" %}</span>
               </div>
-            {% endif %}
+            </template>
 
             <!-- Badge disponibilité -->
             <span class="absolute top-2.5 left-2.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[10px] font-bold backdrop-blur-sm
               {% if item.is_available %}bg-green-500/90 text-white{% else %}bg-slate-700/80 text-slate-200{% endif %}">
               <span class="w-1.5 h-1.5 rounded-full bg-current"></span>
-              {% if item.is_available %}Disponible{% else %}Indisponible{% endif %}
+              {% if item.is_available %}{% trans "Available" %}{% else %}{% trans "Unavailable" %}{% endif %}
             </span>
           </div>
 
@@ -82,19 +124,19 @@
               <!-- Toggle disponibilité -->
               <button type="button"
                       onclick="toggleAvailability({{ item.id }}, '{{ item.name|escapejs }}', {{ item.is_available|yesno:'true,false' }})"
-                      title="{% if item.is_available %}Rendre indisponible{% else %}Rendre disponible{% endif %}"
+                      title="{% if item.is_available %}{% trans "Make unavailable" %}{% else %}{% trans "Make available" %}{% endif %}"
                       class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold transition-colors
                         {% if item.is_available %}bg-green-50 text-green-700 hover:bg-red-50 hover:text-red-600
                         {% else %}bg-slate-100 text-slate-500 hover:bg-green-50 hover:text-green-700{% endif %}">
                 <i class="ri-toggle-line text-sm"></i>
-                <span class="hidden sm:inline">{% if item.is_available %}Dispo{% else %}Inactif{% endif %}</span>
+                <span class="hidden sm:inline">{% if item.is_available %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
               </button>
 
               <!-- Modifier -->
               <a href="{% url 'menu_update' item.id %}"
                  class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-primary/10 hover:text-primary transition-colors">
                 <i class="ri-pencil-line text-sm"></i>
-                <span class="hidden sm:inline">Modifier</span>
+                <span class="hidden sm:inline">{% trans "Edit" %}</span>
               </a>
 
               <!-- Supprimer -->
@@ -115,9 +157,9 @@
       <div class="w-12 h-12 mx-auto mb-3 rounded-xl bg-slate-100 flex items-center justify-center">
         <i class="ri-restaurant-line text-slate-400 text-xl"></i>
       </div>
-      <p class="text-sm text-slate-500 mb-3">Aucun plat dans cette catégorie</p>
+      <p class="text-sm text-slate-500 mb-3">{% trans "No dishes in this category" %}</p>
       <a href="{% url 'menu_create' %}"
-         class="text-sm font-semibold text-primary hover:underline">+ Ajouter un plat</a>
+         class="text-sm font-semibold text-primary hover:underline">+ {% trans "Add a dish" %}</a>
     </div>
     {% endif %}
 
@@ -130,11 +172,11 @@
   <div class="w-20 h-20 mx-auto mb-6 rounded-2xl bg-primary/10 flex items-center justify-center">
     <i class="ri-restaurant-line text-4xl text-primary"></i>
   </div>
-  <h3 class="font-display font-black text-slate-900 text-xl mb-2">Votre menu est vide</h3>
-  <p class="text-slate-500 text-sm mb-6">Commencez par créer votre premier plat.</p>
+  <h3 class="font-display font-black text-slate-900 text-xl mb-2">{% trans "Your menu is empty" %}</h3>
+  <p class="text-slate-500 text-sm mb-6">{% trans "Start by creating your first dish." %}</p>
   <a href="{% url 'menu_create' %}"
      class="inline-flex items-center gap-2 px-7 py-3.5 bg-primary text-white rounded-2xl text-sm font-bold hover:bg-primary-dark transition-colors shadow-glow">
-    <i class="ri-add-line"></i> Créer mon premier plat
+    <i class="ri-add-line"></i> {% trans "Create my first dish" %}
   </a>
 </div>
 {% endif %}
@@ -151,17 +193,17 @@
         <i class="ri-error-warning-line text-2xl text-red-500"></i>
       </div>
     </div>
-    <h3 class="text-center font-display font-black text-slate-900 text-lg mb-1">Supprimer ce plat ?</h3>
+    <h3 class="text-center font-display font-black text-slate-900 text-lg mb-1">{% trans "Delete this dish?" %}</h3>
     <p id="deleteItemName" class="text-center text-sm font-semibold text-slate-700 mb-1"></p>
-    <p class="text-center text-xs text-slate-400 mb-6">Cette action est irréversible.</p>
+    <p class="text-center text-xs text-slate-400 mb-6">{% trans "This action is irreversible." %}</p>
     <div class="flex gap-3">
       <button id="cancelDeleteBtn"
               class="flex-1 py-3 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-        Annuler
+        {% trans "Cancel" %}
       </button>
       <a id="confirmDeleteBtn" href="#"
          class="flex-1 py-3 rounded-2xl bg-red-500 text-white text-sm font-bold hover:bg-red-600 transition-colors text-center">
-        Supprimer
+        {% trans "Delete" %}
       </a>
     </div>
   </div>
@@ -179,17 +221,17 @@
         <i class="ri-toggle-line text-2xl"></i>
       </div>
     </div>
-    <h3 class="text-center font-display font-black text-slate-900 text-lg mb-1">Changer la disponibilité</h3>
+    <h3 class="text-center font-display font-black text-slate-900 text-lg mb-1">{% trans "Change availability" %}</h3>
     <p id="toggleItemName" class="text-center text-sm font-semibold text-slate-700 mb-1"></p>
     <p id="toggleStatus" class="text-center text-xs text-slate-400 mb-6"></p>
     <div class="flex gap-3">
       <button id="cancelToggleBtn"
               class="flex-1 py-3 rounded-2xl border border-slate-200 text-sm font-semibold text-slate-700 hover:bg-slate-50 transition-colors">
-        Annuler
+        {% trans "Cancel" %}
       </button>
       <button id="confirmToggleBtn"
               class="flex-1 py-3 rounded-2xl bg-primary text-white text-sm font-bold hover:bg-primary-dark transition-colors">
-        Confirmer
+        {% trans "Confirm" %}
       </button>
     </div>
   </div>

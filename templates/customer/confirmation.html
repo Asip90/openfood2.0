@@ -3,69 +3,99 @@
 
 {% block title %}Commande confirmée — {{ restaurant.name }}{% endblock %}
 
+{% block navbar %}{% endblock %}
 {% block cart_fab %}{% endblock %}
 
 {% block content %}
-<div class="min-h-screen bg-slate-50 flex flex-col items-center justify-center px-4 py-12">
+<script>
+  var _cartInit = [];
+  localStorage.removeItem('cart_{% if order.table %}{{ order.table.token }}{% endif %}');
+</script>
 
-  <div class="w-full max-w-sm space-y-5">
+<div class="min-h-screen bg-slate-50 flex flex-col">
 
-    <!-- Success icon -->
-    <div class="flex justify-center">
-      <div class="w-20 h-20 rounded-3xl flex items-center justify-center"
+  <!-- Top bar -->
+  <div class="bg-white border-b border-slate-100 px-5 h-14 flex items-center"
+       style="box-shadow: 0 1px 8px rgba(0,0,0,0.04);">
+    <span class="font-bold text-slate-900 text-sm">{{ restaurant.name }}</span>
+  </div>
+
+  <div class="flex-1 flex flex-col items-center px-5 py-8 max-w-sm mx-auto w-full">
+
+    <!-- ── Success animation ── -->
+    <div class="relative flex items-center justify-center mb-6 mt-2">
+      <!-- Expanding rings -->
+      <div class="absolute w-28 h-28 rounded-full success-ring"
+           style="border: 2px solid var(--color-primary); opacity: 0;"></div>
+      <div class="absolute w-24 h-24 rounded-full success-ring"
+           style="border: 2px solid var(--color-primary); opacity: 0; animation-delay: .2s;"></div>
+      <!-- Icon circle -->
+      <div class="relative w-20 h-20 rounded-3xl flex items-center justify-center anim-pop"
            style="background-color: var(--color-primary);">
-        <i class="ri-check-line text-4xl text-white"></i>
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none">
+          <path d="M10 21 L17 28 L30 13" stroke="white" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round"
+                class="check-draw"/>
+        </svg>
       </div>
     </div>
 
     <!-- Title -->
-    <div class="text-center">
-      <h1 class="font-black text-slate-900 text-2xl">Commande envoyée !</h1>
-      <p class="text-slate-400 text-sm mt-1">La cuisine a bien reçu votre commande.</p>
+    <div class="text-center mb-6 anim-up s1">
+      <h1 class="font-black text-slate-900 text-2xl tracking-tight">Commande envoyée !</h1>
+      <p class="text-slate-400 text-sm mt-1.5">La cuisine a bien reçu votre commande.</p>
     </div>
 
-    <!-- Order card -->
-    <div class="bg-white rounded-2xl border border-slate-100 overflow-hidden"
-         style="box-shadow: 0 4px 16px rgba(0,0,0,0.06);">
+    <!-- ── Order card ── -->
+    <div class="w-full bg-white rounded-3xl overflow-hidden mb-4 anim-up s2"
+         style="box-shadow: 0 2px 20px rgba(0,0,0,0.06); border: 1px solid rgba(0,0,0,0.04);">
 
-      <div class="px-4 py-3 border-b border-slate-50 flex items-center justify-between">
-        <h2 class="font-bold text-slate-900 text-sm">
-          #{{ order.order_number|slice:"-6:" }}
-        </h2>
-        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 text-amber-700">
-          En attente
+      <!-- Order number + status -->
+      <div class="px-5 py-3.5 flex items-center justify-between border-b border-slate-50">
+        <div>
+          <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commande</p>
+          <p class="font-black text-slate-900 text-base leading-tight">#{{ order.order_number|slice:"-6:" }}</p>
+        </div>
+        <span class="text-[11px] font-black px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 uppercase tracking-wide">
+          En cuisine
         </span>
       </div>
 
+      <!-- Items list -->
       <div class="divide-y divide-slate-50">
         {% for item in order.items.all %}
-        <div class="flex items-center justify-between px-4 py-3">
-          <div class="flex items-center gap-2">
-            <span class="w-5 h-5 rounded bg-slate-100 text-[10px] font-bold flex items-center justify-center text-slate-500">
+        <div class="flex items-center justify-between px-5 py-3">
+          <div class="flex items-center gap-2.5 min-w-0">
+            <span class="w-6 h-6 rounded-lg flex items-center justify-center text-[10px] font-black text-white flex-shrink-0"
+                  style="background-color: var(--color-primary);">
               {{ item.quantity }}
             </span>
-            <span class="text-slate-700 text-sm">{{ item.menu_item.name }}</span>
+            <span class="text-slate-700 text-sm truncate">{{ item.menu_item.name }}</span>
           </div>
-          <span class="text-slate-900 font-semibold text-sm">{{ item.get_total|floatformat:0 }} FCFA</span>
+          <span class="text-slate-900 font-bold text-sm ml-3 flex-shrink-0">{{ item.get_total|floatformat:0 }} FCFA</span>
         </div>
         {% empty %}
         <p class="text-slate-400 text-sm text-center py-4">—</p>
         {% endfor %}
       </div>
 
-      <div class="px-4 py-3 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-        <span class="text-slate-500 text-sm">Total</span>
-        <span class="font-black text-slate-900">{{ order.total|floatformat:0 }} FCFA</span>
+      <!-- Total -->
+      <div class="px-5 py-3.5 flex items-center justify-between"
+           style="background: linear-gradient(135deg, color-mix(in srgb, var(--color-primary) 6%, white), color-mix(in srgb, var(--color-primary) 3%, white));">
+        <span class="text-slate-500 text-sm">Total payé</span>
+        <span class="font-black text-slate-900 text-lg">{{ order.total|floatformat:0 }} FCFA</span>
       </div>
-
     </div>
 
     <!-- Table info -->
     {% if order.table %}
-    <div class="bg-white rounded-xl border border-slate-100 px-4 py-3 flex items-center gap-3">
-      <i class="ri-table-line text-slate-400 text-lg"></i>
+    <div class="w-full bg-white rounded-2xl px-4 py-3 flex items-center gap-3 mb-4 anim-up s3"
+         style="box-shadow: 0 1px 8px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+           style="background-color: color-mix(in srgb, var(--color-primary) 12%, white);">
+        <i class="ri-table-line" style="color: var(--color-primary);"></i>
+      </div>
       <div>
-        <p class="text-slate-900 font-semibold text-sm">Table {{ order.table.number }}</p>
+        <p class="text-slate-900 font-bold text-sm leading-tight">Table {{ order.table.number }}</p>
         <p class="text-slate-400 text-xs">{{ restaurant.name }}</p>
       </div>
     </div>
@@ -75,45 +105,42 @@
     {% if restaurant.phone %}
     <a href="https://wa.me/{{ restaurant.phone|cut:'+' }}?text=Bonjour%20{{ restaurant.name|urlencode }}%20!%20Ma%20commande%20%23{{ order.order_number|slice:'-6:' }}%20est%20pass%C3%A9e.%20Total%20%3A%20{{ order.total|floatformat:0 }}%20FCFA."
        target="_blank" rel="noopener noreferrer"
-       class="flex items-center gap-3 bg-white rounded-2xl border border-slate-100 px-4 py-3 hover:border-green-300 transition-colors group"
-       style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
+       class="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 mb-4 hover:border-green-200 transition-colors anim-up s4"
+       style="box-shadow: 0 1px 8px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
       <div class="w-9 h-9 rounded-xl bg-green-500 flex items-center justify-center flex-shrink-0">
-        <i class="ri-whatsapp-line text-white text-lg"></i>
+        <i class="ri-whatsapp-line text-white text-base"></i>
       </div>
-      <div class="flex-1">
-        <p class="font-semibold text-xs text-slate-900 group-hover:text-green-700">Recevoir mon ticket WhatsApp</p>
-        <p class="text-xs text-slate-400">Confirmez votre commande</p>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-sm text-slate-900 leading-tight">Recevoir mon ticket WhatsApp</p>
+        <p class="text-xs text-slate-400">Confirmez votre commande par message</p>
       </div>
-      <i class="ri-arrow-right-s-line text-slate-400"></i>
+      <i class="ri-arrow-right-s-line text-slate-400 text-lg"></i>
     </a>
     {% endif %}
 
-    <!-- Share menu -->
-    <div class="bg-white rounded-2xl border border-slate-100 px-4 py-3"
-         style="box-shadow: 0 2px 8px rgba(0,0,0,0.04);">
-      <p class="font-semibold text-xs text-slate-900 mb-1">Partagez notre menu</p>
-      <p class="text-xs text-slate-400 mb-3">Invitez un ami — partagez le lien en un tap</p>
+    <!-- Share -->
+    <div class="w-full bg-white rounded-2xl px-4 py-4 mb-6 anim-up s5"
+         style="box-shadow: 0 1px 8px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+      <p class="font-bold text-sm text-slate-900 mb-0.5">Partager le menu</p>
+      <p class="text-xs text-slate-400 mb-3">Invitez vos amis à commander depuis leur téléphone</p>
       <button onclick="shareMenu()"
-              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-semibold transition-colors"
-              style="border-color: var(--color-primary); color: var(--color-primary);"
-              onmouseover="this.style.backgroundColor='var(--color-primary)';this.style.color='#fff';"
-              onmouseout="this.style.backgroundColor='';this.style.color='var(--color-primary)';">
-        <i class="ri-share-forward-line"></i>
-        Partager le menu
+              class="w-full flex items-center justify-center gap-2 py-2.5 rounded-xl border text-sm font-bold transition-all active:scale-[.98]"
+              style="border-color: var(--color-primary); color: var(--color-primary);">
+        <i class="ri-share-forward-line"></i> Partager le menu
       </button>
     </div>
 
-    <!-- Back to menu CTA -->
+    <!-- Back to menu -->
     {% if order.table %}
     <a href="{% url 'client_menu' table_token=order.table.token %}"
-       class="block w-full py-3.5 rounded-2xl text-white font-bold text-center text-base transition-all active:scale-[0.98]"
-       style="background-color: var(--color-primary);">
+       class="w-full py-4 rounded-2xl text-white font-black text-center text-base transition-all active:scale-[.98] shadow-float anim-up s5"
+       style="background-color: var(--color-primary); display: block;">
       Retour au menu
     </a>
     {% endif %}
 
-    <p class="text-slate-400 text-xs text-center">
-      Un serveur passera bientôt vous voir.
+    <p class="text-slate-400 text-xs text-center mt-5">
+      Un serveur passera bientôt vous voir 👋
     </p>
 
   </div>
@@ -131,14 +158,9 @@
       }).catch(() => {});
     } else {
       navigator.clipboard.writeText(fullUrl).then(() => {
-        alert('Lien copié ! Partagez-le à vos amis.');
+        alert('Lien copié !');
       });
     }
   }
-
-  // Vider le panier Alpine.js si Alpine est disponible
-  document.addEventListener('alpine:initialized', () => {
-    localStorage.removeItem('cart_{% if order.table %}{{ order.table.token }}{% endif %}');
-  });
 </script>
 {% endblock %}

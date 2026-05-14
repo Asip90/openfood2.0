@@ -5,7 +5,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Prefetch
+from django.db.models import F, Prefetch
 
 from base.models import Category, MenuItem, Order, OrderItem, RestaurantCustomization
 from customer.utils import get_client_context
@@ -168,11 +168,13 @@ def checkout(request, table_token):
         return redirect("client_menu", table_token=table_token)
 
     if request.method == "POST":
+        raw_type = request.POST.get("order_type", "dine_in")
+        order_type = raw_type if raw_type in ("dine_in", "takeaway") else "dine_in"
         with transaction.atomic():
             order = Order.objects.create(
                 restaurant=restaurant,
                 table=table,
-                order_type="dine_in",
+                order_type=order_type,
                 status="pending",
                 customer_name=request.POST.get("customer_name", "").strip(),
                 customer_phone=request.POST.get("customer_phone", "").strip(),
@@ -238,7 +240,7 @@ def get_item_details(request, item_id):
 
     try:
         item = MenuItem.objects.get(id=item_id, is_available=True)
-        MenuItem.objects.filter(pk=item.pk).update(view_count=item.view_count + 1)
+        MenuItem.objects.filter(pk=item.pk).update(view_count=F('view_count') + 1)
         return JsonResponse({
             'success': True,
             'item': {

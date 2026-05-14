@@ -1,0 +1,247 @@
+{% extends 'auth/base.html' %}
+{% load static %}
+
+{% block title %}Nouveau mot de passe — OpenFood{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex">
+
+  <!-- ══ LEFT PANEL ══════════════════════════════════════════════════════ -->
+  <div class="hidden lg:flex lg:w-[46%] xl:w-[44%] flex-col relative overflow-hidden flex-shrink-0"
+       style="background: linear-gradient(145deg, #f97316 0%, #ea580c 55%, #c2410c 100%);">
+
+    <div class="absolute inset-0 pointer-events-none opacity-[0.08]"
+         style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 26px 26px;"></div>
+    <div class="absolute -top-20 -right-20 w-96 h-96 bg-white/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-orange-900/25 rounded-full blur-[80px] pointer-events-none"></div>
+
+    <div class="relative flex flex-col h-full px-10 xl:px-14 py-10">
+
+      <a href="/" class="inline-flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center overflow-hidden">
+          <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
+        </div>
+        <span class="font-display font-black text-white text-xl tracking-tight notranslate">Open<span class="text-orange-200">Food</span></span>
+      </a>
+
+      <div class="my-auto">
+        <div class="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center mb-8">
+          <i class="ri-key-2-line text-white text-3xl"></i>
+        </div>
+        <h2 class="font-display font-black text-white mb-4"
+            style="font-size: clamp(1.55rem, 2.2vw, 2.1rem); line-height: 1.2;">
+          Choisissez un mot de passe solide.
+        </h2>
+        <p class="text-orange-100 text-sm leading-relaxed max-w-xs">
+          Votre nouveau mot de passe protège l'accès à votre restaurant et toutes vos données.
+        </p>
+
+        <div class="mt-10 p-5 rounded-2xl bg-white/12 border border-white/20">
+          <p class="text-white/80 text-xs font-semibold uppercase tracking-wider mb-3">Bonnes pratiques</p>
+          <ul class="space-y-2">
+            <li class="flex items-center gap-2 text-orange-100 text-sm">
+              <i class="ri-check-line text-white/60 text-xs"></i> Au moins 8 caractères
+            </li>
+            <li class="flex items-center gap-2 text-orange-100 text-sm">
+              <i class="ri-check-line text-white/60 text-xs"></i> Mélangez lettres et chiffres
+            </li>
+            <li class="flex items-center gap-2 text-orange-100 text-sm">
+              <i class="ri-check-line text-white/60 text-xs"></i> Évitez les mots courants
+            </li>
+          </ul>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-white/15">
+        <p class="text-orange-200 text-xs">Besoin d'aide ?
+          <a href="mailto:support@openfood.app" class="text-white font-semibold hover:underline ml-1">Contactez le support</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ RIGHT PANEL — form ══════════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col items-center justify-center px-6 py-10 bg-white">
+
+    <div class="lg:hidden mb-8 su">
+      <a href="/" class="inline-flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center overflow-hidden">
+          <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
+        </div>
+        <span class="font-display font-black text-slate-900 text-xl notranslate">Open<span class="text-primary">Food</span></span>
+      </a>
+    </div>
+
+    <div class="w-full max-w-[22rem]">
+
+      <!-- Heading -->
+      <div class="mb-8 su">
+        <div class="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center mb-5">
+          <i class="ri-key-2-line text-primary text-2xl"></i>
+        </div>
+        <p class="text-primary text-sm font-semibold mb-1">Nouveau mot de passe</p>
+        <h1 class="font-display font-black text-slate-900 text-[1.75rem] leading-tight mb-2">
+          Réinitialisez
+        </h1>
+        <p class="text-slate-500 text-sm">Choisissez un mot de passe sécurisé d'au moins 8 caractères.</p>
+      </div>
+
+      <!-- Form -->
+      <form method="post" class="space-y-4" id="reset-form">
+        {% csrf_token %}
+
+        <div class="su-1">
+          <label class="block text-slate-700 text-sm font-medium mb-1.5">Nouveau mot de passe</label>
+          <div class="relative">
+            <input type="password" name="password" id="password" placeholder="••••••••" autocomplete="new-password"
+                   class="input-field w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm" required minlength="8">
+            <button type="button" onclick="togglePwd('password','eye1')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+              <i id="eye1" class="ri-eye-off-line text-base"></i>
+            </button>
+          </div>
+          <!-- Strength bar -->
+          <div class="mt-2 flex gap-1" id="strength-bars">
+            <div class="h-1 flex-1 rounded-full bg-slate-100 transition-colors" id="bar1"></div>
+            <div class="h-1 flex-1 rounded-full bg-slate-100 transition-colors" id="bar2"></div>
+            <div class="h-1 flex-1 rounded-full bg-slate-100 transition-colors" id="bar3"></div>
+            <div class="h-1 flex-1 rounded-full bg-slate-100 transition-colors" id="bar4"></div>
+          </div>
+          <p class="text-xs text-slate-400 mt-1" id="strength-label"></p>
+        </div>
+
+        <div class="su-2">
+          <label class="block text-slate-700 text-sm font-medium mb-1.5">Confirmer le mot de passe</label>
+          <div class="relative">
+            <input type="password" name="password_confirm" id="password_confirm" placeholder="••••••••" autocomplete="new-password"
+                   class="input-field w-full px-4 py-3 pr-11 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm" required minlength="8">
+            <button type="button" onclick="togglePwd('password_confirm','eye2')"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors">
+              <i id="eye2" class="ri-eye-off-line text-base"></i>
+            </button>
+          </div>
+          <p class="text-xs mt-1 hidden" id="match-msg"></p>
+        </div>
+
+        <div class="su-3 pt-1">
+          <button type="submit" id="submit-btn"
+                  class="w-full py-3.5 rounded-xl bg-primary text-white font-bold text-[0.95rem] transition-all
+                         shadow-[0_4px_16px_rgba(249,115,22,0.3)] hover:bg-primary-dark hover:shadow-[0_6px_24px_rgba(249,115,22,0.4)]
+                         active:scale-[0.98] flex items-center justify-center gap-2">
+            <i class="ri-check-line"></i>
+            Enregistrer le mot de passe
+          </button>
+        </div>
+      </form>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ Toasts ══════════════════════════════════════════════════════════ -->
+<div id="toast-zone" class="fixed top-5 right-5 space-y-2 z-50 w-80">
+  {% if messages %}
+    {% for message in messages %}
+      {% if message.tags == "success" %}
+        <div class="toast-item flex items-start gap-2.5 px-4 py-3 rounded-xl bg-white border border-green-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-checkbox-circle-fill text-green-500 text-base flex-shrink-0 mt-0.5"></i>{{ message }}
+        </div>
+      {% elif message.tags == "error" or message.tags == "danger" %}
+        <div class="toast-item flex items-start gap-2.5 px-4 py-3 rounded-xl bg-white border border-red-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-error-warning-fill text-red-500 text-base flex-shrink-0 mt-0.5"></i>{{ message }}
+        </div>
+      {% else %}
+        <div class="toast-item flex items-start gap-2.5 px-4 py-3 rounded-xl bg-white border border-blue-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-information-fill text-blue-500 text-base flex-shrink-0 mt-0.5"></i>{{ message }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  function togglePwd(inputId, iconId) {
+    var input = document.getElementById(inputId);
+    var icon = document.getElementById(iconId);
+    if (input.type === 'password') {
+      input.type = 'text';
+      icon.className = 'ri-eye-line text-base';
+    } else {
+      input.type = 'password';
+      icon.className = 'ri-eye-off-line text-base';
+    }
+  }
+
+  var pwdInput = document.getElementById('password');
+  var confirmInput = document.getElementById('password_confirm');
+  var bars = [document.getElementById('bar1'), document.getElementById('bar2'),
+              document.getElementById('bar3'), document.getElementById('bar4')];
+  var strengthLabel = document.getElementById('strength-label');
+  var matchMsg = document.getElementById('match-msg');
+
+  var levels = [
+    { color: 'bg-red-400',    label: 'Très faible',  text: 'text-red-500' },
+    { color: 'bg-amber-400',  label: 'Faible',        text: 'text-amber-500' },
+    { color: 'bg-yellow-400', label: 'Moyen',          text: 'text-yellow-600' },
+    { color: 'bg-green-500',  label: 'Fort',           text: 'text-green-600' },
+  ];
+
+  function getStrength(v) {
+    var score = 0;
+    if (v.length >= 8)  score++;
+    if (v.length >= 12) score++;
+    if (/[0-9]/.test(v)) score++;
+    if (/[^a-zA-Z0-9]/.test(v)) score++;
+    return Math.min(score, 4);
+  }
+
+  pwdInput.addEventListener('input', function() {
+    var v = this.value;
+    if (!v) {
+      bars.forEach(function(b){ b.className = 'h-1 flex-1 rounded-full bg-slate-100 transition-colors'; });
+      strengthLabel.textContent = '';
+      return;
+    }
+    var s = getStrength(v);
+    bars.forEach(function(b, i){
+      b.className = 'h-1 flex-1 rounded-full transition-colors ' + (i < s ? levels[s-1].color : 'bg-slate-100');
+    });
+    strengthLabel.className = 'text-xs mt-1 ' + levels[s-1].text;
+    strengthLabel.textContent = levels[s-1].label;
+    checkMatch();
+  });
+
+  confirmInput.addEventListener('input', checkMatch);
+
+  function checkMatch() {
+    var p = pwdInput.value, c = confirmInput.value;
+    if (!c) { matchMsg.classList.add('hidden'); return; }
+    matchMsg.classList.remove('hidden');
+    if (p === c) {
+      matchMsg.className = 'text-xs mt-1 text-green-600';
+      matchMsg.textContent = 'Les mots de passe correspondent';
+    } else {
+      matchMsg.className = 'text-xs mt-1 text-red-500';
+      matchMsg.textContent = 'Les mots de passe ne correspondent pas';
+    }
+  }
+
+  // Toast auto-hide
+  (function(){
+    var items = document.querySelectorAll('.toast-item');
+    if(!items.length) return;
+    setTimeout(function(){
+      items.forEach(function(el){
+        el.style.transition = 'opacity 0.35s, transform 0.35s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(16px)';
+        setTimeout(function(){ el.remove(); }, 350);
+      });
+    }, 4500);
+  })();
+</script>
+{% endblock %}

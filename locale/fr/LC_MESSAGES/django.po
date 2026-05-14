@@ -1,0 +1,693 @@
+# French translations for OpenFood dashboard
+msgid ""
+msgstr ""
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-05-14 06:56+0000\n"
+"Language: fr\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: accounts/admin.py:15
+msgid "Personal info"
+msgstr "Informations personnelles"
+
+#: accounts/admin.py:16
+msgid "Transfer PIN"
+msgstr "Transférer le code PIN"
+
+#: accounts/admin.py:17
+msgid "Permissions"
+msgstr "Autorisations"
+
+#: accounts/admin.py:18
+msgid "Important dates"
+msgstr "Dates importantes"
+
+#: templates/admin_user/base.html:128 templates/admin_user/base.html:216
+#: templates/admin_user/header.html:45
+msgid "Logout"
+msgstr "Déconnexion"
+
+#: templates/admin_user/base.html:150
+msgid "Collapse sidebar"
+msgstr "Réduire la barre latérale"
+
+#: templates/admin_user/base.html:150
+msgid "Expand sidebar"
+msgstr "Développer la barre latérale"
+
+#: templates/admin_user/base.html:280
+msgid "Home"
+msgstr "Accueil"
+
+#: templates/admin_user/base.html:291
+#: templates/admin_user/orders/create_manual_order.html:10
+#: templates/admin_user/orders/list_orders.html:4
+#: templates/admin_user/orders/list_orders.html:5
+#: templates/admin_user/orders/update_order.html:10
+#: templates/admin_user/sidebar.html:48
+msgid "Orders"
+msgstr "Commandes"
+
+#: templates/admin_user/base.html:303
+#: templates/admin_user/menus/create_menus.html:10
+#: templates/admin_user/menus/list_menu.html:3
+#: templates/admin_user/menus/list_menu.html:4
+#: templates/admin_user/menus/update_menu.html:10
+#: templates/admin_user/orders/create_manual_order.html:79
+#: templates/admin_user/sidebar.html:60
+msgid "Menu"
+msgstr "Menu"
+
+#: templates/admin_user/base.html:316 templates/admin_user/sidebar.html:73
+msgid "Tables"
+msgstr "Tables"
+
+#: templates/admin_user/base.html:330
+msgid "Admin settings"
+msgstr "Réglages"
+
+#: templates/admin_user/header.html:41
+msgid "My profile"
+msgstr "Mon profil"
+
+#: templates/admin_user/menus/create_menus.html:3
+#: templates/admin_user/menus/create_menus.html:25
+#: templates/admin_user/menus/list_menu.html:10
+#: templates/admin_user/menus/list_menu.html:162
+msgid "Add a dish"
+msgstr "Ajouter un plat"
+
+#: templates/admin_user/menus/create_menus.html:4
+msgid "New dish"
+msgstr "Nouveau plat"
+
+#: templates/admin_user/menus/create_menus.html:36
+msgid "Photos du plat"
+msgstr "Photos du plat"
+
+#: templates/admin_user/menus/create_menus.html:36
+msgid "max 3"
+msgstr "max 3"
+
+#: templates/admin_user/menus/create_menus.html:45
+msgid "Photo"
+msgstr "Photo"
+
+#: templates/admin_user/menus/create_menus.html:58
+#: templates/admin_user/menus/update_menu.html:94
+msgid "Vidéo"
+msgstr "Vidéo"
+
+#: templates/admin_user/menus/create_menus.html:58
+#: templates/admin_user/menus/create_menus.html:119
+#: templates/admin_user/menus/update_menu.html:94
+#: templates/admin_user/menus/update_menu.html:152
+msgid "optional"
+msgstr "facultatif"
+
+#: templates/admin_user/menus/create_menus.html:65
+msgid "Ajouter une vidéo"
+msgstr "Ajouter une vidéo"
+
+#: templates/admin_user/menus/create_menus.html:76
+#: templates/admin_user/menus/update_menu.html:109
+msgid "Dish name"
+msgstr "Nom du plat"
+
+#: templates/admin_user/menus/create_menus.html:80
+msgid "Ex: Chicken Yassa, Thiéboudiène…"
+msgstr "Ex : Poulet Yassa, Thiéboudiène…"
+
+#: templates/admin_user/menus/create_menus.html:86
+#: templates/admin_user/menus/update_menu.html:118
+msgid "Category"
+msgstr "Catégorie"
+
+#: templates/admin_user/menus/create_menus.html:91
+#: templates/admin_user/menus/update_menu.html:123
+msgid "Select…"
+msgstr "Sélectionner…"
+
+#: templates/admin_user/menus/create_menus.html:106
+#: templates/admin_user/menus/update_menu.html:140
+msgid "Price"
+msgstr "Prix"
+
+#: templates/admin_user/menus/create_menus.html:119
+#: templates/admin_user/menus/update_menu.html:152
+#: templates/admin_user/settings.html:279
+msgid "Description"
+msgstr "Description"
+
+#: templates/admin_user/menus/create_menus.html:123
+msgid "Ingredients, sides, special notes…"
+msgstr "Ingrédients, accompagnements, notes spéciales…"
+
+#: templates/admin_user/menus/create_menus.html:130
+#: templates/admin_user/menus/create_menus.html:160
+#: templates/admin_user/menus/list_menu.html:202
+#: templates/admin_user/menus/list_menu.html:230
+#: templates/admin_user/menus/update_menu.html:163
+#: templates/admin_user/menus/update_menu.html:193
+#: templates/admin_user/orders/update_order.html:281
+#: templates/admin_user/settings.html:364
+#: templates/admin_user/staff/list.html:126
+msgid "Cancel"
+msgstr "Annuler"
+
+#: templates/admin_user/menus/create_menus.html:134
+#: templates/admin_user/settings.html:368
+msgid "Save"
+msgstr "Enregistrer"
+
+#: templates/admin_user/menus/create_menus.html:151
+#: templates/admin_user/menus/update_menu.html:184
+msgid "New category"
+msgstr "Nouvelle catégorie"
+
+#: templates/admin_user/menus/create_menus.html:155
+#: templates/admin_user/menus/update_menu.html:188
+msgid "Ex: Starters, Main dishes, Desserts…"
+msgstr "Ex : Entrées, Plats principaux, Desserts…"
+
+#: templates/admin_user/menus/create_menus.html:156
+#: templates/admin_user/menus/update_menu.html:189
+msgid "The category will be selected automatically."
+msgstr "La catégorie sera sélectionnée automatiquement."
+
+#: templates/admin_user/menus/create_menus.html:164
+#: templates/admin_user/menus/update_menu.html:197
+msgid "Create"
+msgstr "Créer"
+
+#: templates/admin_user/menus/list_menu.html:90
+msgid "No image"
+msgstr "Aucune image"
+
+#: templates/admin_user/menus/list_menu.html:98
+#: templates/admin_user/menus/update_menu.html:39
+msgid "Available"
+msgstr "Disponible"
+
+#: templates/admin_user/menus/list_menu.html:98
+#: templates/admin_user/menus/update_menu.html:39
+msgid "Unavailable"
+msgstr "Indisponible"
+
+#: templates/admin_user/menus/list_menu.html:127
+msgid "Make unavailable"
+msgstr "Rendre indisponible"
+
+#: templates/admin_user/menus/list_menu.html:127
+msgid "Make available"
+msgstr "Rendre disponible"
+
+#: templates/admin_user/menus/list_menu.html:132
+#: templates/admin_user/settings.html:400
+msgid "Active"
+msgstr "Actif"
+
+#: templates/admin_user/menus/list_menu.html:132
+#: templates/admin_user/settings.html:400
+msgid "Inactive"
+msgstr "Inactif"
+
+#: templates/admin_user/menus/list_menu.html:139
+msgid "Edit"
+msgstr "Modifier"
+
+#: templates/admin_user/menus/list_menu.html:160
+msgid "No dishes in this category"
+msgstr "Aucun plat dans cette catégorie"
+
+#: templates/admin_user/menus/list_menu.html:175
+msgid "Your menu is empty"
+msgstr "Votre menu est vide"
+
+#: templates/admin_user/menus/list_menu.html:176
+msgid "Start by creating your first dish."
+msgstr "Commencez par créer votre premier plat."
+
+#: templates/admin_user/menus/list_menu.html:179
+msgid "Create my first dish"
+msgstr "Créer mon premier plat"
+
+#: templates/admin_user/menus/list_menu.html:196
+msgid "Delete this dish?"
+msgstr "Supprimer ce plat ?"
+
+#: templates/admin_user/menus/list_menu.html:198
+msgid "This action is irreversible."
+msgstr "Cette action est irréversible."
+
+#: templates/admin_user/menus/list_menu.html:206
+#: templates/admin_user/orders/update_order.html:287
+msgid "Delete"
+msgstr "Supprimer"
+
+#: templates/admin_user/menus/list_menu.html:224
+msgid "Change availability"
+msgstr "Modifier la disponibilité"
+
+#: templates/admin_user/menus/list_menu.html:234
+msgid "Confirm"
+msgstr "Confirmer"
+
+#: templates/admin_user/menus/update_menu.html:3
+msgid "Edit a dish"
+msgstr "Modifier un plat"
+
+#: templates/admin_user/menus/update_menu.html:49
+msgid "Images actuelles"
+msgstr "Images actuelles"
+
+#: templates/admin_user/menus/update_menu.html:64
+msgid "Nouvelles images"
+msgstr "Nouvelles images"
+
+#: templates/admin_user/menus/update_menu.html:64
+msgid "remplace les existantes si renseignées"
+msgstr "remplace les existantes si renseignées"
+
+#: templates/admin_user/menus/update_menu.html:86
+msgid "Vidéo actuelle"
+msgstr "Vidéo actuelle"
+
+#: templates/admin_user/menus/update_menu.html:94
+msgid "remplace l'existante"
+msgstr "remplace l'existante"
+
+#: templates/admin_user/menus/update_menu.html:100
+msgid "Ajouter / remplacer la vidéo"
+msgstr "Ajouter / remplacer la vidéo"
+
+#: templates/admin_user/menus/update_menu.html:156
+msgid "Ingredients, sides…"
+msgstr "Ingrédients, accompagnements…"
+
+#: templates/admin_user/menus/update_menu.html:167
+#: templates/admin_user/orders/update_order.html:247
+msgid "Update"
+msgstr "Mettre à jour"
+
+#: templates/admin_user/no_restaurant.html:4
+msgid "Welcome"
+msgstr "Bienvenue"
+
+#: templates/admin_user/no_restaurant.html:20
+msgid "No restaurant found"
+msgstr "Aucun restaurant trouvé"
+
+#: templates/admin_user/no_restaurant.html:25
+msgid "You haven't created any restaurant yet."
+msgstr "Vous n'avez pas encore créé de restaurant."
+
+#: templates/admin_user/no_restaurant.html:26
+msgid "Start now and activate your digital menu with QR Code."
+msgstr "Commencez maintenant et activez votre menu numérique avec QR Code."
+
+#: templates/admin_user/no_restaurant.html:35
+msgid "Create my restaurant"
+msgstr "Créer mon restaurant"
+
+#: templates/admin_user/no_restaurant.html:41
+msgid "Free — Ready in 5 minutes"
+msgstr "Gratuit — Prêt en 5 minutes"
+
+#: templates/admin_user/orders/_orders_feed.html:53
+#: templates/admin_user/staff/list.html:106
+msgid "Pending"
+msgstr "En attente"
+
+#: templates/admin_user/orders/_orders_feed.html:58
+#: templates/admin_user/orders/create_manual_order.html:50
+#: templates/admin_user/orders/update_order.html:52
+#: templates/customer/navbar.html:26
+msgid "Table"
+msgstr "Table"
+
+#: templates/admin_user/orders/_orders_feed.html:58
+msgid "Takeaway"
+msgstr "À emporter"
+
+#: templates/admin_user/orders/_orders_feed.html:65
+msgid "more"
+msgstr "de plus"
+
+#: templates/admin_user/orders/_orders_feed.html:76
+msgid "View details"
+msgstr "Voir les détails"
+
+#: templates/admin_user/orders/_orders_feed.html:95
+msgid "Change status"
+msgstr "Changer le statut"
+
+#: templates/admin_user/orders/_orders_feed.html:136
+msgid "No orders"
+msgstr "Aucune commande"
+
+#: templates/admin_user/orders/_orders_feed.html:138
+msgid "No orders match your search"
+msgstr "Aucune commande ne correspond à votre recherche"
+
+#: templates/admin_user/orders/_orders_feed.html:138
+msgid "Your orders will appear here"
+msgstr "Vos commandes apparaîtront ici"
+
+#: templates/admin_user/orders/_orders_feed.html:150
+msgid "Previous"
+msgstr "Précédent"
+
+#: templates/admin_user/orders/_orders_feed.html:159
+msgid "Next"
+msgstr "Suivant"
+
+#: templates/admin_user/orders/create_manual_order.html:3
+msgid "New order"
+msgstr "Nouvelle commande"
+
+#: templates/admin_user/orders/create_manual_order.html:4
+#: templates/admin_user/orders/list_orders.html:11
+msgid "Manual order"
+msgstr "Commande manuelle"
+
+#: templates/admin_user/orders/create_manual_order.html:40
+#: templates/admin_user/orders/update_order.html:42
+msgid "Information"
+msgstr "Information"
+
+#: templates/admin_user/orders/create_manual_order.html:46
+#: templates/admin_user/orders/update_order.html:48
+msgid "Type"
+msgstr "Type"
+
+#: templates/admin_user/orders/create_manual_order.html:57
+#: templates/admin_user/orders/update_order.html:59
+msgid "Customer"
+msgstr "Client"
+
+#: templates/admin_user/orders/create_manual_order.html:61
+#: templates/admin_user/orders/update_order.html:63
+#: templates/admin_user/settings.html:292
+msgid "Phone"
+msgstr "Téléphone"
+
+#: templates/admin_user/orders/create_manual_order.html:67
+#: templates/admin_user/orders/update_order.html:74
+msgid "Notes"
+msgstr "Notes"
+
+#: templates/admin_user/orders/create_manual_order.html:121
+#: templates/admin_user/orders/update_order.html:143
+msgid "No dishes available in the menu."
+msgstr "Aucun plat disponible dans le menu."
+
+#: templates/admin_user/orders/create_manual_order.html:136
+#: templates/admin_user/orders/update_order.html:4
+#: templates/admin_user/orders/update_order.html:158
+msgid "Order"
+msgstr "Commande"
+
+#: templates/admin_user/orders/create_manual_order.html:138
+msgid "item"
+msgstr "article"
+
+#: templates/admin_user/orders/create_manual_order.html:145
+msgid "Add items from the menu"
+msgstr "Ajouter des plats depuis le menu"
+
+#: templates/admin_user/orders/create_manual_order.html:152
+#: templates/admin_user/orders/list_orders.html:131
+#: templates/admin_user/orders/update_order.html:242
+msgid "Total"
+msgstr "Total"
+
+#: templates/admin_user/orders/create_manual_order.html:159
+msgid "Create order"
+msgstr "Créer la commande"
+
+#: templates/admin_user/orders/list_orders.html:23
+msgid "New order received"
+msgstr "Nouvelle commande reçue"
+
+#: templates/admin_user/orders/list_orders.html:34
+msgid "Search by name, table or order number…"
+msgstr "Rechercher par nom, table ou numéro de commande…"
+
+#: templates/admin_user/orders/list_orders.html:50
+msgid "All"
+msgstr "Toutes"
+
+#: templates/admin_user/orders/list_orders.html:118
+msgid "Items"
+msgstr "Articles"
+
+#: templates/admin_user/orders/list_orders.html:124
+msgid "Subtotal"
+msgstr "Sous-total"
+
+#: templates/admin_user/orders/update_order.html:3
+msgid "Edit order"
+msgstr "Modifier la commande"
+
+#: templates/admin_user/orders/update_order.html:69
+msgid "Status"
+msgstr "Statut"
+
+#: templates/admin_user/orders/update_order.html:87
+msgid "Add items"
+msgstr "Ajouter des articles"
+
+#: templates/admin_user/orders/update_order.html:91
+msgid "Show all"
+msgstr "Tout afficher"
+
+#: templates/admin_user/orders/update_order.html:161
+msgid "item(s)"
+msgstr "article(s)"
+
+#: templates/admin_user/orders/update_order.html:193
+#: templates/admin_user/orders/update_order.html:232
+#: templates/admin_user/staff/list.html:132
+msgid "Remove"
+msgstr "Retirer"
+
+#: templates/admin_user/orders/update_order.html:255
+#: templates/admin_user/orders/update_order.html:273
+msgid "Delete order"
+msgstr "Supprimer la commande"
+
+#: templates/admin_user/orders/update_order.html:276
+#, python-format
+msgid ""
+"Delete order <span class=\"font-bold text-slate-800\">#%(id)s</span>? This "
+"action is irreversible."
+msgstr ""
+"Supprimer la commande <span class=\"font-bold text-slate-800\">#%(id)s</"
+"span> ? Cette action est irréversible."
+
+#: templates/admin_user/settings.html:3 templates/admin_user/settings.html:4
+#: templates/admin_user/sidebar.html:116
+msgid "Settings"
+msgstr "Paramètres"
+
+#: templates/admin_user/settings.html:196
+msgid "Restaurant settings"
+msgstr "Paramètres du restaurant"
+
+#: templates/admin_user/settings.html:198
+msgid "Manage the basic information of your establishment"
+msgstr "Gérez les informations de base de votre établissement"
+
+#: templates/admin_user/settings.html:203 templates/admin_user/sidebar.html:24
+msgid "Dashboard"
+msgstr "Tableau de bord"
+
+#: templates/admin_user/settings.html:221
+msgid "Restaurant"
+msgstr "Restaurant"
+
+#: templates/admin_user/settings.html:226
+msgid "Contact"
+msgstr "Contact"
+
+#: templates/admin_user/settings.html:231
+#: templates/admin_user/settings.html:498
+msgid "Hours"
+msgstr "Horaires"
+
+#: templates/admin_user/settings.html:263
+msgid "Restaurant logo"
+msgstr "Logo du restaurant"
+
+#: templates/admin_user/settings.html:264
+msgid "PNG, JPG · Recommended 200×200px"
+msgstr "PNG, JPG · 200×200px recommandé"
+
+#: templates/admin_user/settings.html:269
+#: templates/admin_user/settings.html:274
+msgid "Restaurant name"
+msgstr "Nom du restaurant"
+
+#: templates/admin_user/settings.html:273
+msgid "Ex: Le Petit Bistrot"
+msgstr "Ex : Le Petit Bistrot"
+
+#: templates/admin_user/settings.html:275
+msgid "Visible to your customers on your online menu"
+msgstr "Visible par vos clients sur votre menu en ligne"
+
+#: templates/admin_user/settings.html:282
+msgid "Describe your cuisine, your atmosphere, what makes you unique…"
+msgstr "Décrivez votre cuisine, votre ambiance, ce qui vous rend unique…"
+
+#: templates/admin_user/settings.html:284
+msgid "A few words about your establishment (optional)"
+msgstr "Quelques mots sur votre établissement (facultatif)"
+
+#: templates/admin_user/settings.html:303
+msgid "Email"
+msgstr "Email"
+
+#: templates/admin_user/settings.html:315
+msgid "Full address"
+msgstr "Adresse complète"
+
+#: templates/admin_user/settings.html:329
+msgid "Leave empty to indicate \"Closed\"."
+msgstr "Laisser vide pour indiquer « Fermé »."
+
+#: templates/admin_user/settings.html:412
+msgid "No description"
+msgstr "Pas de description"
+
+#: templates/admin_user/settings.html:437
+msgid "Updated"
+msgstr "Mis à jour"
+
+#: templates/admin_user/settings.html:446
+msgid "Quick actions"
+msgstr "Actions rapides"
+
+#: templates/admin_user/settings.html:453 templates/admin_user/sidebar.html:96
+msgid "Customization"
+msgstr "Personnalisation"
+
+#: templates/admin_user/settings.html:454
+msgid "Colors, logo, font"
+msgstr "Couleurs, logo, police"
+
+#: templates/admin_user/settings.html:464
+msgid "Menu management"
+msgstr "Gestion du menu"
+
+#: templates/admin_user/settings.html:465
+msgid "Dishes, categories, prices"
+msgstr "Plats, catégories, prix"
+
+#: templates/admin_user/settings.html:475 templates/admin_user/sidebar.html:106
+#: templates/admin_user/staff/list.html:3
+#: templates/admin_user/staff/list.html:4
+msgid "Team"
+msgstr "Équipe"
+
+#: templates/admin_user/settings.html:476
+msgid "Manage staff"
+msgstr "Gérer l'équipe"
+
+#: templates/admin_user/settings.html:486
+msgid "Restaurant status"
+msgstr "Statut du restaurant"
+
+#: templates/admin_user/settings.html:488
+msgid "Temporarily deactivate"
+msgstr "Désactiver temporairement"
+
+#: templates/admin_user/settings.html:488
+msgid "Reactivate"
+msgstr "Réactiver"
+
+#: templates/admin_user/settings.html:510
+msgid "Closed"
+msgstr "Fermé"
+
+#: templates/admin_user/sidebar.html:36
+msgid "Analytiques"
+msgstr "Analytiques"
+
+#: templates/admin_user/sidebar.html:82
+msgid "Customize QR"
+msgstr "Personnaliser QR"
+
+#: templates/admin_user/sidebar.html:126
+msgid "Subscription"
+msgstr "Abonnement"
+
+#: templates/admin_user/staff/list.html:11
+msgid "Invite a member"
+msgstr "Inviter un membre"
+
+#: templates/admin_user/staff/list.html:15
+msgid "Member email..."
+msgstr "Email du membre..."
+
+#: templates/admin_user/staff/list.html:19
+msgid "Role…"
+msgstr "Rôle…"
+
+#: templates/admin_user/staff/list.html:21
+msgid "Co-administrator"
+msgstr "Co-administrateur"
+
+#: templates/admin_user/staff/list.html:23
+msgid "Cook"
+msgstr "Cuisinier"
+
+#: templates/admin_user/staff/list.html:24
+msgid "Waiter"
+msgstr "Serveur"
+
+#: templates/admin_user/staff/list.html:28
+msgid "Send invitation"
+msgstr "Envoyer une invitation"
+
+#: templates/admin_user/staff/list.html:34
+msgid "Active members"
+msgstr "Membres actifs"
+
+#: templates/admin_user/staff/list.html:73
+msgid "Remove from team"
+msgstr "Retirer de l'équipe"
+
+#: templates/admin_user/staff/list.html:87
+msgid "No members yet"
+msgstr "Pas encore de membres"
+
+#: templates/admin_user/staff/list.html:88
+msgid "Invite your team using the form above."
+msgstr "Invitez votre équipe via le formulaire ci-dessus."
+
+#: templates/admin_user/staff/list.html:94
+msgid "Pending invitations"
+msgstr "Invitations en attente"
+
+#: templates/admin_user/staff/list.html:102
+msgid "Role:"
+msgstr "Rôle :"
+
+#: templates/admin_user/staff/list.html:102
+msgid "Expires on"
+msgstr "Expire le"
+
+#: templates/admin_user/staff/list.html:121
+msgid "Remove member"
+msgstr "Retirer le membre"
+
+#: templates/customer/base.html:149
+msgid "View my cart"
+msgstr "Voir mon panier"
+
+#: templates/customer/navbar.html:43
+msgid "Cart"
+msgstr "Panier"

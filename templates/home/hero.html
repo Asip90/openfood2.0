@@ -80,94 +80,21 @@
         </div>
       </div>
 
-      <!-- ── Right: Phone mockup ─────────────────── -->
+      <!-- ── Right: Hero image ─────────────────── -->
       <div class="relative flex justify-center lg:justify-end pb-0 pt-6 lg:pt-0 overflow-visible">
 
-        <!-- Decorative blob behind phone -->
-        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[380px] h-[380px] rounded-full pointer-events-none"
-             style="background: radial-gradient(circle, rgba(249,115,22,0.1) 0%, transparent 70%);"></div>
+        <!-- Soft glow behind image -->
+        <div class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[420px] h-[420px] rounded-full pointer-events-none"
+             style="background: radial-gradient(circle, rgba(249,115,22,0.08) 0%, transparent 70%);"></div>
 
-        <!-- Phone frame -->
-        <div class="relative z-10 animate-float mx-auto" style="width: min(290px, 78vw);">
-          <div class="relative bg-white rounded-[44px] overflow-hidden" style="box-shadow: 0 40px 100px rgba(0,0,0,0.16), 0 0 0 1px rgba(0,0,0,0.06), inset 0 0 0 2px rgba(255,255,255,0.8);">
+        <!-- Hero image (transparent PNG) -->
+        <div class="relative z-10 animate-float mx-auto" style="width: min(460px, 90vw);">
+          <img src="{% static 'img/hero_openfood .png' %}"
+               alt="OpenFood — menu digital pour restaurants"
+               class="w-full h-auto drop-shadow-2xl select-none">
 
-            <!-- Notch -->
-            <div class="absolute top-0 left-1/2 -translate-x-1/2 w-28 h-6 bg-slate-900 rounded-b-3xl z-20 flex items-center justify-center gap-1.5">
-              <div class="w-1.5 h-1.5 rounded-full bg-slate-700"></div>
-              <div class="w-3 h-3 rounded-full bg-slate-700"></div>
-            </div>
-
-            <!-- Status bar -->
-            <div class="pt-8 flex items-center justify-between px-5 py-2 bg-white">
-              <span class="text-[11px] font-bold text-slate-800" style="font-family: Syne, sans-serif;">9:41</span>
-              <div class="flex items-center gap-1.5">
-                <i class="ri-signal-wifi-fill text-slate-600" style="font-size:11px"></i>
-                <i class="ri-battery-2-charge-fill text-slate-600" style="font-size:11px"></i>
-              </div>
-            </div>
-
-            <!-- App header -->
-            <div class="bg-white px-4 py-3 flex items-center gap-3 border-b border-slate-100">
-              <div class="w-10 h-10 rounded-2xl bg-primary flex items-center justify-center flex-shrink-0 overflow-hidden">
-                <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
-              </div>
-              <div class="min-w-0">
-                <div class="font-display font-black text-slate-900 text-sm leading-tight truncate">Le Gourmet</div>
-                <div class="text-[10px] text-slate-400 mt-0.5">Table 5 · Commandez ici</div>
-              </div>
-            </div>
-
-            <!-- Category tabs -->
-            <div class="flex gap-2 px-4 py-3 bg-white border-b border-slate-100">
-              <div class="px-3 py-1.5 bg-primary rounded-full text-white text-[10px] font-bold whitespace-nowrap">Plats</div>
-              <div class="px-3 py-1.5 bg-slate-100 rounded-full text-slate-500 text-[10px] font-medium whitespace-nowrap">Entrées</div>
-              <div class="px-3 py-1.5 bg-slate-100 rounded-full text-slate-500 text-[10px] font-medium whitespace-nowrap">Desserts</div>
-            </div>
-
-            <!-- Menu items -->
-            <div class="px-4 py-3 space-y-3 bg-slate-50">
-              <div class="bg-white rounded-2xl p-3 flex gap-3">
-                <div class="w-14 h-14 rounded-xl bg-orange-50 flex items-center justify-center text-2xl flex-shrink-0">🍗</div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold text-slate-900 text-[11px] leading-tight">Poulet Yassa</div>
-                  <div class="text-[10px] text-slate-400 mt-0.5 truncate">Riz blanc, oignons caramélisés</div>
-                  <div class="flex items-center justify-between mt-2">
-                    <span class="font-black text-primary text-[11px]">3 500 FCFA</span>
-                    <div class="w-6 h-6 rounded-lg bg-primary flex items-center justify-center">
-                      <span class="text-white text-xs font-bold leading-none">+</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-              <div class="bg-white rounded-2xl p-3 flex gap-3">
-                <div class="w-14 h-14 rounded-xl bg-amber-50 flex items-center justify-center text-2xl flex-shrink-0">🥘</div>
-                <div class="flex-1 min-w-0">
-                  <div class="font-bold text-slate-900 text-[11px] leading-tight">Thiéboudiène</div>
-                  <div class="text-[10px] text-slate-400 mt-0.5 truncate">Riz au poisson, légumes</div>
-                  <div class="flex items-center justify-between mt-2">
-                    <span class="font-black text-primary text-[11px]">4 000 FCFA</span>
-                    <div class="w-6 h-6 rounded-lg bg-primary flex items-center justify-center">
-                      <span class="text-white text-xs font-bold leading-none">+</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            <!-- Cart bar -->
-            <div class="mx-4 mb-5 mt-3 bg-slate-950 rounded-2xl px-4 py-3 flex items-center justify-between">
-              <div class="flex items-center gap-2">
-                <div class="w-7 h-7 rounded-xl bg-primary flex items-center justify-center">
-                  <i class="ri-shopping-cart-2-line text-white" style="font-size:12px"></i>
-                </div>
-                <span class="text-white font-bold text-[11px]">2 articles</span>
-              </div>
-              <span class="text-primary font-black text-[11px]">7 500 FCFA →</span>
-            </div>
-          </div>
-
-              <!-- Floating badge — new order (hidden on small screens) -->
-          <div class="hidden sm:flex absolute -top-3 -right-10 animate-float-delay bg-white rounded-2xl px-3 py-2.5 items-center gap-2.5 shadow-card border border-slate-100">
+          <!-- Floating badge — nouvelle commande -->
+          <div class="hidden sm:flex absolute top-8 -right-6 animate-float-delay bg-white rounded-2xl px-3 py-2.5 items-center gap-2.5 shadow-card border border-slate-100">
             <div class="w-8 h-8 rounded-xl bg-green-100 flex items-center justify-center flex-shrink-0">
               <i class="ri-notification-3-fill text-green-600 text-sm"></i>
             </div>
@@ -177,8 +104,8 @@
             </div>
           </div>
 
-          <!-- Floating badge — QR (hidden on small screens) -->
-          <div class="hidden sm:flex absolute -bottom-4 -left-10 bg-white rounded-2xl px-3 py-2.5 items-center gap-2.5 shadow-card border border-slate-100 animate-float" style="animation-delay:1s">
+          <!-- Floating badge — QR Code -->
+          <div class="hidden sm:flex absolute bottom-10 -left-6 bg-white rounded-2xl px-3 py-2.5 items-center gap-2.5 shadow-card border border-slate-100 animate-float" style="animation-delay:1s">
             <div class="w-8 h-8 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
               <i class="ri-qr-code-line text-primary text-sm"></i>
             </div>

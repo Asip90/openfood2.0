@@ -160,6 +160,7 @@
     const CART_KEY = "cart_{% if table %}{{ table.token }}{% else %}guest{% endif %}";
     const UPDATE_CART_URL = {% if table %}"{% url 'update_cart' table.token %}"{% else %}null{% endif %};
     const CHECKOUT_URL = {% if table %}"{% url 'checkout' table.token %}"{% else %}null{% endif %};
+    const ITEM_DETAIL_URL = (id) => `/item/${id}/details/`;
   </script>
   <script>
     function cartStore() {
@@ -242,6 +243,7 @@
           this.carouselIndex = 0;
           this.modalOpen = true;
           document.body.classList.add('overflow-hidden');
+          fetch(ITEM_DETAIL_URL(item.id)).catch(() => {});
         },
         closeModal() {
           this.modalOpen = false;

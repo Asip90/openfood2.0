@@ -26,6 +26,7 @@ media/
 
 # Secrets — ne jamais commiter
 .env
+.env.example
 
 # Environnements virtuels
 env/

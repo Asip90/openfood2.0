@@ -4,7 +4,8 @@ from django.contrib.auth.decorators import login_required
 from base.decorators import get_user_restaurant, restaurant_required, owner_or_coadmin_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, Sum, Avg, Prefetch
+from django.db.models import Count, Sum, Avg, Prefetch, Q
+from django.db.models.functions import TruncDate, TruncMonth, ExtractHour, ExtractWeekDay
 from django.http import JsonResponse
 from django.core.paginator import Paginator
 from django.utils import timezone
@@ -13,6 +14,7 @@ from .forms import RestaurantCreateForm, OrderForm, OrderItemFormSet, TableForm,
 from .models import SubscriptionPlan, PromoCode, PromoCodeUse, Restaurant, MenuItem, MenuItemMedia, Order, OrderItem, RestaurantCustomization, QRSettings
 from django.forms import inlineformset_factory
 from django.utils.text import slugify
+from django.conf import settings
 from .utils import generate_unique_subdomain
 from django.views.decorators.http import require_GET
 
@@ -210,7 +212,7 @@ def dashboard(request):
             restaurant=restaurant,
             created_at__date__gte=last_7_days
         )
-        .extra(select={'day': "date(created_at)"})
+        .annotate(day=TruncDate('created_at'))
         .values('day')
         .annotate(count=Count('id'))
         .order_by('day')
@@ -219,12 +221,7 @@ def dashboard(request):
     days = []
     orders_count = []
     for item in orders_by_day:
-        day = item['day']
-        if isinstance(day, str):
-            day_obj = datetime.strptime(day, "%Y-%m-%d").date()
-        else:
-            day_obj = day
-        days.append(day_obj.strftime("%d/%m"))
+        days.append(item['day'].strftime("%d/%m"))
         orders_count.append(item['count'])
 
     order_types = (
@@ -239,6 +236,16 @@ def dashboard(request):
         type_labels.append(o['order_type'])
         type_values.append(o['count'])
 
+    # URL de prévisualisation du menu client
+    first_table = Table.objects.filter(restaurant=restaurant, is_active=True).first()
+    if first_table:
+        base = settings.FRONTEND_BASE_URL.rstrip('/')
+        scheme = 'https' if base.startswith('https') else 'http'
+        host = base.replace('https://', '').replace('http://', '')
+        menu_url = f"{scheme}://{restaurant.subdomain}.{host}/t/{first_table.token}/"
+    else:
+        menu_url = None
+
     context = {
         "restaurant": restaurant,
         "user_role": role,
@@ -252,6 +259,7 @@ def dashboard(request):
         "type_labels": type_labels,
         "type_values": type_values,
         "latest_order_id": latest_order_id,
+        "menu_url": menu_url,
     }
 
     return render(request, "admin_user/index.html", context)
@@ -280,18 +288,14 @@ def analytics_view(request):
             status__in=["confirmed", "preparing", "ready", "delivered"],
             created_at__date__gte=last_30_days,
         )
-        .extra(select={"day": "date(created_at)"})
+        .annotate(day=TruncDate("created_at"))
         .values("day")
         .annotate(revenue=Sum("total"))
         .order_by("day")
     )
     revenue_labels, revenue_values = [], []
     for item in revenue_by_day:
-        day = item["day"]
-        if isinstance(day, str):
-            day_obj = datetime.strptime(day, "%Y-%m-%d").date()
-        else:
-            day_obj = day
+        day_obj = item["day"]
         revenue_labels.append(day_obj.strftime("%d/%m"))
         revenue_values.append(float(item["revenue"] or 0))
 
@@ -321,12 +325,12 @@ def analytics_view(request):
     # Heures de pointe (0–23)
     orders_by_hour = (
         Order.objects.filter(restaurant=restaurant)
-        .extra(select={"hour": "CAST(strftime('%H', created_at) AS INTEGER)"})
+        .annotate(hour=ExtractHour("created_at"))
         .values("hour")
         .annotate(count=Count("id"))
         .order_by("hour")
     )
-    hour_map = {int(row["hour"]): row["count"] for row in orders_by_hour}
+    hour_map = {row["hour"]: row["count"] for row in orders_by_hour}
     peak_labels = [f"{h:02d}h" for h in range(24)]
     peak_values = [hour_map.get(h, 0) for h in range(24)]
 
@@ -334,17 +338,17 @@ def analytics_view(request):
     DAY_NAMES = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"]
     orders_by_dow = (
         Order.objects.filter(restaurant=restaurant)
-        .extra(select={"dow": "CAST(strftime('%w', created_at) AS INTEGER)"})
+        .annotate(dow=ExtractWeekDay("created_at"))
         .values("dow")
         .annotate(count=Count("id"))
         .order_by("dow")
     )
-    # SQLite %w : 0=dimanche … 6=samedi → on réordonne en lundi-dimanche
-    dow_map_raw = {int(row["dow"]): row["count"] for row in orders_by_dow}
-    # convert: 1=lundi…6=samedi, 0=dimanche → index 0..6 lun-dim
-    dow_reordered = [dow_map_raw.get(i if i > 0 else 7 % 7, 0) for i in range(1, 8)]
-    # fix: dimanche = key 0 in SQLite
-    dow_reordered[6] = dow_map_raw.get(0, 0)
+    # Django ExtractWeekDay: 1=dimanche … 7=samedi
+    dow_map_raw = {row["dow"]: row["count"] for row in orders_by_dow}
+    # Réordonne en lundi-dimanche (index 0..6)
+    # Django: 2=lundi…7=samedi, 1=dimanche
+    dow_reordered = [dow_map_raw.get(i, 0) for i in range(2, 8)]  # lun→sam
+    dow_reordered.append(dow_map_raw.get(1, 0))  # dimanche
     dow_labels = DAY_NAMES
     dow_values = dow_reordered
 
@@ -380,12 +384,12 @@ def analytics_view(request):
                 status__in=["confirmed", "preparing", "ready", "delivered"],
                 created_at__date__gte=last_12_months,
             )
-            .extra(select={"month": "strftime('%Y-%m', created_at)"})
+            .annotate(month=TruncMonth("created_at"))
             .values("month")
             .annotate(revenue=Sum("total"))
             .order_by("month")
         )
-        context["monthly_labels"] = [r["month"] for r in monthly_revenue]
+        context["monthly_labels"] = [r["month"].strftime("%Y-%m") for r in monthly_revenue]
         context["monthly_values"] = [float(r["revenue"] or 0) for r in monthly_revenue]
 
         # Performance par catégorie
@@ -619,16 +623,27 @@ def delete_order(request, order_id):
     return redirect("orders_list")
 
 
+def _orders_queryset(restaurant, status_filter, q):
+    qs = Order.objects.filter(restaurant=restaurant).order_by("-created_at")
+    if status_filter:
+        qs = qs.filter(status=status_filter)
+    if q:
+        qs = qs.filter(
+            Q(customer_name__icontains=q) |
+            Q(order_number__icontains=q) |
+            Q(table__number__icontains=q)
+        ).distinct()
+    return qs
+
+
 @restaurant_required()
 def orders_list(request):
     restaurant = request.restaurant
-
     status_filter = request.GET.get("status", "")
-    orders_qs = Order.objects.filter(restaurant=restaurant).order_by("-created_at")
-    if status_filter:
-        orders_qs = orders_qs.filter(status=status_filter)
+    q = request.GET.get("q", "").strip()
 
-    paginator = Paginator(orders_qs, 15)
+    orders_qs = _orders_queryset(restaurant, status_filter, q)
+    paginator = Paginator(orders_qs, 10)
     orders = paginator.get_page(request.GET.get("page"))
 
     latest_order = Order.objects.filter(restaurant=restaurant).order_by('-created_at', '-id').first()
@@ -638,9 +653,29 @@ def orders_list(request):
         "restaurant": restaurant,
         "orders": orders,
         "current_status": status_filter,
+        "current_q": q,
         "status_choices": Order.STATUS_CHOICES,
         "pending_count": Order.objects.filter(restaurant=restaurant, status="pending").count(),
         "latest_order_id": latest_order_id,
+    })
+
+
+@restaurant_required()
+def orders_partial(request):
+    """Renders only the orders feed fragment (list + pagination) for AJAX refresh."""
+    restaurant = request.restaurant
+    status_filter = request.GET.get("status", "")
+    q = request.GET.get("q", "").strip()
+
+    orders_qs = _orders_queryset(restaurant, status_filter, q)
+    paginator = Paginator(orders_qs, 10)
+    orders = paginator.get_page(request.GET.get("page", 1))
+
+    return render(request, "admin_user/orders/_orders_feed.html", {
+        "orders": orders,
+        "current_status": status_filter,
+        "current_q": q,
+        "status_choices": Order.STATUS_CHOICES,
     })
 
 
@@ -724,7 +759,9 @@ def order_detail(request, pk):
 @restaurant_required(allowed_roles=['owner', 'coadmin', 'cuisinier'])
 def menus_list(request):
     restaurant = request.restaurant
-    categories = Category.objects.filter(restaurant=restaurant)
+    categories = Category.objects.filter(
+        restaurant=restaurant
+    ).prefetch_related('items__media')
 
     return render(request, "admin_user/menus/list_menu.html", {
         "restaurant": restaurant,

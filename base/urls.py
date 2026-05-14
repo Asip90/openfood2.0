@@ -18,6 +18,7 @@ urlpatterns = [
     # Commandes
     path("orders/check/", check_new_orders, name="check_new_orders"),
     path("orders/export-csv/", export_orders_csv, name="export_orders_csv"),
+    path("orders/partial/", orders_partial, name="orders_partial"),
     path("orders/", orders_list, name="orders_list"),
     path("orders/create-manual-order/", create_manual_order, name="create_manual_order"),
     path("orders/<int:pk>/recu/", order_receipt, name="order_receipt"),

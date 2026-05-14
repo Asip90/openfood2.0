@@ -4,6 +4,24 @@ from django import template
 register = template.Library()
 
 @register.filter
+def first_image_url(item):
+    """Return the first Cloudinary image URL, falling back to the legacy image field."""
+    for m in item.media.all():
+        if m.media_type == 'image':
+            return m.url
+    if item.image:
+        return item.image.url
+    return None
+
+@register.filter
+def image_urls(item):
+    """Return a JSON array of all image URLs for the carousel (max 3)."""
+    urls = [m.url for m in item.media.all() if m.media_type == 'image'][:3]
+    if not urls and item.image:
+        urls = [item.image.url]
+    return json.dumps(urls)
+
+@register.filter
 def item_json(item):
     media_qs = list(item.media.all())  # pre-fetched via prefetch_related
 

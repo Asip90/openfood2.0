@@ -33,6 +33,37 @@ Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.
         message,
         settings.DEFAULT_FROM_EMAIL,
         [user.email],
-        # fail_silently=False,
+        fail_silently=True,
+    )
+
+
+def send_password_reset_email(request, user):
+    import uuid
+    from django.utils import timezone
+
+    user.password_reset_token = uuid.uuid4()
+    user.password_reset_token_created_at = timezone.now()
+    user.save(update_fields=["password_reset_token", "password_reset_token_created_at"])
+
+    reset_url = request.build_absolute_uri(
+        reverse("reinitialiser-mot-de-passe", args=[str(user.password_reset_token)])
+    )
+
+    subject = "Réinitialisation de votre mot de passe"
+    message = f"""Bonjour {user.first_name},
+
+Vous avez demandé à réinitialiser votre mot de passe OpenFood.
+
+Cliquez sur le lien ci-dessous pour choisir un nouveau mot de passe (valable 1 heure) :
+{reset_url}
+
+Si vous n'êtes pas à l'origine de cette demande, ignorez ce message.
+"""
+
+    send_mail(
+        subject,
+        message,
+        settings.DEFAULT_FROM_EMAIL,
+        [user.email],
         fail_silently=True,
     )

@@ -1,0 +1,179 @@
+{% extends 'auth/base.html' %}
+{% load static %}
+
+{% block title %}Mot de passe oublié — OpenFood{% endblock %}
+
+{% block content %}
+<div class="min-h-screen flex">
+
+  <!-- ══ LEFT PANEL ══════════════════════════════════════════════════════ -->
+  <div class="hidden lg:flex lg:w-[46%] xl:w-[44%] flex-col relative overflow-hidden flex-shrink-0"
+       style="background: linear-gradient(145deg, #f97316 0%, #ea580c 55%, #c2410c 100%);">
+
+    <div class="absolute inset-0 pointer-events-none opacity-[0.08]"
+         style="background-image: radial-gradient(circle at 1px 1px, white 1px, transparent 0); background-size: 26px 26px;"></div>
+    <div class="absolute -top-20 -right-20 w-96 h-96 bg-white/10 rounded-full blur-[100px] pointer-events-none"></div>
+    <div class="absolute -bottom-20 -left-20 w-72 h-72 bg-orange-900/25 rounded-full blur-[80px] pointer-events-none"></div>
+
+    <div class="relative flex flex-col h-full px-10 xl:px-14 py-10">
+
+      <a href="/" class="inline-flex items-center gap-2.5">
+        <div class="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center overflow-hidden">
+          <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
+        </div>
+        <span class="font-display font-black text-white text-xl tracking-tight notranslate">Open<span class="text-orange-200">Food</span></span>
+      </a>
+
+      <div class="my-auto">
+        {% comment %} <div class="w-16 h-16 rounded-2xl bg-white/20 border border-white/30 flex items-center justify-center mb-8">
+          <i class="ri-lock-password-line text-white text-3xl"></i>
+        </div> {% endcomment %}
+        <h2 class="font-display font-black text-white mb-4"
+            style="font-size: clamp(1.55rem, 2.2vw, 2.1rem); line-height: 1.2;">
+          Réinitialisez votre mot de passe en toute sécurité.
+        </h2>
+        <p class="text-orange-100 text-sm leading-relaxed max-w-xs">
+          Entrez votre adresse email et nous vous enverrons un lien sécurisé pour choisir un nouveau mot de passe.
+        </p>
+
+        <div class="mt-10 space-y-4">
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="ri-mail-send-line text-white text-sm"></i>
+            </div>
+            <div>
+              <div class="text-white font-semibold text-sm">Lien envoyé par email</div>
+              <div class="text-orange-200 text-xs mt-0.5">Vérifiez aussi vos spams</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="ri-time-line text-white text-sm"></i>
+            </div>
+            <div>
+              <div class="text-white font-semibold text-sm">Valable 1 heure</div>
+              <div class="text-orange-200 text-xs mt-0.5">Le lien expire après 60 minutes</div>
+            </div>
+          </div>
+          <div class="flex items-start gap-3">
+            <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center flex-shrink-0 mt-0.5">
+              <i class="ri-shield-check-line text-white text-sm"></i>
+            </div>
+            <div>
+              <div class="text-white font-semibold text-sm">100% sécurisé</div>
+              <div class="text-orange-200 text-xs mt-0.5">Token unique à usage unique</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div class="pt-6 border-t border-white/15">
+        <p class="text-orange-200 text-xs">Vous vous souvenez de votre mot de passe ?
+          <a href="{% url 'connexion' %}" class="text-white font-semibold hover:underline ml-1">Se connecter →</a>
+        </p>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- ══ RIGHT PANEL — form ══════════════════════════════════════════════ -->
+  <div class="flex-1 flex flex-col items-center justify-center px-6 py-10 bg-white">
+
+    <div class="lg:hidden mb-8 su">
+      <a href="/" class="inline-flex items-center gap-2">
+        <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center overflow-hidden">
+          <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
+        </div>
+        <span class="font-display font-black text-slate-900 text-xl notranslate">Open<span class="text-primary">Food</span></span>
+      </a>
+    </div>
+
+    <div class="w-full max-w-[22rem]">
+
+      <!-- Back link -->
+      <a href="{% url 'connexion' %}" class="su inline-flex items-center gap-1.5 text-slate-500 text-sm hover:text-primary transition-colors mb-8">
+        <i class="ri-arrow-left-line"></i> Retour à la connexion
+      </a>
+
+      <!-- Heading -->
+      <div class="mb-8 su-1">
+        <div class="w-12 h-12 rounded-2xl bg-orange-50 border border-orange-100 flex items-center justify-center mb-5">
+          <i class="ri-lock-password-line text-primary text-2xl"></i>
+        </div>
+        <p class="text-primary text-sm font-semibold mb-1">Mot de passe oublié</p>
+        <h1 class="font-display font-black text-slate-900 text-[1.75rem] leading-tight mb-2">
+          Réinitialiser
+        </h1>
+        <p class="text-slate-500 text-sm">
+          Indiquez votre email et nous vous enverrons un lien pour créer un nouveau mot de passe.
+        </p>
+      </div>
+
+      <!-- Form -->
+      <form method="post" class="space-y-4">
+        {% csrf_token %}
+
+        <div class="su-2">
+          <label class="block text-slate-700 text-sm font-medium mb-1.5">Adresse email</label>
+          <input type="email" name="email" placeholder="vous@restaurant.com" autocomplete="email"
+                 class="input-field w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm" required>
+        </div>
+
+        <div class="su-3 pt-1">
+          <button type="submit"
+                  class="w-full py-3.5 rounded-xl bg-primary text-white font-bold text-[0.95rem] transition-all
+                         shadow-[0_4px_16px_rgba(249,115,22,0.3)] hover:bg-primary-dark hover:shadow-[0_6px_24px_rgba(249,115,22,0.4)]
+                         active:scale-[0.98] flex items-center justify-center gap-2">
+            <i class="ri-mail-send-line"></i>
+            Envoyer le lien
+          </button>
+        </div>
+      </form>
+
+      <p class="su-4 text-center text-slate-400 text-xs mt-6 leading-relaxed">
+        Pensez à vérifier vos spams si vous ne recevez pas l'email dans quelques minutes.
+      </p>
+
+    </div>
+  </div>
+
+</div>
+
+<!-- ══ Toasts ══════════════════════════════════════════════════════════ -->
+<div id="toast-zone" class="fixed top-5 right-5 space-y-2 z-50 w-80">
+  {% if messages %}
+    {% for message in messages %}
+      {% if message.tags == "success" %}
+        <div class="toast-item flex items-start gap-2.5 px-4 py-3 rounded-xl bg-white border border-green-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-checkbox-circle-fill text-green-500 text-base flex-shrink-0 mt-0.5"></i>{{ message }}
+        </div>
+      {% elif message.tags == "error" or message.tags == "danger" %}
+        <div class="toast-item flex items-start gap-2.5 px-4 py-3 rounded-xl bg-white border border-red-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-error-warning-fill text-red-500 text-base flex-shrink-0 mt-0.5"></i>{{ message }}
+        </div>
+      {% else %}
+        <div class="toast-item flex items-start gap-2.5 px-4 py-3 rounded-xl bg-white border border-blue-100 shadow-card text-slate-800 text-sm font-medium">
+          <i class="ri-information-fill text-blue-500 text-base flex-shrink-0 mt-0.5"></i>{{ message }}
+        </div>
+      {% endif %}
+    {% endfor %}
+  {% endif %}
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+  (function(){
+    var items = document.querySelectorAll('.toast-item');
+    if(!items.length) return;
+    setTimeout(function(){
+      items.forEach(function(el){
+        el.style.transition = 'opacity 0.35s, transform 0.35s';
+        el.style.opacity = '0';
+        el.style.transform = 'translateX(16px)';
+        setTimeout(function(){ el.remove(); }, 350);
+      });
+    }, 5500);
+  })();
+</script>
+{% endblock %}

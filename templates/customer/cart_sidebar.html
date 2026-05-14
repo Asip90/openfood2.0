@@ -9,11 +9,11 @@
      x-transition:leave-end="opacity-0"
      class="fixed inset-0 z-50 flex items-end">
 
-  <!-- Overlay -->
-  <div class="absolute inset-0 bg-black/40 backdrop-blur-sm" @click="cartOpen = false"></div>
+  <!-- Backdrop -->
+  <div class="absolute inset-0 bg-slate-900/50 backdrop-blur-sm" @click="cartOpen = false"></div>
 
-  <!-- Panel -->
-  <div class="relative bg-white w-full rounded-t-3xl overflow-hidden z-10 flex flex-col max-h-[85vh]"
+  <!-- Sheet -->
+  <div class="relative bg-white w-full rounded-t-3xl z-10 flex flex-col max-h-[88vh] shadow-modal"
        x-transition:enter="transition ease-out duration-300"
        x-transition:enter-start="translate-y-full"
        x-transition:enter-end="translate-y-0"
@@ -22,42 +22,46 @@
        x-transition:leave-end="translate-y-full">
 
     <!-- Handle + Header -->
-    <div class="flex-shrink-0 px-5 pt-3 pb-4 border-b border-slate-100">
+    <div class="flex-shrink-0 px-5 pt-2.5 pb-4">
       <div class="flex justify-center mb-3">
-        <div class="w-10 h-1 rounded-full bg-slate-200"></div>
+        <div class="w-9 h-1 rounded-full bg-slate-200"></div>
       </div>
       <div class="flex items-center justify-between">
-        <h2 class="font-black text-slate-900 text-lg">Mon panier</h2>
+        <div>
+          <h2 class="font-black text-slate-900 text-lg leading-tight">Mon panier</h2>
+          <p class="text-slate-400 text-xs mt-0.5"
+             x-text="cartCount + ' article' + (cartCount > 1 ? 's' : '')"></p>
+        </div>
         <button @click="cartOpen = false"
-                class="w-8 h-8 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-slate-200 transition-colors">
+                class="w-9 h-9 rounded-2xl bg-slate-100 flex items-center justify-center text-slate-500 active:bg-slate-200 transition-colors">
           <i class="ri-close-line text-base"></i>
         </button>
       </div>
-      <p class="text-slate-400 text-xs mt-0.5"
-         x-text="cartCount + ' article' + (cartCount > 1 ? 's' : '')"></p>
     </div>
 
-    <!-- Scrollable items -->
-    <div class="flex-1 overflow-y-auto px-5 py-4 space-y-3">
+    <!-- Items (scrollable) -->
+    <div class="flex-1 overflow-y-auto px-5 pb-2 space-y-2.5 scrollbar-none">
 
       <!-- Empty state -->
       <template x-if="cartItems.length === 0">
-        <div class="flex flex-col items-center justify-center py-12 text-center">
-          <div class="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mb-4">
+        <div class="flex flex-col items-center justify-center py-14 text-center">
+          <div class="w-16 h-16 rounded-3xl bg-slate-50 flex items-center justify-center mb-4">
             <i class="ri-shopping-bag-line text-2xl text-slate-300"></i>
           </div>
-          <p class="text-slate-400 text-sm font-medium">Votre panier est vide</p>
-          <p class="text-slate-300 text-xs mt-1">Ajoutez des articles depuis le menu</p>
+          <p class="text-slate-600 text-sm font-semibold">Panier vide</p>
+          <p class="text-slate-400 text-xs mt-1">Ajoutez des plats depuis le menu</p>
         </div>
       </template>
 
-      <!-- Items -->
+      <!-- Item rows -->
       <template x-for="item in cartItems" :key="item.id">
-        <div class="flex items-center gap-3 bg-slate-50 rounded-2xl p-3">
+        <div class="flex items-center gap-3 rounded-2xl p-3"
+             style="background: #f8fafc;">
 
-          <!-- Image -->
+          <!-- Image or fallback -->
           <template x-if="item.image">
-            <img :src="item.image" :alt="item.name" class="w-14 h-14 rounded-xl object-cover flex-shrink-0">
+            <img :src="item.image" :alt="item.name"
+                 class="w-14 h-14 rounded-xl object-cover flex-shrink-0">
           </template>
           <template x-if="!item.image">
             <div class="w-14 h-14 rounded-xl bg-white border border-slate-100 flex items-center justify-center flex-shrink-0">
@@ -67,21 +71,21 @@
 
           <!-- Info -->
           <div class="flex-1 min-w-0">
-            <p class="text-slate-900 font-semibold text-sm truncate" x-text="item.name"></p>
-            <p class="font-bold text-sm mt-0.5" style="color: var(--color-primary);"
-               x-text="item.price + ' FCFA'"></p>
+            <p class="text-slate-900 font-semibold text-sm leading-tight truncate" x-text="item.name"></p>
+            <p class="text-sm font-bold mt-0.5" style="color: var(--color-primary);"
+               x-text="(item.price * item.quantity).toLocaleString('fr-FR') + ' FCFA'"></p>
           </div>
 
-          <!-- Quantity controls -->
-          <div class="flex items-center gap-2 flex-shrink-0">
-            <button @click="updateQty(item.id, item.quantity - 1)"
-                    class="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 hover:border-slate-300 transition-colors text-sm">
+          <!-- Quantity stepper -->
+          <div class="flex items-center gap-1.5 flex-shrink-0">
+            <button @click="updateQty(item.id, Number(item.quantity) - 1)"
+                    class="w-7 h-7 rounded-lg bg-white border border-slate-200 flex items-center justify-center text-slate-500 active:bg-slate-100 transition-colors text-sm">
               <i class="ri-subtract-line"></i>
             </button>
-            <span class="font-bold text-slate-900 text-sm min-w-[1.5rem] text-center"
+            <span class="font-black text-slate-900 text-sm min-w-[1.2rem] text-center"
                   x-text="item.quantity"></span>
-            <button @click="updateQty(item.id, item.quantity + 1)"
-                    class="w-7 h-7 rounded-lg flex items-center justify-center text-white text-sm transition-colors"
+            <button @click="updateQty(item.id, Number(item.quantity) + 1)"
+                    class="w-7 h-7 rounded-xl flex items-center justify-center text-white text-sm transition-colors active:opacity-80"
                     style="background-color: var(--color-primary);">
               <i class="ri-add-line"></i>
             </button>
@@ -92,23 +96,23 @@
 
     </div>
 
-    <!-- Footer: total + CTA -->
-    <div class="flex-shrink-0 px-5 py-4 border-t border-slate-100 space-y-3 bg-white">
-
-      <!-- Total -->
-      <div class="flex items-center justify-between">
-        <span class="text-slate-500 text-sm font-medium">Total</span>
-        <span class="font-black text-slate-900 text-lg" x-text="cartTotal + ' FCFA'"></span>
+    <!-- Footer -->
+    <div class="flex-shrink-0 px-5 pt-3 pb-5 border-t border-slate-100">
+      <!-- Total row -->
+      <div class="flex items-center justify-between mb-3">
+        <span class="text-slate-500 text-sm">Total</span>
+        <span class="font-black text-slate-900 text-xl" x-text="formatPrice(cartTotal)"></span>
       </div>
 
-      <!-- Commander CTA -->
-      <a :href="cartItems.length > 0 ? '/t/{{ table_token }}/checkout/' : '#'"
-         :class="cartItems.length === 0 ? 'opacity-50 pointer-events-none' : ''"
-         class="block w-full py-3.5 rounded-2xl text-white font-bold text-center text-base transition-all active:scale-[0.98]"
+      <!-- CTA -->
+      <a :href="cartItems.length > 0 && CHECKOUT_URL ? CHECKOUT_URL : '#'"
+         :class="cartItems.length === 0 || !CHECKOUT_URL ? 'opacity-40 pointer-events-none' : ''"
+         class="flex items-center justify-between w-full py-4 px-5 rounded-2xl text-white font-bold text-sm transition-all active:scale-[.98] shadow-float"
          style="background-color: var(--color-primary);">
-        Commander · <span x-text="cartTotal + ' FCFA'"></span>
+        <span>Commander</span>
+        <span x-text="formatPrice(cartTotal)"></span>
       </a>
-
     </div>
+
   </div>
 </div>

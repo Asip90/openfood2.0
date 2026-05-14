@@ -1,35 +1,50 @@
-{% load static %}
-<nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-md border-b border-slate-100"
-     style="box-shadow: 0 1px 12px rgba(0,0,0,0.06);">
+{% load static i18n %}
+<nav class="sticky top-0 z-40 bg-white/95 backdrop-blur-xl"
+     style="border-bottom: 1px solid rgba(0,0,0,0.05); box-shadow: 0 1px 16px rgba(0,0,0,0.05);">
   <div class="max-w-2xl mx-auto px-4 h-14 flex items-center justify-between gap-3">
 
-    <!-- Logo + nom -->
+    <!-- Brand -->
     <div class="flex items-center gap-2.5 min-w-0">
       {% if customization.logo %}
         <img src="{{ customization.logo.url }}" alt="{{ restaurant.name }}"
-             class="h-8 w-8 rounded-xl object-cover flex-shrink-0">
+             class="h-9 w-9 rounded-xl object-cover flex-shrink-0"
+             style="box-shadow: 0 2px 8px rgba(0,0,0,0.10);">
       {% elif restaurant.logo %}
         <img src="{{ restaurant.logo.url }}" alt="{{ restaurant.name }}"
-             class="h-8 w-8 rounded-xl object-cover flex-shrink-0">
+             class="h-9 w-9 rounded-xl object-cover flex-shrink-0"
+             style="box-shadow: 0 2px 8px rgba(0,0,0,0.10);">
       {% else %}
-        <div class="h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-xs font-black"
-             style="background-color: var(--color-primary);">
+        <div class="h-9 w-9 rounded-xl flex items-center justify-center flex-shrink-0 text-white text-[11px] font-black"
+             style="background-color: var(--color-primary); box-shadow: 0 2px 8px rgba(0,0,0,0.15);">
           {{ restaurant.name|slice:":2"|upper }}
         </div>
       {% endif %}
-      <span class="font-bold text-slate-900 text-sm truncate">{{ restaurant.name }}</span>
+      <div class="min-w-0">
+        <p class="font-bold text-slate-900 text-sm leading-tight truncate notranslate">{{ restaurant.name }}</p>
+        {% if table %}
+        <p class="text-[11px] font-medium leading-tight" style="color: var(--color-primary);">
+          <i class="ri-table-line text-[10px]"></i> {% trans "Table" %} {{ table.number }}
+        </p>
+        {% endif %}
+      </div>
     </div>
 
-    <!-- Bouton panier -->
+    <!-- Language toggle -->
+    <div class="flex items-center gap-0.5">
+      <button onclick="setLang('fr')" class="px-1.5 py-1 rounded-lg text-sm hover:bg-slate-100 transition-colors" title="Français">🇫🇷</button>
+      <button onclick="setLang('en')" class="px-1.5 py-1 rounded-lg text-sm hover:bg-slate-100 transition-colors" title="English">🇬🇧</button>
+    </div>
+
+    <!-- Cart CTA -->
     <button @click="cartOpen = true"
-            class="relative flex items-center gap-2 px-3 py-1.5 rounded-xl text-white text-sm font-semibold transition-all active:scale-95"
+            class="relative flex items-center gap-2 px-3.5 py-2 rounded-xl text-white text-[13px] font-semibold transition-all active:scale-95"
             style="background-color: var(--color-primary);">
-      <i class="ri-shopping-bag-line text-base"></i>
-      <span class="hidden sm:inline">Panier</span>
-      <span x-text="cartCount"
-            x-show="cartCount > 0"
-            x-cloak
-            class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-slate-900 text-white text-[10px] font-black flex items-center justify-center px-1">
+      <i class="ri-shopping-bag-2-line text-[15px]"></i>
+      <span class="hidden sm:inline leading-none">{% trans "Cart" %}</span>
+      <!-- Badge count -->
+      <span x-show="cartCount > 0" x-cloak
+            x-text="cartCount > 9 ? '9+' : cartCount"
+            class="absolute -top-1.5 -right-1.5 min-w-[18px] h-[18px] rounded-full bg-slate-900 text-white text-[10px] font-black flex items-center justify-center px-1 anim-pop">
       </span>
     </button>
 

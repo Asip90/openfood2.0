@@ -15,7 +15,8 @@
             primary: { DEFAULT: '#f97316', dark: '#ea580c', light: '#fff7ed' },
           },
           fontFamily: {
-            display: ['Syne', 'system-ui', 'sans-serif'],
+            display: ['Space Grotesk', 'system-ui', 'sans-serif'],
+            
             sans: ['DM Sans', 'system-ui', 'sans-serif'],
           },
           boxShadow: {
@@ -34,6 +35,10 @@
   <link href="https://cdn.jsdelivr.net/npm/remixicon@3.5.0/fonts/remixicon.css" rel="stylesheet">
 
   <style>
+    /* Google Translate — hide toolbar */
+    .goog-te-banner-frame,.goog-te-gadget{display:none!important}
+    body{top:0!important}
+    .goog-text-highlight{background:none!important;box-shadow:none!important}
     .font-display { font-family: 'Syne', system-ui, sans-serif; }
 
     .input-field {
@@ -61,7 +66,38 @@
   {% block extra_head %}{% endblock %}
 </head>
 <body class="font-sans bg-white text-slate-900 antialiased h-full">
+
+  <!-- Language toggle flottant -->
+  <div class="fixed top-4 right-4 z-50 flex items-center gap-0.5 bg-white border border-slate-200 rounded-xl px-1.5 py-1 shadow-soft">
+    <button onclick="setLang('fr')" class="px-2 py-1 rounded-lg text-sm hover:bg-slate-100 transition-colors" title="Français">🇫🇷</button>
+    <button onclick="setLang('en')" class="px-2 py-1 rounded-lg text-sm hover:bg-slate-100 transition-colors" title="English">🇬🇧</button>
+  </div>
+
   {% block content %}{% endblock %}
   {% block extra_js %}{% endblock %}
+
+  <!-- Google Translate -->
+  <div id="google_translate_element" style="position:absolute;top:-9999px"></div>
+  <script>
+    function googleTranslateElementInit(){
+      new google.translate.TranslateElement({pageLanguage:'fr',autoDisplay:false},'google_translate_element');
+      if(localStorage.getItem('of_lang')==='en') _gtApply('en');
+    }
+    function _gtApply(l){
+      var s=document.querySelector('.goog-te-combo');
+      if(s){s.value=l;s.dispatchEvent(new Event('change'));}
+      else setTimeout(function(){_gtApply(l);},300);
+    }
+    function setLang(l){
+      localStorage.setItem('of_lang',l);
+      if(l==='fr'){
+        var e=new Date(0).toUTCString();
+        document.cookie='googtrans=;expires='+e+';path=/';
+        document.cookie='googtrans=;expires='+e+';path=/;domain=.'+location.hostname;
+        location.reload();
+      } else { _gtApply(l); }
+    }
+  </script>
+  <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
 </body>
 </html>

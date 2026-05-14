@@ -1,7 +1,7 @@
 {% extends "admin_user/base.html" %}
-{% load static %}
+{% load static i18n %}
 
-{% block page_title %}Bienvenue{% endblock %}
+{% block page_title %}{% trans "Welcome" %}{% endblock %}
 
 {% block content %}
 <div class="min-h-[70vh] flex items-center justify-center px-4">
@@ -17,13 +17,13 @@
 
     <!-- Title -->
     <h1 class="font-display font-black text-2xl text-slate-900 mb-3 tracking-tight">
-      Aucun restaurant trouvé
+      {% trans "No restaurant found" %}
     </h1>
 
     <!-- Description -->
     <p class="text-slate-500 text-sm leading-relaxed mb-8">
-      Vous n'avez encore créé aucun restaurant.<br>
-      Commencez maintenant et activez votre menu digital avec QR Code.
+      {% trans "You haven't created any restaurant yet." %}<br>
+      {% trans "Start now and activate your digital menu with QR Code." %}
     </p>
 
     <!-- Action Button -->
@@ -32,13 +32,13 @@
               bg-primary text-white font-bold text-sm hover:bg-primary-dark transition-all
               shadow-glow hover:shadow-[0_0_0_4px_rgba(249,115,22,0.15),0_12px_40px_rgba(249,115,22,0.3)]">
       <i class="ri-add-line text-base"></i>
-      Créer mon restaurant
+      {% trans "Create my restaurant" %}
     </a>
 
     <!-- Trust signal -->
     <p class="text-slate-400 text-xs mt-6 flex items-center justify-center gap-1.5">
       <i class="ri-shield-check-line text-green-400"></i>
-      Gratuit — Prêt en 5 minutes
+      {% trans "Free — Ready in 5 minutes" %}
     </p>
 
   </div>

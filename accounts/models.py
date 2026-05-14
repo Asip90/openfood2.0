@@ -45,6 +45,8 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_staff = models.BooleanField(default=False)
     transfer_pin_hash = models.CharField(max_length=64, blank=True, null=True)
     date_joined = models.DateTimeField(default=timezone.now)
+    password_reset_token = models.UUIDField(null=True, blank=True)
+    password_reset_token_created_at = models.DateTimeField(null=True, blank=True)
     def set_transfer_pin(self, pin: str):
         self.transfer_pin_hash = hashlib.sha256(pin.encode()).hexdigest()
         self.save()

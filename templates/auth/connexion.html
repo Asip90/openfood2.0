@@ -25,7 +25,7 @@
         <div class="w-10 h-10 rounded-xl bg-white/20 border border-white/30 flex items-center justify-center overflow-hidden">
           <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
         </div>
-        <span class="font-display font-black text-white text-xl tracking-tight">Open<span class="text-orange-200">Food</span></span>
+        <span class="font-display font-black text-white text-xl tracking-tight notranslate">Open<span class="text-orange-200">Food</span></span>
       </a>
 
       <!-- Main copy -->
@@ -124,7 +124,7 @@
         <div class="w-9 h-9 rounded-xl bg-primary flex items-center justify-center overflow-hidden">
           <img src="{% static 'logo/logo_open_food.png' %}" alt="OpenFood" class="w-full h-full object-contain">
         </div>
-        <span class="font-display font-black text-slate-900 text-xl">Open<span class="text-primary">Food</span></span>
+        <span class="font-display font-black text-slate-900 text-xl notranslate">Open<span class="text-primary">Food</span></span>
       </a>
     </div>
 
@@ -153,7 +153,7 @@
         <div class="su-2">
           <div class="flex items-center justify-between mb-1.5">
             <label class="block text-slate-700 text-sm font-medium">Mot de passe</label>
-            <a href="#" class="text-primary text-xs font-semibold hover:text-primary-dark transition-colors">Oublié ?</a>
+            <a href="{% url 'mot-de-passe-oublie' %}" class="text-primary text-xs font-semibold hover:text-primary-dark transition-colors">Oublié ?</a>
           </div>
           <input type="password" name="password" placeholder="••••••••" autocomplete="current-password"
                  class="input-field w-full px-4 py-3 bg-slate-50 border border-slate-200 rounded-xl text-slate-900 placeholder-slate-400 text-sm" required>
