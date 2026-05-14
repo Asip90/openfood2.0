@@ -10,12 +10,35 @@
   <!-- Right section: notifications + user dropdown -->
   <div class="flex items-center gap-4">
 
-    <!-- Notification -->
-    <div class="relative">
-      <button class="relative text-gray-500 hover:text-gray-700 focus:outline-none p-1">
-        <i class="fas fa-bell text-lg"></i>
-        <span class="absolute top-1 right-1 inline-block w-2 h-2 bg-red-500 rounded-full"></span>
+    <!-- Waiter call notifications -->
+    <div class="relative" x-data="{ open: false }">
+      <button @click="open = !open"
+              class="relative text-gray-500 hover:text-gray-700 focus:outline-none p-1">
+        <i class="ri-bell-3-line text-xl"></i>
+        <!-- Badge: shown/hidden by polling JS in base.html -->
+        <span id="waiterCallBadge"
+              class="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-500 text-white text-[10px] font-black rounded-full flex items-center justify-center"
+              style="display:none;">0</span>
       </button>
+
+      <!-- Dropdown panel -->
+      <div x-show="open"
+           @click.outside="open = false"
+           x-transition
+           class="absolute right-0 mt-2 w-72 bg-white border border-gray-200 rounded-xl shadow-xl z-50 overflow-hidden">
+
+        <div class="px-4 py-3 border-b border-gray-100 flex items-center justify-between">
+          <p class="text-sm font-bold text-gray-800">Appels de serveur</p>
+          <button @click="open = false" class="text-gray-400 hover:text-gray-600">
+            <i class="ri-close-line text-lg"></i>
+          </button>
+        </div>
+
+        <!-- Populated by polling JS in base.html -->
+        <div id="waiterCallsPanel" class="max-h-72 overflow-y-auto">
+          <p class="text-slate-400 text-xs text-center py-4">Aucun appel en cours</p>
+        </div>
+      </div>
     </div>
 
     <!-- User dropdown -->
