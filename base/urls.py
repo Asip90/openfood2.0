@@ -72,4 +72,9 @@ urlpatterns = [
     path('abonnement/callback/<str:plan_type>/', subscription_views.subscribe_callback, name='subscribe_callback'),
     path('abonnement/statut/', subscription_views.subscription_status, name='subscription_status'),
     path('abonnement/webhook/', subscription_views.fedapay_webhook, name='fedapay_webhook'),
+
+    # Waiter Call API
+    path('api/waiter-call/<str:table_token>/', create_waiter_call, name='create_waiter_call'),
+    path('api/waiter-calls/pending/', list_waiter_calls, name='list_waiter_calls'),
+    path('api/waiter-calls/<int:call_id>/claim/', claim_waiter_call, name='claim_waiter_call'),
 ]

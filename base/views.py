@@ -11,12 +11,13 @@ from django.core.paginator import Paginator
 from django.utils import timezone
 from base.models import Category, Table
 from .forms import RestaurantCreateForm, OrderForm, OrderItemFormSet, TableForm, OrderItemForm, QRSettingsForm
-from .models import SubscriptionPlan, PromoCode, PromoCodeUse, Restaurant, MenuItem, MenuItemMedia, Order, OrderItem, RestaurantCustomization, QRSettings
+from .models import SubscriptionPlan, PromoCode, PromoCodeUse, Restaurant, MenuItem, MenuItemMedia, Order, OrderItem, RestaurantCustomization, QRSettings, WaiterCall
 from django.forms import inlineformset_factory
 from django.utils.text import slugify
 from django.conf import settings
 from .utils import generate_unique_subdomain
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
+from django.views.decorators.csrf import csrf_exempt
 from base.services.subscription import get_effective_plan
 
 FAQS = [
@@ -1222,3 +1223,78 @@ def settings_hub(request):
         "restaurant": restaurant,
         "plan": restaurant.subscription_plan,
     })
+
+
+# ── Waiter Call API ────────────────────────────────────────────────────────────
+
+@csrf_exempt
+@require_POST
+def create_waiter_call(request, table_token):
+    """Public endpoint — called by the customer floating button."""
+    try:
+        table = Table.objects.select_related('restaurant').get(token=table_token)
+    except Table.DoesNotExist:
+        return JsonResponse({'status': 'error', 'detail': 'Table introuvable'}, status=404)
+
+    restaurant = table.restaurant
+    expiry = timezone.now() - timedelta(minutes=30)
+    already_pending = WaiterCall.objects.filter(
+        table=table,
+        status='pending',
+        created_at__gte=expiry,
+    ).exists()
+
+    if already_pending:
+        return JsonResponse({'status': 'already_pending'})
+
+    WaiterCall.objects.create(restaurant=restaurant, table=table)
+    return JsonResponse({'status': 'ok'})
+
+
+@login_required
+@require_GET
+def list_waiter_calls(request):
+    """Polling endpoint — returns active calls for the logged-in user's restaurant."""
+    restaurant, _ = get_user_restaurant(request.user)
+    if not restaurant:
+        return JsonResponse({'calls': []})
+
+    expiry = timezone.now() - timedelta(minutes=30)
+    calls = WaiterCall.objects.filter(
+        restaurant=restaurant,
+        created_at__gte=expiry,
+    ).select_related('table', 'claimed_by').order_by('-created_at')
+
+    data = []
+    for call in calls:
+        claimed_name = ''
+        if call.claimed_by:
+            claimed_name = f"{call.claimed_by.first_name} {call.claimed_by.last_name}".strip() or call.claimed_by.email
+        data.append({
+            'id': call.id,
+            'table_number': call.table.number,
+            'status': call.status,
+            'claimed_by': claimed_name,
+            'created_at': call.created_at.isoformat(),
+        })
+
+    return JsonResponse({'calls': data})
+
+
+@login_required
+@require_POST
+def claim_waiter_call(request, call_id):
+    """Mark a waiter call as claimed by the current user."""
+    restaurant, _ = get_user_restaurant(request.user)
+    if not restaurant:
+        return JsonResponse({'status': 'error', 'detail': 'Pas de restaurant'}, status=403)
+
+    try:
+        call = WaiterCall.objects.get(id=call_id, restaurant=restaurant)
+    except WaiterCall.DoesNotExist:
+        return JsonResponse({'status': 'error', 'detail': 'Appel introuvable'}, status=404)
+
+    call.status = 'claimed'
+    call.claimed_by = request.user
+    call.save(update_fields=['status', 'claimed_by'])
+    return JsonResponse({'status': 'ok'})
