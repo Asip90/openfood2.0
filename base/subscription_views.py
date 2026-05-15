@@ -137,6 +137,10 @@ def subscribe_initiate(request, plan_type):
             return redirect(payment_url)
         raise ValueError("No payment URL in FedaPay response")
 
+    except http_requests.exceptions.HTTPError as e:
+        logger.error("FedaPay initiate failed: %s — body: %s", e, e.response.text if e.response is not None else 'N/A')
+        messages.error(request, "Erreur lors de la création du paiement. Vérifiez votre connexion et réessayez.")
+        return redirect('pricing')
     except Exception as e:
         logger.error("FedaPay initiate failed: %s", e)
         messages.error(request, "Erreur lors de la création du paiement. Vérifiez votre connexion et réessayez.")
