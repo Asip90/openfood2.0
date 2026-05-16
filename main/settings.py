@@ -176,3 +176,7 @@ if CLOUDINARY_CLOUD_NAME and CLOUDINARY_API_KEY and CLOUDINARY_API_SECRET:
     )
 else:
     print("ATTENTION : Clés Cloudinary manquantes dans le fichier .env")
+
+# Compatibility shim for django-cloudinary-storage with Django 4.2+ STORAGES dict
+STATICFILES_STORAGE = STORAGES['staticfiles']['BACKEND']
+DEFAULT_FILE_STORAGE = STORAGES['default']['BACKEND']
