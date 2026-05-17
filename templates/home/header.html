@@ -21,6 +21,7 @@
       <a href="#how-it-works" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">Comment ça marche</a>
       <a href="#reviews" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">Témoignages</a>
       <a href="#faq" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">FAQ</a>
+      <a href="/blog/" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">Blog</a>
       <a href="{% url 'pricing' %}" class="px-4 py-2 text-sm font-medium text-slate-600 hover:text-primary rounded-lg hover:bg-primary/5 transition-all duration-200">Tarifs</a>
     </nav>
 
@@ -92,6 +93,9 @@
     </a>
     <a href="#faq" @click="open=false" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-primary hover:bg-primary/5 text-sm font-medium transition-all">
       <i class="ri-question-line text-primary text-base"></i> FAQ
+    </a>
+    <a href="/blog/" @click="open=false" class="flex items-center gap-3 px-4 py-3 rounded-xl text-slate-700 hover:text-primary hover:bg-primary/5 text-sm font-medium transition-all">
+      <i class="ri-article-line text-primary text-base"></i> Blog
     </a>
     <div class="border-t border-slate-100 pt-4 mt-2 space-y-2">
       {% if user.is_authenticated %}
