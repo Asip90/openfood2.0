@@ -3,26 +3,107 @@
 
   <url>
     <loc>{{ base_url }}/</loc>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>weekly</changefreq>
     <priority>1.0</priority>
   </url>
 
   <url>
     <loc>{{ base_url }}/tarifs/</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/benin/</loc>
+    <lastmod>2026-05-17</lastmod>
     <changefreq>monthly</changefreq>
     <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>{{ base_url }}/inscription/</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.6</priority>
+    <loc>{{ base_url }}/cote-divoire/</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
   </url>
 
   <url>
-    <loc>{{ base_url }}/connexion/</loc>
-    <changefreq>yearly</changefreq>
-    <priority>0.4</priority>
+    <loc>{{ base_url }}/senegal/</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/mali/</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/</loc>
+    <lastmod>2026-05-17</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.8</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/menu-qr-code-restaurant-guide-complet/</loc>
+    <lastmod>2026-05-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/digitaliser-restaurant-afrique-ouest-guide/</loc>
+    <lastmod>2026-05-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/menu-papier-vs-menu-digital-restaurant/</loc>
+    <lastmod>2026-04-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/reduire-erreurs-commande-restaurant/</loc>
+    <lastmod>2026-04-20</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/qr-code-restaurant-comment-ca-marche/</loc>
+    <lastmod>2026-04-15</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/logiciel-gestion-restaurant-benin/</loc>
+    <lastmod>2026-04-10</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/mobile-money-restaurant-afrique/</loc>
+    <lastmod>2026-04-05</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <url>
+    <loc>{{ base_url }}/blog/fideliser-clients-restaurant-afrique/</loc>
+    <lastmod>2026-03-28</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
   </url>
 
 </urlset>
