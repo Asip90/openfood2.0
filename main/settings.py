@@ -30,6 +30,7 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     "django.middleware.security.SecurityMiddleware",
+    "whitenoise.middleware.WhiteNoiseMiddleware",
     "django.contrib.sessions.middleware.SessionMiddleware",
     "django.middleware.locale.LocaleMiddleware",
     "django.middleware.common.CommonMiddleware",
@@ -56,6 +57,7 @@ TEMPLATES = [
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
                 'base.context_processors.restaurant_context',
+                'base.context_processors.canonical_url',
             ],
         },
     },
@@ -157,7 +159,7 @@ CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
 
 STORAGES = {
-    'staticfiles': {'BACKEND': 'django.contrib.staticfiles.storage.StaticFilesStorage'},
+    'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},
     'default': {'BACKEND': 'django.core.files.storage.FileSystemStorage'},
 }
 
@@ -178,5 +180,5 @@ else:
     print("ATTENTION : Clés Cloudinary manquantes dans le fichier .env")
 
 # Compatibility shim for django-cloudinary-storage with Django 4.2+ STORAGES dict
-STATICFILES_STORAGE = STORAGES['staticfiles']['BACKEND']
+STATICFILES_STORAGE = STORAGES['staticfiles']['BACKEND']  # shim compat django-cloudinary-storage
 DEFAULT_FILE_STORAGE = STORAGES['default']['BACKEND']

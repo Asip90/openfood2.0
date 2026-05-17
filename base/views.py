@@ -51,7 +51,6 @@ FAQS = [
 def home(request):
     return render(request, 'home/index.html', {
         'faqs': FAQS,
-        'canonical_url': request.build_absolute_uri('/'),
     })
 
 

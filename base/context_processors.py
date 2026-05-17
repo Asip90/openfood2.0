@@ -16,3 +16,9 @@ def restaurant_context(request):
         'user_role': role,
     })
     return ctx
+
+
+def canonical_url(request):
+    return {
+        'canonical_url': request.build_absolute_uri(request.path),
+    }
