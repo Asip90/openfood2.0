@@ -1,7 +1,13 @@
 {% extends 'auth/base.html' %}
 {% load static %}
 
-{% block title %}Inscription — OpenFood{% endblock %}
+{% block title %}Créer votre Menu Digital Gratuit — OpenFood{% endblock %}
+
+{% block meta_description %}Créez gratuitement votre menu digital QR Code en 5 minutes. Rejoignez +300 restaurants en Afrique de l'Ouest. Aucune carte bancaire requise.{% endblock %}
+
+{% block og_title %}Inscription gratuite — OpenFood Menu Digital{% endblock %}
+
+{% block og_description %}Créez votre menu digital QR Code en 5 minutes. Gratuit pour démarrer. Restaurants au Bénin, Côte d'Ivoire, Sénégal.{% endblock %}
 
 {% block content %}
 <div class="min-h-screen flex">
@@ -30,10 +36,10 @@
 
       <!-- Main copy -->
       <div class="my-auto">
-        <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 text-white/90 text-xs font-semibold mb-6">
+        {% comment %} <div class="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-white/15 border border-white/20 text-white/90 text-xs font-semibold mb-6">
           <i class="ri-rocket-line text-orange-200"></i>
           Configuration gratuite en 5 minutes
-        </div>
+        </div> {% endcomment %}
 
         <h2 class="font-display font-black text-white mb-4"
             style="font-size: clamp(1.55rem, 2.2vw, 2.1rem); line-height: 1.2; text-wrap: balance;">

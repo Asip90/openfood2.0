@@ -5,6 +5,10 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>{% block title %}OpenFood{% endblock %}</title>
+  <meta name="description" content="{% block meta_description %}OpenFood — Menu digital QR Code pour restaurants en Afrique de l'Ouest.{% endblock %}">
+  <meta property="og:title" content="{% block og_title %}OpenFood{% endblock %}">
+  <meta property="og:description" content="{% block og_description %}Créez votre menu digital QR Code en 5 minutes. Gratuit pour démarrer.{% endblock %}">
+  {% if canonical_url %}<link rel="canonical" href="{{ canonical_url }}">{% endif %}
 
   <script src="{% static 'vendor/tailwind.js' %}"></script>
   <script>
