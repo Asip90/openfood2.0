@@ -1,4 +1,5 @@
 from django.urls import path
+from django.views.generic import TemplateView
 from base.views import *
 from base import staff_admin_views
 from base import subscription_views
@@ -18,6 +19,13 @@ urlpatterns = [
     # Blog SEO
     path('blog/', blog_views.blog_index, name='blog_index'),
     path('blog/<slug:slug>/', blog_views.blog_detail, name='blog_detail'),
+
+    # Pages légales et utilitaires
+    path('contact/', TemplateView.as_view(template_name='home/contact.html'), name='contact'),
+    path('aide/', TemplateView.as_view(template_name='home/aide.html'), name='aide'),
+    path('confidentialite/', TemplateView.as_view(template_name='home/confidentialite.html'), name='confidentialite'),
+    path('conditions/', TemplateView.as_view(template_name='home/conditions.html'), name='conditions'),
+    path('mentions-legales/', TemplateView.as_view(template_name='home/mentions_legales.html'), name='mentions_legales'),
 
     path("restaurant/create/", create_restaurant, name="create_restaurant"),
 

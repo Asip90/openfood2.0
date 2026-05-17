@@ -1,0 +1,67 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Politique de confidentialité — OpenFood{% endblock %}
+{% block meta_description %}Politique de confidentialité d'OpenFood. Comment nous collectons, utilisons et protégeons vos données personnelles conformément au RGPD.{% endblock %}
+
+{% block content %}
+{% include 'home/header.html' %}
+
+<section class="py-16 px-5">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="font-display font-black text-slate-900 text-3xl md:text-4xl mb-2">Politique de confidentialité</h1>
+    <p class="text-slate-400 text-sm mb-10">Dernière mise à jour : 17 mai 2026</p>
+
+    <div class="prose prose-slate prose-headings:font-display prose-headings:font-black prose-a:text-primary max-w-none">
+
+      <h2>1. Qui sommes-nous ?</h2>
+      <p>OpenFood est une solution SaaS de menu digital par QR Code pour les restaurateurs d'Afrique de l'Ouest. Le responsable du traitement des données est OpenFood, joignable à <a href="mailto:support@openfood.site">support@openfood.site</a>.</p>
+
+      <h2>2. Données collectées</h2>
+      <p>Nous collectons les données suivantes :</p>
+      <ul>
+        <li><strong>Données de compte :</strong> nom, email, nom du restaurant.</li>
+        <li><strong>Données d'utilisation :</strong> menus créés, commandes reçues, statistiques d'utilisation.</li>
+        <li><strong>Données de navigation :</strong> adresse IP, type de navigateur, pages visitées (via Google Analytics).</li>
+        <li><strong>Données de paiement :</strong> traitées par FedaPay — nous ne stockons pas vos informations bancaires.</li>
+      </ul>
+
+      <h2>3. Utilisation des données</h2>
+      <p>Vos données sont utilisées pour :</p>
+      <ul>
+        <li>Fournir et améliorer le service OpenFood.</li>
+        <li>Envoyer des notifications liées à votre compte (commandes, alertes).</li>
+        <li>Répondre à vos demandes de support.</li>
+        <li>Analyser l'utilisation du service pour l'améliorer.</li>
+      </ul>
+
+      <h2>4. Partage des données</h2>
+      <p>Nous ne vendons jamais vos données. Elles peuvent être partagées uniquement avec nos prestataires techniques (hébergement, paiement, analytics) dans le cadre strict de la fourniture du service.</p>
+
+      <h2>5. Conservation des données</h2>
+      <p>Vos données sont conservées tant que votre compte est actif. En cas de suppression de compte, les données sont effacées dans un délai de 30 jours.</p>
+
+      <h2>6. Vos droits</h2>
+      <p>Conformément au RGPD et aux lois en vigueur, vous disposez des droits suivants :</p>
+      <ul>
+        <li>Accès à vos données personnelles.</li>
+        <li>Rectification des données inexactes.</li>
+        <li>Suppression de vos données (droit à l'oubli).</li>
+        <li>Opposition au traitement de vos données.</li>
+      </ul>
+      <p>Pour exercer ces droits : <a href="mailto:support@openfood.site">support@openfood.site</a></p>
+
+      <h2>7. Cookies</h2>
+      <p>Nous utilisons des cookies pour le bon fonctionnement du service et l'analyse d'audience (Google Analytics). Vous pouvez désactiver les cookies dans les paramètres de votre navigateur.</p>
+
+      <h2>8. Sécurité</h2>
+      <p>Toutes les communications sont chiffrées via HTTPS. Les mots de passe sont stockés de manière sécurisée (hashés). L'accès aux données est strictement limité à notre équipe technique.</p>
+
+      <h2>9. Contact</h2>
+      <p>Pour toute question relative à cette politique : <a href="mailto:support@openfood.site">support@openfood.site</a></p>
+    </div>
+  </div>
+</section>
+
+{% include 'home/footer.html' %}
+{% endblock %}

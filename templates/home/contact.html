@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Contact — OpenFood{% endblock %}
+{% block meta_description %}Contactez l'équipe OpenFood. Support pour restaurateurs au Bénin, Côte d'Ivoire, Sénégal et Mali. Réponse sous 24h par email ou WhatsApp.{% endblock %}
+
+{% block content %}
+{% include 'home/header.html' %}
+
+<section class="bg-gradient-to-b from-orange-50 to-white py-20 px-5">
+  <div class="max-w-2xl mx-auto">
+    <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-4">
+      <span class="w-6 h-px bg-primary"></span> Contact
+    </span>
+    <h1 class="font-display font-black text-slate-900 text-3xl md:text-4xl mb-4">
+      Contactez-nous
+    </h1>
+    <p class="text-slate-500 text-lg mb-10">Notre équipe répond sous 24h. Pour un support urgent, écrivez-nous directement sur WhatsApp.</p>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-10">
+      <a href="mailto:support@openfood.site"
+         class="flex items-center gap-4 p-6 rounded-2xl border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all">
+        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+          <i class="ri-mail-line text-primary text-2xl"></i>
+        </div>
+        <div>
+          <p class="font-bold text-slate-900 mb-0.5">Email</p>
+          <p class="text-slate-500 text-sm">support@openfood.site</p>
+          <p class="text-slate-400 text-xs mt-1">Réponse sous 24h</p>
+        </div>
+      </a>
+      <a href="https://wa.me/22900000000"
+         class="flex items-center gap-4 p-6 rounded-2xl border border-slate-100 hover:border-primary/20 hover:shadow-card transition-all">
+        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center flex-shrink-0">
+          <i class="ri-whatsapp-line text-primary text-2xl"></i>
+        </div>
+        <div>
+          <p class="font-bold text-slate-900 mb-0.5">WhatsApp</p>
+          <p class="text-slate-500 text-sm">+229 00 00 00 00</p>
+          <p class="text-slate-400 text-xs mt-1">Lun–Ven, 8h–18h</p>
+        </div>
+      </a>
+    </div>
+
+    <div class="bg-orange-50 rounded-2xl p-8 text-center">
+      <h2 class="font-display font-black text-slate-900 text-xl mb-3">Vous êtes déjà client ?</h2>
+      <p class="text-slate-500 mb-5">Accédez à votre tableau de bord pour gérer votre menu et vos commandes.</p>
+      <a href="{% url 'connexion' %}" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors">
+        Accéder au tableau de bord
+      </a>
+    </div>
+  </div>
+</section>
+
+{% include 'home/footer.html' %}
+{% endblock %}

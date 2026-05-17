@@ -1,0 +1,91 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Centre d'aide — OpenFood{% endblock %}
+{% block meta_description %}Trouvez des réponses à vos questions sur OpenFood. Comment créer un menu QR Code, gérer vos commandes, changer de plan ou contacter le support.{% endblock %}
+
+{% block content %}
+{% include 'home/header.html' %}
+
+<section class="bg-gradient-to-b from-orange-50 to-white py-20 px-5">
+  <div class="max-w-3xl mx-auto text-center">
+    <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-4">
+      <span class="w-6 h-px bg-primary"></span> Aide
+    </span>
+    <h1 class="font-display font-black text-slate-900 text-3xl md:text-4xl mb-4">Centre d'aide</h1>
+    <p class="text-slate-500 text-lg">Tout ce dont vous avez besoin pour bien démarrer avec OpenFood.</p>
+  </div>
+</section>
+
+<section class="py-16 px-5">
+  <div class="max-w-3xl mx-auto space-y-8">
+
+    <!-- Démarrer -->
+    <div>
+      <h2 class="font-display font-black text-slate-900 text-xl mb-4 flex items-center gap-2">
+        <i class="ri-rocket-line text-primary"></i> Démarrer avec OpenFood
+      </h2>
+      <div class="space-y-3">
+        <details class="rounded-xl border border-slate-100 p-5">
+          <summary class="font-semibold text-slate-800 cursor-pointer">Comment créer mon menu digital ?</summary>
+          <p class="mt-3 text-slate-500 text-sm leading-relaxed">Inscrivez-vous gratuitement, puis allez dans "Menus" → "Créer un plat". Ajoutez une photo, un nom, une description et un prix. Votre QR code est généré automatiquement.</p>
+        </details>
+        <details class="rounded-xl border border-slate-100 p-5">
+          <summary class="font-semibold text-slate-800 cursor-pointer">Comment imprimer mon QR code ?</summary>
+          <p class="mt-3 text-slate-500 text-sm leading-relaxed">Dans votre tableau de bord, allez dans "Tables" et cliquez sur "Télécharger QR code" pour chaque table. Imprimez-le en A5 ou A4 et posez-le sur vos tables.</p>
+        </details>
+        <details class="rounded-xl border border-slate-100 p-5">
+          <summary class="font-semibold text-slate-800 cursor-pointer">Mes clients ont-ils besoin d'une application ?</summary>
+          <p class="mt-3 text-slate-500 text-sm leading-relaxed">Non. Vos clients scannent simplement le QR code avec l'appareil photo de leur téléphone (iOS ou Android). Le menu s'ouvre directement dans le navigateur, sans téléchargement.</p>
+        </details>
+      </div>
+    </div>
+
+    <!-- Commandes -->
+    <div>
+      <h2 class="font-display font-black text-slate-900 text-xl mb-4 flex items-center gap-2">
+        <i class="ri-shopping-bag-line text-primary"></i> Gestion des commandes
+      </h2>
+      <div class="space-y-3">
+        <details class="rounded-xl border border-slate-100 p-5">
+          <summary class="font-semibold text-slate-800 cursor-pointer">Comment recevoir les commandes ?</summary>
+          <p class="mt-3 text-slate-500 text-sm leading-relaxed">Les commandes arrivent en temps réel dans votre tableau de bord avec une notification sonore. Vous pouvez y accéder depuis n'importe quel téléphone ou tablette connecté à internet.</p>
+        </details>
+        <details class="rounded-xl border border-slate-100 p-5">
+          <summary class="font-semibold text-slate-800 cursor-pointer">Comment changer le statut d'une commande ?</summary>
+          <p class="mt-3 text-slate-500 text-sm leading-relaxed">Dans l'onglet "Commandes", cliquez sur une commande puis sélectionnez son statut : Reçue → En préparation → Prête → Servie.</p>
+        </details>
+      </div>
+    </div>
+
+    <!-- Abonnement -->
+    <div>
+      <h2 class="font-display font-black text-slate-900 text-xl mb-4 flex items-center gap-2">
+        <i class="ri-bank-card-line text-primary"></i> Abonnement & paiement
+      </h2>
+      <div class="space-y-3">
+        <details class="rounded-xl border border-slate-100 p-5">
+          <summary class="font-semibold text-slate-800 cursor-pointer">Comment passer au plan Pro ou Max ?</summary>
+          <p class="mt-3 text-slate-500 text-sm leading-relaxed">Allez dans <a href="/tarifs/" class="text-primary underline">Tarifs</a> et cliquez sur "Choisir ce plan". Le paiement se fait via FedaPay (MTN MoMo, Orange Money, Wave).</p>
+        </details>
+        <details class="rounded-xl border border-slate-100 p-5">
+          <summary class="font-semibold text-slate-800 cursor-pointer">Puis-je annuler mon abonnement ?</summary>
+          <p class="mt-3 text-slate-500 text-sm leading-relaxed">Oui, à tout moment depuis vos paramètres d'abonnement. L'accès au plan payant reste actif jusqu'à la fin de la période en cours.</p>
+        </details>
+      </div>
+    </div>
+
+    <!-- Contact -->
+    <div class="bg-orange-50 rounded-2xl p-8 text-center">
+      <h2 class="font-display font-black text-slate-900 text-xl mb-3">Vous ne trouvez pas la réponse ?</h2>
+      <p class="text-slate-500 mb-5">Notre équipe est disponible par email et WhatsApp.</p>
+      <a href="/contact/" class="inline-flex items-center gap-2 px-6 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors">
+        Contacter le support
+      </a>
+    </div>
+
+  </div>
+</section>
+
+{% include 'home/footer.html' %}
+{% endblock %}

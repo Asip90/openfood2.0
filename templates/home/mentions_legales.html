@@ -1,0 +1,44 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Mentions légales — OpenFood{% endblock %}
+{% block meta_description %}Mentions légales d'OpenFood, plateforme de menu digital QR Code pour restaurants en Afrique de l'Ouest.{% endblock %}
+
+{% block content %}
+{% include 'home/header.html' %}
+
+<section class="py-16 px-5">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="font-display font-black text-slate-900 text-3xl md:text-4xl mb-2">Mentions légales</h1>
+    <p class="text-slate-400 text-sm mb-10">Dernière mise à jour : 17 mai 2026</p>
+
+    <div class="prose prose-slate prose-headings:font-display prose-headings:font-black prose-a:text-primary max-w-none">
+
+      <h2>Éditeur du site</h2>
+      <p>
+        <strong>OpenFood</strong><br>
+        Plateforme SaaS de menu digital QR Code pour restaurants<br>
+        Email : <a href="mailto:support@openfood.site">support@openfood.site</a><br>
+        Site web : <a href="https://openfood.site">https://openfood.site</a>
+      </p>
+
+      <h2>Hébergement</h2>
+      <p>Ce site est hébergé par un prestataire d'hébergement cloud. Les serveurs sont situés en Europe ou en Afrique selon la configuration choisie.</p>
+
+      <h2>Propriété intellectuelle</h2>
+      <p>Tous les éléments du site OpenFood (textes, images, logos, interface) sont la propriété exclusive d'OpenFood ou de ses partenaires. Toute reproduction sans autorisation est interdite.</p>
+
+      <h2>Données personnelles</h2>
+      <p>Le traitement des données personnelles est décrit dans notre <a href="/confidentialite/">Politique de confidentialité</a>.</p>
+
+      <h2>Cookies</h2>
+      <p>OpenFood utilise des cookies pour le bon fonctionnement du service. Voir notre <a href="/confidentialite/">Politique de confidentialité</a> pour plus de détails.</p>
+
+      <h2>Contact</h2>
+      <p>Pour toute question relative aux mentions légales : <a href="mailto:support@openfood.site">support@openfood.site</a></p>
+    </div>
+  </div>
+</section>
+
+{% include 'home/footer.html' %}
+{% endblock %}

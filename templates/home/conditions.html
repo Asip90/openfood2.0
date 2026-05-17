@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Conditions d'utilisation — OpenFood{% endblock %}
+{% block meta_description %}Conditions générales d'utilisation d'OpenFood. Droits et obligations des utilisateurs de la plateforme de menu digital QR Code pour restaurants.{% endblock %}
+
+{% block content %}
+{% include 'home/header.html' %}
+
+<section class="py-16 px-5">
+  <div class="max-w-3xl mx-auto">
+    <h1 class="font-display font-black text-slate-900 text-3xl md:text-4xl mb-2">Conditions d'utilisation</h1>
+    <p class="text-slate-400 text-sm mb-10">Dernière mise à jour : 17 mai 2026</p>
+
+    <div class="prose prose-slate prose-headings:font-display prose-headings:font-black prose-a:text-primary max-w-none">
+
+      <h2>1. Acceptation des conditions</h2>
+      <p>En utilisant OpenFood, vous acceptez les présentes conditions d'utilisation. Si vous n'acceptez pas ces conditions, vous ne pouvez pas utiliser le service.</p>
+
+      <h2>2. Description du service</h2>
+      <p>OpenFood est une plateforme SaaS de menu digital par QR Code destinée aux restaurateurs. Elle permet de créer un menu en ligne, de recevoir des commandes et de gérer un restaurant via un tableau de bord.</p>
+
+      <h2>3. Création de compte</h2>
+      <p>Vous devez créer un compte pour utiliser OpenFood. Vous êtes responsable de la confidentialité de vos identifiants et de toutes les actions effectuées depuis votre compte.</p>
+
+      <h2>4. Plans et abonnements</h2>
+      <ul>
+        <li><strong>Plan Gratuit :</strong> accès limité, sans engagement, sans carte bancaire.</li>
+        <li><strong>Plan Pro :</strong> 4 900 FCFA/mois, fonctionnalités avancées.</li>
+        <li><strong>Plan Max :</strong> 19 900 FCFA/mois, accès complet.</li>
+      </ul>
+      <p>Les abonnements sont renouvelés automatiquement chaque mois. Vous pouvez annuler à tout moment depuis votre espace abonnement.</p>
+
+      <h2>5. Contenu utilisateur</h2>
+      <p>Vous êtes responsable du contenu que vous publiez sur OpenFood (plats, photos, descriptions). Ce contenu ne doit pas violer les droits de tiers ni contenir de contenu illégal ou trompeur.</p>
+
+      <h2>6. Disponibilité du service</h2>
+      <p>Nous faisons de notre mieux pour maintenir le service disponible 24h/24. Des interruptions ponctuelles (maintenance, mises à jour) peuvent survenir. OpenFood ne peut être tenu responsable des pertes liées à une interruption de service.</p>
+
+      <h2>7. Résiliation</h2>
+      <p>Vous pouvez supprimer votre compte à tout moment depuis vos paramètres. OpenFood se réserve le droit de suspendre un compte en cas de violation des présentes conditions.</p>
+
+      <h2>8. Limitation de responsabilité</h2>
+      <p>OpenFood est fourni "tel quel". Dans les limites autorisées par la loi, notre responsabilité est limitée au montant payé au cours des 12 derniers mois.</p>
+
+      <h2>9. Droit applicable</h2>
+      <p>Les présentes conditions sont régies par le droit béninois. En cas de litige, les tribunaux compétents sont ceux de Cotonou, Bénin.</p>
+
+      <h2>10. Contact</h2>
+      <p>Pour toute question : <a href="mailto:support@openfood.site">support@openfood.site</a></p>
+    </div>
+  </div>
+</section>
+
+{% include 'home/footer.html' %}
+{% endblock %}
