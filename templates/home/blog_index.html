@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Blog OpenFood — Menu Digital et Gestion Restaurant en Afrique de l'Ouest{% endblock %}
+{% block meta_description %}Conseils, guides et ressources pour les restaurateurs d'Afrique de l'Ouest. Menu digital QR code, gestion restaurant, mobile money, fidélisation clients.{% endblock %}
+{% block og_title %}Blog OpenFood — Ressources pour Restaurateurs{% endblock %}
+{% block og_description %}Guides pratiques pour digitaliser et gérer votre restaurant au Bénin, Côte d'Ivoire et Sénégal.{% endblock %}
+
+{% block schema_org %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Blog",
+  "name": "Blog OpenFood",
+  "description": "Conseils et guides pour les restaurateurs d'Afrique de l'Ouest",
+  "url": "https://openfood.site/blog/",
+  "publisher": {
+    "@type": "Organization",
+    "name": "OpenFood",
+    "url": "https://openfood.site"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<section class="bg-gradient-to-b from-orange-50 to-white py-20 px-5">
+  <div class="max-w-4xl mx-auto">
+    <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-4">
+      <span class="w-6 h-px bg-primary"></span> Blog
+    </span>
+    <h1 class="font-display font-black text-slate-900 text-3xl md:text-5xl mb-4">
+      Ressources pour restaurateurs
+    </h1>
+    <p class="text-slate-500 text-lg">Guides, conseils et bonnes pratiques pour digitaliser et développer votre restaurant en Afrique de l'Ouest.</p>
+  </div>
+</section>
+
+<section class="py-16 px-5">
+  <div class="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-6">
+    {% for article in articles %}
+    <a href="/blog/{{ article.slug }}/"
+       class="block rounded-2xl border border-slate-100 p-7 hover:border-primary/20 hover:shadow-card transition-all">
+      <span class="text-xs font-bold text-primary uppercase tracking-wider">{{ article.categorie }}</span>
+      <h2 class="font-display font-black text-slate-900 text-xl mt-2 mb-3 leading-snug">{{ article.title }}</h2>
+      <p class="text-slate-500 text-sm leading-relaxed line-clamp-3">{{ article.intro }}</p>
+      <div class="flex items-center gap-3 mt-4 text-xs text-slate-400">
+        <span>{{ article.date }}</span>
+        <span>·</span>
+        <span>{{ article.temps_lecture }} de lecture</span>
+      </div>
+    </a>
+    {% endfor %}
+  </div>
+</section>
+{% endblock %}
