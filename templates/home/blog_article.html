@@ -32,6 +32,8 @@
 {% endblock %}
 
 {% block content %}
+{% include 'home/header.html' %}
+
 <!-- ══ ARTICLE HEADER ════════════════════════════════════════════════════ -->
 <section class="bg-gradient-to-b from-orange-50 to-white py-16 px-5">
   <div class="max-w-3xl mx-auto">
@@ -88,4 +90,6 @@
   </div>
 </section>
 {% endif %}
+
+{% include 'home/footer.html' %}
 {% endblock %}

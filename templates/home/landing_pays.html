@@ -31,6 +31,8 @@
 {% endblock %}
 
 {% block content %}
+{% include 'home/header.html' %}
+
 <!-- ══ HERO ═══════════════════════════════════════════════════════════════ -->
 <section class="bg-gradient-to-b from-orange-50 to-white py-20 md:py-28 px-5">
   <div class="max-w-4xl mx-auto text-center">
@@ -101,4 +103,6 @@
     </a>
   </div>
 </section>
+
+{% include 'home/footer.html' %}
 {% endblock %}
