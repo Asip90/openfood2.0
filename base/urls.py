@@ -2,10 +2,22 @@ from django.urls import path
 from base.views import *
 from base import staff_admin_views
 from base import subscription_views
+from base import landing_views
+from base import blog_views
 
 
 urlpatterns = [
     path('', home, name="home"),
+
+    # Landing pages géographiques
+    path('benin/', landing_views.landing_pays, {'pays_slug': 'benin'}, name='landing_benin'),
+    path('cote-divoire/', landing_views.landing_pays, {'pays_slug': 'cote-divoire'}, name='landing_cote_divoire'),
+    path('senegal/', landing_views.landing_pays, {'pays_slug': 'senegal'}, name='landing_senegal'),
+    path('mali/', landing_views.landing_pays, {'pays_slug': 'mali'}, name='landing_mali'),
+
+    # Blog SEO
+    path('blog/', blog_views.blog_index, name='blog_index'),
+    path('blog/<slug:slug>/', blog_views.blog_detail, name='blog_detail'),
 
     path("restaurant/create/", create_restaurant, name="create_restaurant"),
 

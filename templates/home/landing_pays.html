@@ -1,0 +1,104 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}{{ pays.title }}{% endblock %}
+{% block meta_description %}{{ pays.meta_description }}{% endblock %}
+{% block og_title %}{{ pays.title }}{% endblock %}
+{% block og_description %}{{ pays.meta_description }}{% endblock %}
+
+{% block schema_org %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "SoftwareApplication",
+  "name": "OpenFood",
+  "applicationCategory": "BusinessApplication",
+  "operatingSystem": "Web",
+  "url": "https://openfood.site/{{ pays.slug }}/",
+  "description": "{{ pays.meta_description }}",
+  "offers": {
+    "@type": "Offer",
+    "price": "0",
+    "priceCurrency": "XOF",
+    "description": "Plan gratuit disponible — aucune carte bancaire requise"
+  },
+  "areaServed": {
+    "@type": "Country",
+    "name": "{{ pays.schema_area }}"
+  }
+}
+</script>
+{% endblock %}
+
+{% block content %}
+<!-- ══ HERO ═══════════════════════════════════════════════════════════════ -->
+<section class="bg-gradient-to-b from-orange-50 to-white py-20 md:py-28 px-5">
+  <div class="max-w-4xl mx-auto text-center">
+    <span class="inline-flex items-center gap-2 text-primary text-sm font-bold uppercase tracking-widest mb-6">
+      <span class="w-6 h-px bg-primary"></span> OpenFood {{ pays.nom }}
+    </span>
+    <h1 class="font-display font-black text-slate-900 text-3xl md:text-5xl mb-6" style="line-height:1.15;">
+      {{ pays.h1 }}
+    </h1>
+    <p class="text-slate-500 text-lg md:text-xl leading-relaxed mb-8 max-w-2xl mx-auto">
+      {{ pays.intro }}
+    </p>
+    <div class="flex flex-col sm:flex-row gap-4 justify-center">
+      <a href="/inscription/"
+         class="inline-flex items-center justify-center gap-2 px-8 py-4 bg-primary text-white font-bold rounded-2xl hover:bg-primary-dark transition-colors text-base">
+        Démarrer gratuitement
+      </a>
+      <a href="/tarifs/"
+         class="inline-flex items-center justify-center gap-2 px-8 py-4 border-2 border-slate-200 text-slate-700 font-bold rounded-2xl hover:border-primary/40 transition-colors text-base">
+        Voir les tarifs
+      </a>
+    </div>
+  </div>
+</section>
+
+<!-- ══ POURQUOI OPENFOOD ══════════════════════════════════════════════════ -->
+<section class="py-20 px-5">
+  <div class="max-w-5xl mx-auto">
+    <h2 class="font-display font-black text-slate-900 text-2xl md:text-4xl text-center mb-14">
+      Pourquoi les restaurateurs de {{ pays.nom }} choisissent OpenFood
+    </h2>
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+      <div class="rounded-2xl border border-slate-100 p-7 hover:border-primary/20 transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center mb-4">
+          <i class="ri-qr-code-line text-primary text-2xl"></i>
+        </div>
+        <h3 class="font-display font-black text-slate-900 text-lg mb-2">Menu QR Code en 5 minutes</h3>
+        <p class="text-slate-500 text-sm leading-relaxed">Créez votre menu digital et générez votre QR code sans aucune compétence technique. Vos clients scannent et commandent immédiatement.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-100 p-7 hover:border-primary/20 transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center mb-4">
+          <i class="ri-bank-card-line text-primary text-2xl"></i>
+        </div>
+        <h3 class="font-display font-black text-slate-900 text-lg mb-2">Paiement mobile money</h3>
+        <p class="text-slate-500 text-sm leading-relaxed">Acceptez les paiements {{ pays.operateurs_paiement|join:", " }}. Conçu pour le marché {{ pays.nom }}.</p>
+      </div>
+      <div class="rounded-2xl border border-slate-100 p-7 hover:border-primary/20 transition-colors">
+        <div class="w-12 h-12 rounded-xl bg-orange-50 flex items-center justify-center mb-4">
+          <i class="ri-dashboard-line text-primary text-2xl"></i>
+        </div>
+        <h3 class="font-display font-black text-slate-900 text-lg mb-2">Tableau de bord temps réel</h3>
+        <p class="text-slate-500 text-sm leading-relaxed">Recevez les commandes instantanément. Gérez votre restaurant depuis votre téléphone ou tablette, n'importe où à {{ pays.ville_principale }}.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ VILLES ═══════════════════════════════════════════════════════════ -->
+<section class="bg-slate-50 py-16 px-5">
+  <div class="max-w-4xl mx-auto text-center">
+    <h2 class="font-display font-black text-slate-900 text-2xl md:text-3xl mb-4">
+      Disponible dans tout le {{ pays.nom }}
+    </h2>
+    <p class="text-slate-500 mb-6">OpenFood fonctionne à {{ pays.ville_principale }}
+      {% for ville in pays.autres_villes %}, {{ ville }}{% endfor %} et partout ailleurs.</p>
+    <a href="/inscription/" class="inline-flex items-center gap-2 px-7 py-3 bg-primary text-white font-bold rounded-xl hover:bg-primary-dark transition-colors">
+      Créer mon menu gratuitement
+    </a>
+  </div>
+</section>
+{% endblock %}
