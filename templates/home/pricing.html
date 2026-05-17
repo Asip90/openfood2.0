@@ -1,7 +1,66 @@
 {% extends 'base.html' %}
 {% load static %}
 
-{% block title %}Tarifs — OpenFood{% endblock %}
+{% block title %}Tarifs Menu Digital Restaurant — OpenFood | Afrique de l'Ouest{% endblock %}
+
+{% block meta_description %}Découvrez les tarifs OpenFood : plan gratuit (0 FCFA), Pro à 4 900 FCFA/mois et Max à 19 900 FCFA/mois. Menu digital QR Code pour restaurants au Bénin, Côte d'Ivoire, Sénégal. Sans engagement.{% endblock %}
+
+{% block og_title %}Tarifs OpenFood — Menu Digital QR Code pour Restaurants{% endblock %}
+
+{% block og_description %}Plan gratuit pour démarrer, Pro à 4 900 FCFA/mois. Menu digital QR Code, commandes en temps réel, tableau de bord. Solution pour restaurants en Afrique de l'Ouest.{% endblock %}
+
+{% block schema_org %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "Product",
+  "name": "OpenFood — Menu Digital QR Code",
+  "description": "Solution SaaS de menu digital par QR Code pour les restaurateurs en Afrique de l'Ouest.",
+  "brand": {
+    "@type": "Brand",
+    "name": "OpenFood"
+  },
+  "offers": [
+    {
+      "@type": "Offer",
+      "name": "Plan Gratuit",
+      "price": "0",
+      "priceCurrency": "XOF",
+      "description": "20 plats, 5 tables, support email",
+      "availability": "https://schema.org/InStock"
+    },
+    {
+      "@type": "Offer",
+      "name": "Plan Pro",
+      "price": "4900",
+      "priceCurrency": "XOF",
+      "description": "200 plats, 50 tables, analytics, sans branding OpenFood",
+      "availability": "https://schema.org/InStock",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "4900",
+        "priceCurrency": "XOF",
+        "billingDuration": "P1M"
+      }
+    },
+    {
+      "@type": "Offer",
+      "name": "Plan Max",
+      "price": "19900",
+      "priceCurrency": "XOF",
+      "description": "Plats illimités, tables illimitées, analytics avancés, support WhatsApp prioritaire",
+      "availability": "https://schema.org/InStock",
+      "priceSpecification": {
+        "@type": "UnitPriceSpecification",
+        "price": "19900",
+        "priceCurrency": "XOF",
+        "billingDuration": "P1M"
+      }
+    }
+  ]
+}
+</script>
+{% endblock %}
 
 {% block extra_css %}
 <style>
