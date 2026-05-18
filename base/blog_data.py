@@ -8,6 +8,7 @@ ARTICLES = [
         'date': '2026-05-10',
         'temps_lecture': '6 min',
         'categorie': 'Guide',
+        'image': 'https://images.unsplash.com/photo-1567521464027-f127ff144326?w=1200&q=80',
         'intro': "Un menu QR code permet à vos clients de scanner un code avec leur smartphone pour accéder instantanément à votre carte, commander et payer — sans application à installer. En 2026, c'est devenu le standard pour les restaurants modernes en Afrique de l'Ouest.",
         'contenu': """
 <h2>Qu'est-ce qu'un menu QR code pour restaurant ?</h2>
@@ -43,6 +44,7 @@ ARTICLES = [
         'date': '2026-05-05',
         'temps_lecture': '8 min',
         'categorie': 'Guide',
+        'image': 'https://images.unsplash.com/photo-1555396273-367ea4eb4db5?w=1200&q=80',
         'intro': "La digitalisation des restaurants en Afrique de l'Ouest s'accélère. Menu QR code, commandes en ligne, paiement mobile money : voici comment moderniser votre établissement sans budget énorme.",
         'contenu': """
 <h2>Pourquoi digitaliser son restaurant en Afrique de l'Ouest ?</h2>
@@ -74,6 +76,7 @@ ARTICLES = [
         'date': '2026-04-28',
         'temps_lecture': '5 min',
         'categorie': 'Comparatif',
+        'image': 'https://images.unsplash.com/photo-1414235077428-338989a2e8c0?w=1200&q=80',
         'intro': "Vous hésitez entre garder votre menu papier ou passer au menu digital QR code ? Voici un comparatif honnête pour vous aider à décider.",
         'contenu': """
 <h2>Le menu papier : avantages et inconvénients</h2>
@@ -120,6 +123,7 @@ ARTICLES = [
         'date': '2026-04-20',
         'temps_lecture': '5 min',
         'categorie': 'Conseils',
+        'image': 'https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1200&q=80',
         'intro': "Une erreur de commande, c'est un client mécontent, un plat gâché et une perte directe. Voici 5 méthodes concrètes pour les éliminer.",
         'contenu': """
 <h2>1. Laisser le client commander lui-même</h2>
@@ -147,6 +151,7 @@ ARTICLES = [
         'date': '2026-04-15',
         'temps_lecture': '4 min',
         'categorie': 'Guide',
+        'image': 'https://images.unsplash.com/photo-1611532736597-de2d4265fba3?w=1200&q=80',
         'intro': "Votre client arrive à table, scanne le QR code et commande depuis son téléphone. Mais comment ça fonctionne concrètement ? Explications simples.",
         'contenu': """
 <h2>Étape 1 : Votre client scanne le QR code</h2>
@@ -174,6 +179,7 @@ ARTICLES = [
         'date': '2026-04-10',
         'temps_lecture': '7 min',
         'categorie': 'Guide',
+        'image': 'https://images.unsplash.com/photo-1551288049-bebda4e38f71?w=1200&q=80',
         'intro': "Vous cherchez un logiciel pour gérer votre restaurant à Cotonou ou ailleurs au Bénin ? Voici ce qu'il faut savoir avant de choisir.",
         'contenu': """
 <h2>Quels sont vos besoins réels ?</h2>
@@ -206,6 +212,7 @@ ARTICLES = [
         'date': '2026-04-05',
         'temps_lecture': '5 min',
         'categorie': 'Paiement',
+        'image': 'https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?w=1200&q=80',
         'intro': "Plus de 70% des transactions en Afrique de l'Ouest se font via mobile money. Voici comment intégrer Wave, Orange Money et MTN MoMo dans votre restaurant.",
         'contenu': """
 <h2>Pourquoi accepter le mobile money dans votre restaurant ?</h2>
@@ -233,6 +240,7 @@ ARTICLES = [
         'date': '2026-03-28',
         'temps_lecture': '6 min',
         'categorie': 'Conseils',
+        'image': 'https://images.unsplash.com/photo-1559305616-3f99cd43e353?w=1200&q=80',
         'intro': "Un client fidèle vaut 5 fois un client nouveau. Voici les meilleures stratégies de fidélisation adaptées aux restaurants d'Afrique de l'Ouest.",
         'contenu': """
 <h2>1. Le reçu WhatsApp après chaque commande</h2>

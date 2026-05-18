@@ -4,6 +4,30 @@
 {% block title %}Contact — OpenFood{% endblock %}
 {% block meta_description %}Contactez l'équipe OpenFood. Support pour restaurateurs au Bénin, Côte d'Ivoire, Sénégal et Mali. Réponse sous 24h par email ou WhatsApp.{% endblock %}
 
+{% block schema_org %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "ContactPage",
+  "name": "Contact OpenFood",
+  "url": "https://openfood.site/contact/",
+  "description": "Contactez l'équipe OpenFood. Support pour restaurateurs en Afrique de l'Ouest.",
+  "contactPoint": {
+    "@type": "ContactPoint",
+    "email": "support@openfood.site",
+    "contactType": "customer support",
+    "availableLanguage": "French",
+    "hoursAvailable": {
+      "@type": "OpeningHoursSpecification",
+      "dayOfWeek": ["Monday","Tuesday","Wednesday","Thursday","Friday"],
+      "opens": "08:00",
+      "closes": "18:00"
+    }
+  }
+}
+</script>
+{% endblock %}
+
 {% block content %}
 {% include 'home/header.html' %}
 

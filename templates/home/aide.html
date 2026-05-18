@@ -4,6 +4,47 @@
 {% block title %}Centre d'aide — OpenFood{% endblock %}
 {% block meta_description %}Trouvez des réponses à vos questions sur OpenFood. Comment créer un menu QR Code, gérer vos commandes, changer de plan ou contacter le support.{% endblock %}
 
+{% block schema_org %}
+<script type="application/ld+json">
+{
+  "@context": "https://schema.org",
+  "@type": "FAQPage",
+  "mainEntity": [
+    {
+      "@type": "Question",
+      "name": "Comment créer mon menu digital ?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Inscrivez-vous gratuitement, puis allez dans Menus → Créer un plat. Ajoutez une photo, un nom, une description et un prix. Votre QR code est généré automatiquement."}
+    },
+    {
+      "@type": "Question",
+      "name": "Comment imprimer mon QR code ?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Dans votre tableau de bord, allez dans Tables et cliquez sur Télécharger QR code pour chaque table. Imprimez-le en A5 ou A4 et posez-le sur vos tables."}
+    },
+    {
+      "@type": "Question",
+      "name": "Mes clients ont-ils besoin d'une application ?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Non. Vos clients scannent simplement le QR code avec l'appareil photo de leur téléphone (iOS ou Android). Le menu s'ouvre directement dans le navigateur, sans téléchargement."}
+    },
+    {
+      "@type": "Question",
+      "name": "Comment recevoir les commandes ?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Les commandes arrivent en temps réel dans votre tableau de bord avec une notification sonore. Vous pouvez y accéder depuis n'importe quel téléphone ou tablette connecté à internet."}
+    },
+    {
+      "@type": "Question",
+      "name": "Comment passer au plan Pro ou Max ?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Allez dans la page Tarifs et cliquez sur Choisir ce plan. Le paiement se fait via FedaPay (MTN MoMo, Orange Money, Wave)."}
+    },
+    {
+      "@type": "Question",
+      "name": "Puis-je annuler mon abonnement ?",
+      "acceptedAnswer": {"@type": "Answer", "text": "Oui, à tout moment depuis vos paramètres d'abonnement. L'accès au plan payant reste actif jusqu'à la fin de la période en cours."}
+    }
+  ]
+}
+</script>
+{% endblock %}
+
 {% block content %}
 {% include 'home/header.html' %}
 
