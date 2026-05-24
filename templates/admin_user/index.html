@@ -20,10 +20,10 @@
 
   <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
     <div class="flex items-center justify-between mb-3">
-      <div class="w-10 h-10 rounded-xl bg-amber-50 flex items-center justify-center">
-        <i class="ri-file-list-3-line text-amber-500 text-xl"></i>
+      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+        <i class="ri-file-list-3-line text-primary text-xl"></i>
       </div>
-      <span class="text-xs font-medium text-amber-600 bg-amber-50 px-2 py-0.5 rounded-full">Total</span>
+      <span class="text-xs font-medium text-primary bg-primary/10 px-2 py-0.5 rounded-full">Total</span>
     </div>
     <p class="text-2xl font-bold text-slate-900">{{ total_orders|default:"0" }}</p>
     <p class="text-sm text-slate-500 mt-0.5">Toutes commandes</p>
@@ -31,8 +31,8 @@
 
   <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
     <div class="flex items-center justify-between mb-3">
-      <div class="w-10 h-10 rounded-xl bg-green-50 flex items-center justify-center">
-        <i class="ri-money-franc-circle-line text-green-500 text-xl"></i>
+      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+        <i class="ri-money-franc-circle-line text-primary text-xl"></i>
       </div>
     </div>
     <p class="text-2xl font-bold text-slate-900">{{ total_revenue|default:"0"|floatformat:0 }}</p>
@@ -41,8 +41,8 @@
 
   <div class="bg-white rounded-2xl shadow-soft border border-slate-100 p-5">
     <div class="flex items-center justify-between mb-3">
-      <div class="w-10 h-10 rounded-xl bg-blue-50 flex items-center justify-center">
-        <i class="ri-restaurant-line text-blue-500 text-xl"></i>
+      <div class="w-10 h-10 rounded-xl bg-primary/10 flex items-center justify-center">
+        <i class="ri-restaurant-line text-primary text-xl"></i>
       </div>
     </div>
     <p class="text-2xl font-bold text-slate-900">{{ active_menu_items|default:"0" }}</p>
@@ -68,8 +68,8 @@
     <div class="space-y-4">
       <div class="flex items-center justify-between py-3 border-b border-slate-100">
         <div class="flex items-center gap-3">
-          <div class="w-8 h-8 rounded-lg bg-blue-50 flex items-center justify-center">
-            <i class="ri-table-line text-blue-500 text-sm"></i>
+          <div class="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+            <i class="ri-table-line text-primary text-sm"></i>
           </div>
           <span class="text-sm text-slate-700">Tables actives</span>
         </div>

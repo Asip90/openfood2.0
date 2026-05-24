@@ -57,7 +57,7 @@ def subscribe_initiate(request, plan_type):
 
     if role not in ('owner', 'coadmin'):
         messages.error(request, "Seul le propriétaire peut gérer l'abonnement.")
-        return redirect('dashboard')
+        return redirect('pricing')
 
     plan = SubscriptionPlan.objects.filter(plan_type=plan_type, is_active=True).first()
     if not plan:
