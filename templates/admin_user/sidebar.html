@@ -10,6 +10,7 @@
   {% url 'restaurant_settings'  as url_settings     %}
   {% url 'staff_list'           as url_staff        %}
   {% url 'subscription_status'  as url_subscription %}
+  {% url 'customers_list'       as url_customers    %}
 {% endif %}
 
 {% with current=request.path %}
@@ -84,8 +85,18 @@
 </a>
 {% endif %}
 
-<!-- Personnalisation, Équipe, Paramètres — owner et coadmin uniquement -->
+<!-- Personnalisation, Équipe, Clients, Paramètres — owner et coadmin uniquement -->
 {% if user_role == 'owner' or user_role == 'coadmin' %}
+
+<a href="{{ url_customers }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_customers %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-group-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    {% trans "Clients" %}
+  </span>
+</a>
 
 <a href="{{ url_custom }}"
    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150

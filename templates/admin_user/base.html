@@ -272,11 +272,12 @@
 {% if user_role != 'cuisinier' %}{% url 'tables_list'         as url_tables   %}{% endif %}
 {% if user_role != 'cuisinier' %}{% url 'qr_settings'          as url_qr       %}{% endif %}
 {% if user_role == 'owner' or user_role == 'coadmin' %}
-  {% url 'customization'       as url_custom   %}
-  {% url 'restaurant_settings' as url_settings %}
-  {% url 'staff_list'          as url_staff    %}
-  {% url 'settings_hub'        as url_hub      %}
-  {% url 'subscription_status' as url_sub      %}
+  {% url 'customization'       as url_custom    %}
+  {% url 'restaurant_settings' as url_settings  %}
+  {% url 'staff_list'          as url_staff     %}
+  {% url 'settings_hub'        as url_hub       %}
+  {% url 'subscription_status' as url_sub       %}
+  {% url 'customers_list'      as url_customers %}
 {% endif %}
 
 <nav class="lg:hidden fixed bottom-0 inset-x-0 z-50 bg-white border-t border-slate-100 shadow-bottom-nav bottom-safe"
@@ -338,9 +339,9 @@
 
     <a href="{{ url_hub }}"
        class="flex-1 flex flex-col items-center justify-center gap-1 transition-colors
-              {% if current == url_hub or current == url_settings or current == url_custom or current == url_staff or current == url_sub or current == url_qr %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
+              {% if current == url_hub or current == url_settings or current == url_custom or current == url_staff or current == url_sub or current == url_qr or current == url_customers %}text-primary{% else %}text-slate-400 active:text-primary{% endif %}">
       <div class="relative w-7 h-7 flex items-center justify-center">
-        {% if current == url_hub or current == url_settings or current == url_custom or current == url_staff or current == url_sub or current == url_qr %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
+        {% if current == url_hub or current == url_settings or current == url_custom or current == url_staff or current == url_sub or current == url_qr or current == url_customers %}<span class="absolute inset-0 bg-primary/10 rounded-xl"></span>{% endif %}
         <i class="ri-settings-3-line text-[1.15rem] leading-none relative"></i>
       </div>
       <span class="text-[9.5px] font-semibold leading-none">{% trans "Admin settings" %}</span>

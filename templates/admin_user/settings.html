@@ -5,184 +5,20 @@
 
 {% block extra_css %}
 <style>
-  .tab-btn.active {
-    color: #f97316;
-    border-bottom-color: #f97316;
+  /* Variables du thème (alignées sur tailwind.config dans base.html) */
+  :root {
+    --c-primary:       #f97316;
+    --c-primary-dark:  #ea580c;
+    --c-primary-light: #fff7ed;
   }
+
+  .tab-btn.active { color: var(--c-primary); border-bottom-color: var(--c-primary); }
   .tab-panel { display: none; }
-  .tab-panel.active { display: block; }
-
-  .field-row {
-    display: flex;
-    flex-direction: column;
-    gap: 0.375rem;
-  }
-  .field-label {
-    font-size: 0.6875rem;
-    font-weight: 600;
-    letter-spacing: 0.04em;
-    text-transform: uppercase;
-    color: #64748b;
-  }
-  .field-input {
-    width: 100%;
-    padding: 0.625rem 0.875rem;
-    font-size: 0.875rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.75rem;
-    color: #0f172a;
-    transition: all 0.15s;
-    outline: none;
-  }
-  .field-input:focus {
-    background: #fff;
-    border-color: #f97316;
-    box-shadow: 0 0 0 3px rgba(249,115,22,0.12);
-  }
-  .field-hint {
-    font-size: 0.6875rem;
-    color: #94a3b8;
-  }
-
-  .day-row {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.5rem 0.75rem;
-    border-radius: 0.75rem;
-    transition: background 0.15s;
-  }
-  .day-row:hover { background: #f8fafc; }
-
-  .day-select {
-    padding: 0.375rem 0.625rem;
-    font-size: 0.75rem;
-    background: #f8fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 0.625rem;
-    color: #334155;
-    outline: none;
-    transition: all 0.15s;
-    cursor: pointer;
-  }
-  .day-select:focus {
-    border-color: #f97316;
-    box-shadow: 0 0 0 2px rgba(249,115,22,0.12);
-  }
-
-  .preview-badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.25rem;
-    font-size: 0.6875rem;
-    font-weight: 600;
-    padding: 0.25rem 0.625rem;
-    border-radius: 9999px;
-  }
-
-  @keyframes slideIn {
-    from { opacity: 0; transform: translateY(6px); }
-    to   { opacity: 1; transform: translateY(0); }
-  }
-  .tab-panel.active { animation: slideIn 0.2s ease; }
-
-  .save-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1.25rem;
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: white;
-    background: #f97316;
-    border-radius: 0.875rem;
-    border: none;
-    cursor: pointer;
-    transition: all 0.15s;
-    box-shadow: 0 2px 8px rgba(249,115,22,0.3);
-  }
-  .save-btn:hover {
-    background: #ea580c;
-    box-shadow: 0 4px 16px rgba(249,115,22,0.4);
-    transform: translateY(-1px);
-  }
-  .save-btn:active { transform: translateY(0); }
-
-  .reset-btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.625rem 1rem;
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: #64748b;
-    background: transparent;
-    border-radius: 0.875rem;
-    border: 1px solid #e2e8f0;
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .reset-btn:hover {
-    background: #f8fafc;
-    border-color: #cbd5e1;
-    color: #334155;
-  }
-
-  .quick-action {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 0.75rem;
-    border-radius: 1rem;
-    border: 1px solid #f1f5f9;
-    transition: all 0.2s;
-    text-decoration: none;
-    cursor: pointer;
-    background: white;
-    width: 100%;
-    text-align: left;
-  }
-  .quick-action:hover {
-    border-color: rgba(249,115,22,0.25);
-    background: #fff7ed;
-    transform: translateX(2px);
-  }
-  .quick-action .icon-wrap {
-    width: 2.25rem;
-    height: 2.25rem;
-    border-radius: 0.75rem;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-shrink: 0;
-    font-size: 1.05rem;
-    transition: transform 0.2s;
-  }
-  .quick-action:hover .icon-wrap { transform: scale(1.08); }
-  .quick-action .chevron {
-    margin-left: auto;
-    color: #cbd5e1;
-    font-size: 1.1rem;
-    transition: all 0.2s;
-  }
-  .quick-action:hover .chevron {
-    color: #f97316;
-    transform: translateX(2px);
-  }
-
-  .metric-card {
-    padding: 1rem;
-    background: #f8fafc;
-    border-radius: 1rem;
-    text-align: center;
-  }
-  .metric-label { font-size: 0.6875rem; color: #94a3b8; margin-bottom: 0.25rem; }
-  .metric-value { font-size: 0.9375rem; font-weight: 700; color: #0f172a; }
-
-  /* Dot indicator */
-  .dot-active { background: #22c55e; }
-  .dot-inactive { background: #ef4444; }
+  @keyframes slideIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
+  .tab-panel.active { display: block; animation: slideIn 0.2s ease; }
+  .field-input:focus { background: #fff; border-color: var(--c-primary); box-shadow: 0 0 0 3px rgb(249 115 22 / 0.12); }
+  .day-select:focus  { border-color: var(--c-primary); box-shadow: 0 0 0 2px rgb(249 115 22 / 0.12); }
+  .quick-action:hover .chevron { color: var(--c-primary); transform: translateX(2px); }
 </style>
 {% endblock %}
 
@@ -265,59 +101,59 @@
               </div>
             </div>
 
-            <div class="field-row">
-              <label class="field-label">{% trans "Restaurant name" %} *</label>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[0.6875rem] font-semibold tracking-[0.04em] uppercase text-slate-500">{% trans "Restaurant name" %} *</label>
               <input type="text" name="name" required
                      value="{{ restaurant.name }}"
-                     class="field-input"
+                     class="field-input w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none transition-all"
                      placeholder="{% trans "Ex: Le Petit Bistrot" %}"
                      oninput="document.getElementById('previewName').textContent = this.value || '{% trans "Restaurant name" %}'">
-              <span class="field-hint">{% trans "Visible to your customers on your online menu" %}</span>
+              <span class="text-[0.6875rem] text-slate-400">{% trans "Visible to your customers on your online menu" %}</span>
             </div>
 
-            <div class="field-row">
-              <label class="field-label">{% trans "Description" %}</label>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[0.6875rem] font-semibold tracking-[0.04em] uppercase text-slate-500">{% trans "Description" %}</label>
               <textarea name="description" rows="4"
-                        class="field-input resize-none"
+                        class="field-input w-full px-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none transition-all resize-none"
                         placeholder="{% trans "Describe your cuisine, your atmosphere, what makes you unique…" %}"
                         oninput="document.getElementById('previewDesc').textContent = this.value">{{ restaurant.description|default:"" }}</textarea>
-              <span class="field-hint">{% trans "A few words about your establishment (optional)" %}</span>
+              <span class="text-[0.6875rem] text-slate-400">{% trans "A few words about your establishment (optional)" %}</span>
             </div>
           </div>
 
           <!-- ── Tab: Coordonnées ── -->
           <div id="panel-contact" class="tab-panel p-6 space-y-5">
             <div class="grid sm:grid-cols-2 gap-5">
-              <div class="field-row">
-                <label class="field-label">{% trans "Phone" %} *</label>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[0.6875rem] font-semibold tracking-[0.04em] uppercase text-slate-500">{% trans "Phone" %} *</label>
                 <div class="relative">
                   <i class="ri-phone-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                   <input type="tel" name="phone" required
                          value="{{ restaurant.phone }}"
-                         class="field-input pl-9"
+                         class="field-input w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none transition-all"
                          placeholder="+33 1 23 45 67 89"
                          oninput="document.getElementById('previewPhone').textContent = this.value || '–'">
                 </div>
               </div>
-              <div class="field-row">
-                <label class="field-label">{% trans "Email" %} *</label>
+              <div class="flex flex-col gap-1.5">
+                <label class="text-[0.6875rem] font-semibold tracking-[0.04em] uppercase text-slate-500">{% trans "Email" %} *</label>
                 <div class="relative">
                   <i class="ri-mail-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                   <input type="email" name="email" required
                          value="{{ restaurant.email }}"
-                         class="field-input pl-9"
+                         class="field-input w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none transition-all"
                          placeholder="contact@restaurant.com"
                          oninput="document.getElementById('previewEmail').textContent = this.value || '–'">
                 </div>
               </div>
             </div>
-            <div class="field-row">
-              <label class="field-label">{% trans "Full address" %} *</label>
+            <div class="flex flex-col gap-1.5">
+              <label class="text-[0.6875rem] font-semibold tracking-[0.04em] uppercase text-slate-500">{% trans "Full address" %} *</label>
               <div class="relative">
                 <i class="ri-map-pin-line absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"></i>
                 <input type="text" name="address" required
                        value="{{ restaurant.address }}"
-                       class="field-input pl-9"
+                       class="field-input w-full pl-9 pr-3.5 py-2.5 text-sm bg-slate-50 border border-slate-200 rounded-xl text-slate-900 outline-none transition-all"
                        placeholder="123 Rue du Restaurant, 75000 Paris"
                        oninput="document.getElementById('previewAddress').textContent = this.value || '–'">
               </div>
@@ -329,7 +165,7 @@
             <p class="text-xs text-slate-400 mb-4">{% trans 'Leave empty to indicate "Closed".' %}</p>
             <div class="space-y-1">
               {% for day, schedule in schedules.items %}
-              <div class="day-row">
+              <div class="flex items-center justify-between px-3 py-2 rounded-xl transition-colors hover:bg-slate-50">
                 <div class="flex items-center gap-3">
                   <div class="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold
                     {% if schedule.ouverture and schedule.fermeture %}bg-green-100 text-green-700{% else %}bg-slate-100 text-slate-400{% endif %}">
@@ -338,14 +174,14 @@
                   <span class="text-sm font-medium text-slate-700">{{ day|title }}</span>
                 </div>
                 <div class="flex items-center gap-2">
-                  <select name="{{ day }}_ouverture" class="day-select">
+                  <select name="{{ day }}_ouverture" class="day-select px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-[0.625rem] text-slate-700 outline-none transition-all cursor-pointer">
                     <option value="">–</option>
                     {% for hour in hours %}
                     <option value="{{ hour }}" {% if schedule.ouverture == hour %}selected{% endif %}>{{ hour }}</option>
                     {% endfor %}
                   </select>
                   <span class="text-xs text-slate-300">→</span>
-                  <select name="{{ day }}_fermeture" class="day-select">
+                  <select name="{{ day }}_fermeture" class="day-select px-2.5 py-1.5 text-xs bg-slate-50 border border-slate-200 rounded-[0.625rem] text-slate-700 outline-none transition-all cursor-pointer">
                     <option value="">–</option>
                     {% for hour in hours %}
                     <option value="{{ hour }}" {% if schedule.fermeture == hour %}selected{% endif %}>{{ hour }}</option>
@@ -359,11 +195,13 @@
 
           <!-- Actions formulaire -->
           <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
-            <button type="reset" class="reset-btn">
+            <button type="reset"
+                    class="inline-flex items-center gap-2 px-4 py-2.5 text-sm font-medium text-slate-500 bg-transparent border border-slate-200 rounded-[0.875rem] cursor-pointer transition-all hover:bg-slate-50 hover:border-slate-300 hover:text-slate-700">
               <i class="ri-refresh-line text-sm"></i>
               {% trans "Cancel" %}
             </button>
-            <button type="submit" class="save-btn">
+            <button type="submit"
+                    class="inline-flex items-center gap-2 px-5 py-2.5 text-sm font-semibold text-white bg-primary border-none rounded-[0.875rem] cursor-pointer transition-all shadow-glow hover:bg-primary-dark hover:-translate-y-px active:translate-y-0">
               <i class="ri-save-line text-sm"></i>
               {% trans "Save" %}
             </button>
@@ -378,10 +216,7 @@
       <!-- Carte identité restaurant -->
       <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
         <!-- Header avec gradient -->
-        <div class="h-20 bg-gradient-to-br from-orange-50 via-amber-50 to-orange-100 relative">
-          <div class="absolute inset-0 opacity-20"
-               style="background-image: radial-gradient(circle at 20% 50%, #f97316 0%, transparent 60%), radial-gradient(circle at 80% 20%, #fbbf24 0%, transparent 50%);"></div>
-        </div>
+        <div class="h-20 bg-gradient-to-br from-primary-light via-amber-50 to-orange-100 relative overflow-hidden"></div>
 
         <div class="px-5 pb-5 -mt-8">
           <div class="flex items-end gap-3 mb-4">
@@ -395,8 +230,8 @@
             {% endif %}
             <div class="mb-1">
               <div class="flex items-center gap-2">
-                <span class="preview-badge {% if restaurant.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-600{% endif %}">
-                  <span class="w-1.5 h-1.5 rounded-full {% if restaurant.is_active %}dot-active{% else %}dot-inactive{% endif %}"></span>
+                <span class="inline-flex items-center gap-1 text-[0.6875rem] font-semibold px-2.5 py-1 rounded-full {% if restaurant.is_active %}bg-green-100 text-green-700{% else %}bg-red-100 text-red-600{% endif %}">
+                  <span class="w-1.5 h-1.5 rounded-full {% if restaurant.is_active %}bg-green-500{% else %}bg-red-500{% endif %}"></span>
                   {% if restaurant.is_active %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}
                 </span>
               </div>
@@ -429,13 +264,13 @@
 
           <!-- Métriques -->
           <div class="grid grid-cols-2 gap-2 mt-4">
-            <div class="metric-card">
-              <p class="metric-label">ID</p>
-              <p class="metric-value">#{{ restaurant.id|default:"—" }}</p>
+            <div class="p-4 bg-slate-50 rounded-2xl text-center">
+              <p class="text-[0.6875rem] text-slate-400 mb-1">ID</p>
+              <p class="text-[0.9375rem] font-bold text-slate-900">#{{ restaurant.id|default:"—" }}</p>
             </div>
-            <div class="metric-card">
-              <p class="metric-label">{% trans "Updated" %}</p>
-              <p class="metric-value text-sm">{{ restaurant.updated_at|date:"d/m/y"|default:"—" }}</p>
+            <div class="p-4 bg-slate-50 rounded-2xl text-center">
+              <p class="text-[0.6875rem] text-slate-400 mb-1">{% trans "Updated" %}</p>
+              <p class="text-sm font-bold text-slate-900">{{ restaurant.updated_at|date:"d/m/y"|default:"—" }}</p>
             </div>
           </div>
         </div>
@@ -445,41 +280,41 @@
       <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-4 space-y-2">
         <p class="text-xs font-bold text-slate-400 uppercase tracking-widest px-1 mb-3">{% trans "Quick actions" %}</p>
 
-        <a href="{% url 'customization' %}" class="quick-action">
-          <div class="icon-wrap bg-orange-50 text-primary">
+        <a href="{% url 'customization' %}" class="quick-action flex items-center gap-3 p-3 rounded-2xl border border-slate-100 transition-all no-underline cursor-pointer bg-white w-full text-left hover:border-primary/25 hover:bg-primary-light hover:translate-x-0.5">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-[1.05rem] transition-transform bg-orange-50 text-primary">
             <i class="ri-palette-line"></i>
           </div>
           <div class="min-w-0">
             <p class="text-sm font-semibold text-slate-800">{% trans "Customization" %}</p>
             <p class="text-xs text-slate-400">{% trans "Colors, logo, font" %}</p>
           </div>
-          <i class="ri-arrow-right-s-line chevron"></i>
+          <i class="ri-arrow-right-s-line chevron ml-auto text-slate-300 text-lg transition-all"></i>
         </a>
 
-        <a href="{% url 'menus_list' %}" class="quick-action">
-          <div class="icon-wrap bg-purple-50 text-purple-600">
+        <a href="{% url 'menus_list' %}" class="quick-action flex items-center gap-3 p-3 rounded-2xl border border-slate-100 transition-all no-underline cursor-pointer bg-white w-full text-left hover:border-primary/25 hover:bg-primary-light hover:translate-x-0.5">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-[1.05rem] transition-transform bg-purple-50 text-purple-600">
             <i class="ri-restaurant-line"></i>
           </div>
           <div class="min-w-0">
             <p class="text-sm font-semibold text-slate-800">{% trans "Menu management" %}</p>
             <p class="text-xs text-slate-400">{% trans "Dishes, categories, prices" %}</p>
           </div>
-          <i class="ri-arrow-right-s-line chevron"></i>
+          <i class="ri-arrow-right-s-line chevron ml-auto text-slate-300 text-lg transition-all"></i>
         </a>
 
-        <a href="{% url 'staff_list' %}" class="quick-action">
-          <div class="icon-wrap bg-indigo-50 text-indigo-600">
+        <a href="{% url 'staff_list' %}" class="quick-action flex items-center gap-3 p-3 rounded-2xl border border-slate-100 transition-all no-underline cursor-pointer bg-white w-full text-left hover:border-primary/25 hover:bg-primary-light hover:translate-x-0.5">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-[1.05rem] transition-transform bg-indigo-50 text-indigo-600">
             <i class="ri-team-line"></i>
           </div>
           <div class="min-w-0">
             <p class="text-sm font-semibold text-slate-800">{% trans "Team" %}</p>
             <p class="text-xs text-slate-400">{% trans "Manage staff" %}</p>
           </div>
-          <i class="ri-arrow-right-s-line chevron"></i>
+          <i class="ri-arrow-right-s-line chevron ml-auto text-slate-300 text-lg transition-all"></i>
         </a>
 
-        <button onclick="confirmToggleStatus()" class="quick-action border-0">
-          <div class="icon-wrap {% if restaurant.is_active %}bg-red-50 text-red-500{% else %}bg-green-50 text-green-600{% endif %}">
+        <button onclick="confirmToggleStatus()" class="quick-action flex items-center gap-3 p-3 rounded-2xl border border-slate-100 transition-all cursor-pointer bg-white w-full text-left hover:border-primary/25 hover:bg-primary-light hover:translate-x-0.5">
+          <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 text-[1.05rem] transition-transform {% if restaurant.is_active %}bg-red-50 text-red-500{% else %}bg-green-50 text-green-600{% endif %}">
             <i class="ri-power-line"></i>
           </div>
           <div class="min-w-0">
@@ -488,7 +323,7 @@
               {% if restaurant.is_active %}{% trans "Temporarily deactivate" %}{% else %}{% trans "Reactivate" %}{% endif %}
             </p>
           </div>
-          <i class="ri-arrow-right-s-line chevron"></i>
+          <i class="ri-arrow-right-s-line chevron ml-auto text-slate-300 text-lg transition-all"></i>
         </button>
       </div>
 
@@ -496,7 +331,7 @@
       <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-4">
         <div class="flex items-center justify-between mb-3">
           <p class="text-xs font-bold text-slate-400 uppercase tracking-widest">{% trans "Hours" %}</p>
-          <span class="preview-badge bg-primary/10 text-primary">
+          <span class="inline-flex items-center gap-1 text-[0.6875rem] font-semibold px-2.5 py-1 rounded-full bg-primary/10 text-primary">
             {{ restaurant.get_opening_days_count }} j/sem
           </span>
         </div>

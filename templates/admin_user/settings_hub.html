@@ -5,6 +5,12 @@
 
 {% block extra_css %}
 <style>
+  /* Variables du thème (alignées sur tailwind.config dans base.html) */
+  :root {
+    --c-primary:      #f97316;
+    --c-primary-ring: rgb(249 115 22 / 0.2);
+  }
+
   /* ── Stagger reveal ── */
   @keyframes slideUp {
     from { opacity: 0; transform: translateY(12px); }
@@ -40,15 +46,15 @@
     text-align: left;
   }
   .hub-tile:active {
-    background: #fafafa;
+    background: #f8fafc;
     box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
   }
   @media (hover: hover) {
     .hub-tile:hover {
-      border-color: rgba(249,115,22,0.2);
+      border-color: var(--c-primary-ring);
       box-shadow: 0 4px 16px rgba(0,0,0,0.06);
     }
-    .hub-tile:hover .tile-arrow { color: #f97316; transform: translateX(3px); }
+    .hub-tile:hover .tile-arrow { color: var(--c-primary); transform: translateX(3px); }
     .hub-tile:hover .tile-icon  { transform: scale(1.06); }
   }
 
@@ -192,8 +198,8 @@
       <!-- Paramètres restaurant -->
       <div class="hub-item">
         <a href="{% url 'restaurant_settings' %}" class="hub-tile">
-          <div class="tile-icon" style="background:#f8fafc;">
-            <i class="ri-store-2-line" style="color:#0f172a;"></i>
+          <div class="tile-icon bg-slate-50">
+            <i class="ri-store-2-line text-slate-800"></i>
           </div>
           <div class="tile-body">
             <p class="tile-title">Paramètres</p>
@@ -203,11 +209,25 @@
         </a>
       </div>
 
+      <!-- Clients -->
+      <div class="hub-item">
+        <a href="{% url 'customers_list' %}" class="hub-tile">
+          <div class="tile-icon bg-primary/10">
+            <i class="ri-group-line text-primary"></i>
+          </div>
+          <div class="tile-body">
+            <p class="tile-title">Clients</p>
+            <p class="tile-desc">Historique et profils de vos clients</p>
+          </div>
+          <i class="ri-arrow-right-s-line tile-arrow"></i>
+        </a>
+      </div>
+
       <!-- Personnalisation -->
       <div class="hub-item">
         <a href="{% url 'customization' %}" class="hub-tile">
-          <div class="tile-icon" style="background: linear-gradient(135deg,#fff7ed,#fed7aa);">
-            <i class="ri-palette-line" style="color:#f97316;"></i>
+          <div class="tile-icon bg-primary-light">
+            <i class="ri-palette-line text-primary"></i>
           </div>
           <div class="tile-body">
             <p class="tile-title">Personnalisation</p>
@@ -220,8 +240,8 @@
       <!-- QR Code -->
       <div class="hub-item">
         <a href="{% url 'qr_settings' %}" class="hub-tile">
-          <div class="tile-icon" style="background: linear-gradient(135deg,#f0fdf4,#bbf7d0);">
-            <i class="ri-qr-code-line" style="color:#16a34a;"></i>
+          <div class="tile-icon bg-green-50">
+            <i class="ri-qr-code-line text-green-600"></i>
           </div>
           <div class="tile-body">
             <p class="tile-title">QR Code</p>
@@ -234,8 +254,8 @@
       <!-- Équipe -->
       <div class="hub-item">
         <a href="{% url 'staff_list' %}" class="hub-tile">
-          <div class="tile-icon" style="background: linear-gradient(135deg,#eef2ff,#c7d2fe);">
-            <i class="ri-team-line" style="color:#4f46e5;"></i>
+          <div class="tile-icon bg-indigo-50">
+            <i class="ri-team-line text-indigo-600"></i>
           </div>
           <div class="tile-body">
             <p class="tile-title">Équipe</p>
@@ -256,10 +276,9 @@
     </div>
 
     <div class="hub-item">
-      <a href="{% url 'analytics' %}" class="hub-tile"
-         style="background: linear-gradient(105deg, white 55%, #eff6ff 100%);">
-        <div class="tile-icon" style="background: linear-gradient(135deg,#eff6ff,#bfdbfe);">
-          <i class="ri-bar-chart-2-line" style="color:#2563eb;"></i>
+      <a href="{% url 'analytics' %}" class="hub-tile">
+        <div class="tile-icon bg-blue-50">
+          <i class="ri-bar-chart-2-line text-blue-600"></i>
         </div>
         <div class="tile-body">
           <p class="tile-title">Analytiques</p>
@@ -281,10 +300,9 @@
     </div>
 
     <div class="hub-item">
-      <a href="{% url 'subscription_status' %}" class="hub-tile"
-         style="background: linear-gradient(105deg, white 50%, #fffbeb 100%);">
-        <div class="tile-icon" style="background: linear-gradient(135deg,#fefce8,#fde68a);">
-          <i class="ri-vip-crown-line" style="color:#d97706;"></i>
+      <a href="{% url 'subscription_status' %}" class="hub-tile">
+        <div class="tile-icon bg-amber-50">
+          <i class="ri-vip-crown-line text-amber-600"></i>
         </div>
         <div class="tile-body">
           <p class="tile-title">Mon abonnement</p>

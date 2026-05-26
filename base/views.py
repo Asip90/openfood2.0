@@ -4,7 +4,7 @@ from django.contrib.auth.decorators import login_required
 from base.decorators import get_user_restaurant, restaurant_required, owner_or_coadmin_required
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import Count, Sum, Avg, Prefetch, Q
+from django.db.models import Count, Sum, Avg, Max, Prefetch, Q
 from django.db.models.functions import TruncDate, TruncMonth, ExtractHour, ExtractWeekDay
 from django.http import JsonResponse
 from django.core.paginator import Paginator
@@ -1303,4 +1303,43 @@ def sitemap_view(request):
     return render(request, "sitemap.xml", {
         "base_url": request.build_absolute_uri("/").rstrip("/"),
     }, content_type="application/xml")
+
+
+@owner_or_coadmin_required
+def customers_list(request):
+    restaurant = request.restaurant
+    q = request.GET.get('q', '').strip()
+
+    qs = (
+        Order.objects
+        .filter(restaurant=restaurant)
+        .exclude(customer_name='', customer_phone='', customer_email='')
+    )
+    if q:
+        qs = qs.filter(
+            Q(customer_name__icontains=q) |
+            Q(customer_phone__icontains=q) |
+            Q(customer_email__icontains=q)
+        )
+
+    customers = (
+        qs
+        .values('customer_name', 'customer_phone', 'customer_email')
+        .annotate(
+            order_count=Count('id'),
+            total_spent=Sum('total'),
+            last_order=Max('created_at'),
+        )
+        .order_by('-last_order')
+    )
+
+    paginator = Paginator(customers, 20)
+    page = paginator.get_page(request.GET.get('page'))
+
+    return render(request, 'admin_user/customers/list.html', {
+        'restaurant': restaurant,
+        'customers': page,
+        'total_unique': paginator.count,
+        'q': q,
+    })
 

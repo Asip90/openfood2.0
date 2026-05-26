@@ -75,6 +75,9 @@ urlpatterns = [
     path("settings/", restaurant_settings, name="restaurant_settings"),
     path("reglages/", settings_hub, name="settings_hub"),
 
+    # Clients
+    path("clients/", customers_list, name="customers_list"),
+
     # PWA
     path("manifest/<slug:slug>.json", pwa_manifest, name="pwa_manifest"),
 

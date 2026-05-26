@@ -1,0 +1,146 @@
+{% extends "admin_user/base.html" %}
+{% load i18n %}
+{% block title %}{% trans "Clients" %} — {{ restaurant.name }}{% endblock %}
+{% block page_title %}{% trans "Clients" %}{% endblock %}
+
+{% block content %}
+<div class="max-w-5xl mx-auto space-y-5">
+
+  <!-- En-tête -->
+  <div class="flex items-start justify-between">
+    <div>
+      <h2 class="font-display font-black text-slate-900 text-2xl leading-tight">{% trans "Clients" %}</h2>
+      <p class="text-sm text-slate-500 mt-1">
+        {% blocktrans with count=total_unique %}{{ count }} client(s) unique(s) issu(s) de vos commandes{% endblocktrans %}
+      </p>
+    </div>
+  </div>
+
+  <!-- Barre de recherche -->
+  <form method="get" class="flex items-center gap-3">
+    <div class="relative flex-1 max-w-sm">
+      <i class="ri-search-line absolute left-3.5 top-1/2 -translate-y-1/2 text-slate-400"></i>
+      <input type="text" name="q" value="{{ q }}"
+             placeholder="{% trans "Nom, téléphone ou email…" %}"
+             class="w-full pl-10 pr-4 py-2.5 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:border-primary focus:ring-2 focus:ring-primary/10 transition-all">
+    </div>
+    {% if q %}
+    <a href="{% url 'customers_list' %}"
+       class="flex items-center gap-1.5 px-3 py-2.5 text-sm text-slate-500 hover:text-slate-700 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+      <i class="ri-close-line"></i>
+      {% trans "Réinitialiser" %}
+    </a>
+    {% endif %}
+  </form>
+
+  <!-- Liste clients -->
+  {% if customers.object_list %}
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+
+    <!-- En-tête tableau (desktop) -->
+    <div class="hidden sm:grid grid-cols-[2fr_1fr_1fr_1fr] gap-4 px-5 py-3 bg-slate-50 border-b border-slate-100">
+      <span class="text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">{% trans "Client" %}</span>
+      <span class="text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">{% trans "Commandes" %}</span>
+      <span class="text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">{% trans "Total dépensé" %}</span>
+      <span class="text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">{% trans "Dernière commande" %}</span>
+    </div>
+
+    <div class="divide-y divide-slate-50">
+      {% for c in customers %}
+      <div class="grid grid-cols-1 sm:grid-cols-[2fr_1fr_1fr_1fr] gap-2 sm:gap-4 px-5 py-4 hover:bg-slate-50/60 transition-colors">
+
+        <!-- Identité -->
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center font-bold text-sm flex-shrink-0">
+            {{ c.customer_name|slice:":1"|upper|default:"?" }}
+          </div>
+          <div class="min-w-0">
+            <p class="text-sm font-semibold text-slate-900 truncate">
+              {{ c.customer_name|default:"—" }}
+            </p>
+            {% if c.customer_phone %}
+            <p class="text-xs text-slate-400 flex items-center gap-1">
+              <i class="ri-phone-line"></i>{{ c.customer_phone }}
+            </p>
+            {% endif %}
+            {% if c.customer_email %}
+            <p class="text-xs text-slate-400 flex items-center gap-1">
+              <i class="ri-mail-line"></i>{{ c.customer_email }}
+            </p>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Commandes -->
+        <div class="flex sm:block items-center gap-2">
+          <span class="sm:hidden text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">{% trans "Commandes" %} :</span>
+          <span class="inline-flex items-center gap-1 px-2 py-0.5 bg-slate-100 text-slate-700 rounded-lg text-xs font-semibold">
+            <i class="ri-shopping-bag-line text-[0.65rem]"></i>
+            {{ c.order_count }}
+          </span>
+        </div>
+
+        <!-- Total dépensé -->
+        <div class="flex sm:block items-center gap-2">
+          <span class="sm:hidden text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">{% trans "Total" %} :</span>
+          <p class="text-sm font-bold text-slate-800">
+            {{ c.total_spent|floatformat:0 }} FCFA
+          </p>
+        </div>
+
+        <!-- Dernière commande -->
+        <div class="flex sm:block items-center gap-2">
+          <span class="sm:hidden text-[0.65rem] font-bold uppercase tracking-widest text-slate-400">{% trans "Dernière commande" %} :</span>
+          <p class="text-xs text-slate-500">{{ c.last_order|date:"d/m/Y" }}</p>
+          <p class="text-[0.65rem] text-slate-400">{{ c.last_order|date:"H:i" }}</p>
+        </div>
+
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Pagination -->
+  {% if customers.has_other_pages %}
+  <div class="flex items-center justify-center gap-2 pt-2">
+    {% if customers.has_previous %}
+    <a href="?page={{ customers.previous_page_number }}{% if q %}&q={{ q }}{% endif %}"
+       class="flex items-center gap-1 px-3 py-2 text-sm text-slate-500 hover:text-slate-800 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+      <i class="ri-arrow-left-s-line"></i>
+      {% trans "Précédent" %}
+    </a>
+    {% endif %}
+
+    <span class="px-3 py-2 text-xs text-slate-400 font-medium">
+      {% trans "Page" %} {{ customers.number }} / {{ customers.paginator.num_pages }}
+    </span>
+
+    {% if customers.has_next %}
+    <a href="?page={{ customers.next_page_number }}{% if q %}&q={{ q }}{% endif %}"
+       class="flex items-center gap-1 px-3 py-2 text-sm text-slate-500 hover:text-slate-800 border border-slate-200 rounded-xl hover:bg-slate-50 transition-colors">
+      {% trans "Suivant" %}
+      <i class="ri-arrow-right-s-line"></i>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% else %}
+  <!-- État vide -->
+  <div class="flex flex-col items-center justify-center py-16 text-center bg-white rounded-2xl border border-slate-100 shadow-soft">
+    <div class="w-16 h-16 rounded-2xl bg-primary/10 flex items-center justify-center mb-4">
+      <i class="ri-group-line text-3xl text-primary"></i>
+    </div>
+    {% if q %}
+    <p class="text-slate-700 font-semibold text-base">{% trans "Aucun client trouvé" %}</p>
+    <p class="text-slate-400 text-sm mt-1">{% blocktrans with q=q %}Aucun résultat pour « {{ q }} »{% endblocktrans %}</p>
+    <a href="{% url 'customers_list' %}" class="mt-4 text-sm text-primary hover:underline">{% trans "Voir tous les clients" %}</a>
+    {% else %}
+    <p class="text-slate-700 font-semibold text-base">{% trans "Aucun client pour l'instant" %}</p>
+    <p class="text-slate-400 text-sm mt-1">{% trans "Les clients apparaîtront ici au fur et à mesure de leurs commandes." %}</p>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}
