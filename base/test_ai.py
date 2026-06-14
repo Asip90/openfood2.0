@@ -109,3 +109,31 @@ class GeminiProviderTest(TestCase):
         self.assertEqual(
             kwargs["json"]["generationConfig"]["responseMimeType"], "application/json"
         )
+
+
+from base.services.ai.factory import get_provider
+
+
+class FactoryTest(TestCase):
+    def test_returns_mistral(self):
+        s = AISettings.load()
+        s.provider = "mistral"
+        s.api_key = "k"
+        s.model = "m1"
+        s.save()
+        p = get_provider()
+        self.assertEqual(p.__class__.__name__, "MistralProvider")
+        self.assertEqual(p.model, "m1")
+
+    def test_returns_gemini(self):
+        s = AISettings.load()
+        s.provider = "gemini"
+        s.save()
+        self.assertEqual(get_provider().__class__.__name__, "GeminiProvider")
+
+    def test_unknown_provider_returns_none(self):
+        s = AISettings.load()
+        s.provider = "mistral"
+        s.save()
+        s.provider = "unknown"  # bypass choices validation in memory
+        self.assertIsNone(get_provider(s))
