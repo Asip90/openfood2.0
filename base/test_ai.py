@@ -77,3 +77,35 @@ class MistralProviderTest(TestCase):
         self.assertEqual(kwargs["json"]["messages"][0], {"role": "system", "content": "SYS"})
         self.assertEqual(kwargs["json"]["response_format"], {"type": "json_object"})
         self.assertEqual(kwargs["headers"]["Authorization"], "Bearer secret")
+
+
+from base.services.ai.gemini import GeminiProvider
+
+
+class GeminiProviderTest(TestCase):
+    @patch("base.services.ai.gemini.requests.post")
+    def test_complete_maps_roles_and_returns_text(self, mock_post):
+        resp = MagicMock()
+        resp.json.return_value = {
+            "candidates": [{"content": {"parts": [{"text": '{"reply":"ok"}'}]}}]
+        }
+        resp.raise_for_status = MagicMock()
+        mock_post.return_value = resp
+
+        p = GeminiProvider(api_key="secret", model="gemini-2.0-flash")
+        out = p.complete("SYS", [
+            {"role": "user", "content": "salut"},
+            {"role": "assistant", "content": "bonjour"},
+        ])
+
+        self.assertEqual(out, '{"reply":"ok"}')
+        args, kwargs = mock_post.call_args
+        url = args[0]
+        self.assertIn("gemini-2.0-flash:generateContent", url)
+        self.assertIn("key=secret", url)
+        self.assertEqual(kwargs["json"]["systemInstruction"]["parts"][0]["text"], "SYS")
+        # assistant role must be mapped to "model"
+        self.assertEqual(kwargs["json"]["contents"][1]["role"], "model")
+        self.assertEqual(
+            kwargs["json"]["generationConfig"]["responseMimeType"], "application/json"
+        )
