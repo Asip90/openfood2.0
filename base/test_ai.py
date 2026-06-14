@@ -1,3 +1,5 @@
+from unittest.mock import patch, MagicMock
+
 from django.test import TestCase
 from base.models import AISettings
 from base.services.ai.base import AIProvider
@@ -53,3 +55,25 @@ class AIProviderInterfaceTest(TestCase):
         p = AIProvider(api_key="k", model="m")
         with self.assertRaises(NotImplementedError):
             p.complete("sys", [{"role": "user", "content": "hi"}])
+
+
+from base.services.ai.mistral import MistralProvider
+
+
+class MistralProviderTest(TestCase):
+    @patch("base.services.ai.mistral.requests.post")
+    def test_complete_returns_content_and_sends_auth(self, mock_post):
+        resp = MagicMock()
+        resp.json.return_value = {"choices": [{"message": {"content": '{"reply":"ok"}'}}]}
+        resp.raise_for_status = MagicMock()
+        mock_post.return_value = resp
+
+        p = MistralProvider(api_key="secret", model="mistral-small-latest")
+        out = p.complete("SYS", [{"role": "user", "content": "salut"}])
+
+        self.assertEqual(out, '{"reply":"ok"}')
+        _, kwargs = mock_post.call_args
+        self.assertEqual(kwargs["json"]["model"], "mistral-small-latest")
+        self.assertEqual(kwargs["json"]["messages"][0], {"role": "system", "content": "SYS"})
+        self.assertEqual(kwargs["json"]["response_format"], {"type": "json_object"})
+        self.assertEqual(kwargs["headers"]["Authorization"], "Bearer secret")
