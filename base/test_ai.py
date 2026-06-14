@@ -1,3 +1,4 @@
+import json
 from unittest.mock import patch, MagicMock
 
 from django.test import TestCase
@@ -188,3 +189,114 @@ class MenuSerializationTest(TestCase):
         self.assertIn("Chez Test", prompt)
         self.assertIn("Attieke", prompt)
         self.assertIn("JSON", prompt)
+
+
+from unittest.mock import patch as _patch
+from base.services.ai.assistant import validate_response, ask, is_assistant_available
+
+
+class ValidateResponseTest(TestCase):
+    def _make_restaurant_with_item(self):
+        user = User.objects.create_user(email="o2@example.com")
+        r = Restaurant.objects.create(name="R2", owner=user)
+        cat = Category.objects.create(restaurant=r, name="Plats")
+        item = MenuItem.objects.create(
+            restaurant=r, category=cat, name="Plat A", price=1000, is_available=True,
+        )
+        return r, item
+
+    def test_valid_actions_kept(self):
+        r, item = self._make_restaurant_with_item()
+        raw = json.dumps({
+            "reply": "Voici",
+            "actions": [
+                {"type": "view_item", "item_id": str(item.id), "label": "Voir"},
+                {"type": "call_waiter", "label": "Serveur"},
+            ],
+        })
+        out = validate_response(raw, r)
+        self.assertEqual(out["reply"], "Voici")
+        self.assertEqual(len(out["actions"]), 2)
+
+    def test_unknown_item_id_dropped(self):
+        r, item = self._make_restaurant_with_item()
+        raw = json.dumps({
+            "reply": "X",
+            "actions": [{"type": "add_to_cart", "item_id": "999999", "label": "Z"}],
+        })
+        out = validate_response(raw, r)
+        self.assertEqual(out["actions"], [])
+
+    def test_unknown_action_type_dropped(self):
+        r, item = self._make_restaurant_with_item()
+        raw = json.dumps({"reply": "X", "actions": [{"type": "delete_db"}]})
+        self.assertEqual(validate_response(raw, r)["actions"], [])
+
+    def test_invalid_json_falls_back_to_text(self):
+        r, item = self._make_restaurant_with_item()
+        out = validate_response("pas du json", r)
+        self.assertIn("pas du json", out["reply"])
+        self.assertEqual(out["actions"], [])
+
+    def test_missing_reply_gets_default(self):
+        r, item = self._make_restaurant_with_item()
+        out = validate_response(json.dumps({"actions": []}), r)
+        self.assertTrue(out["reply"])
+
+
+class AskTest(TestCase):
+    def _make_restaurant(self):
+        user = User.objects.create_user(email="o3@example.com")
+        return Restaurant.objects.create(name="R3", owner=user)
+
+    def test_unavailable_when_disabled(self):
+        s = AISettings.load()
+        s.is_enabled = False
+        s.save()
+        r = self._make_restaurant()
+        out = ask(r, [], "salut")
+        self.assertTrue(out.get("unavailable"))
+
+    @_patch("base.services.ai.factory.get_provider")
+    def test_calls_provider_and_validates(self, mock_get_provider):
+        s = AISettings.load()
+        s.is_enabled = True
+        s.api_key = "k"
+        s.save()
+        provider = MagicMock()
+        provider.complete.return_value = json.dumps({"reply": "Bonjour", "actions": []})
+        mock_get_provider.return_value = provider
+        r = self._make_restaurant()
+        out = ask(r, [], "salut")
+        self.assertEqual(out["reply"], "Bonjour")
+        provider.complete.assert_called_once()
+
+    @_patch("base.services.ai.factory.get_provider")
+    def test_provider_exception_returns_graceful_error(self, mock_get_provider):
+        s = AISettings.load()
+        s.is_enabled = True
+        s.api_key = "k"
+        s.save()
+        provider = MagicMock()
+        provider.complete.side_effect = RuntimeError("boom")
+        mock_get_provider.return_value = provider
+        r = self._make_restaurant()
+        out = ask(r, [], "salut")
+        self.assertTrue(out.get("error"))
+        self.assertTrue(any(a["type"] == "call_waiter" for a in out["actions"]))
+
+
+class AvailabilityTest(TestCase):
+    def test_false_when_disabled(self):
+        s = AISettings.load()
+        s.is_enabled = False
+        s.api_key = "k"
+        s.save()
+        self.assertFalse(is_assistant_available())
+
+    def test_true_when_enabled_with_key(self):
+        s = AISettings.load()
+        s.is_enabled = True
+        s.api_key = "k"
+        s.save()
+        self.assertTrue(is_assistant_available())
