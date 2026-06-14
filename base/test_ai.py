@@ -3,6 +3,9 @@ from unittest.mock import patch, MagicMock
 from django.test import TestCase
 from base.models import AISettings
 from base.services.ai.base import AIProvider
+from accounts.models import User
+from base.models import Restaurant, Category, MenuItem
+from base.services.ai.assistant import serialize_menu, build_system_prompt
 
 
 class AISettingsModelTest(TestCase):
@@ -137,3 +140,51 @@ class FactoryTest(TestCase):
         s.save()
         s.provider = "unknown"  # bypass choices validation in memory
         self.assertIsNone(get_provider(s))
+
+
+class MenuSerializationTest(TestCase):
+    def _make_restaurant(self):
+        user = User.objects.create_user(email="o1@example.com")
+        return Restaurant.objects.create(name="Chez Test", owner=user)
+
+    def test_serialize_includes_available_item_with_id_and_price(self):
+        r = self._make_restaurant()
+        cat = Category.objects.create(restaurant=r, name="Plats")
+        MenuItem.objects.create(
+            restaurant=r, category=cat, name="Riz arachide",
+            price=2500, description="Plat complet", is_spicy=True, is_available=True,
+        )
+        out = serialize_menu(r)
+        self.assertIn("Riz arachide", out)
+        self.assertIn("2500", out)
+        self.assertIn("épicé", out)
+
+    def test_serialize_excludes_unavailable(self):
+        r = self._make_restaurant()
+        cat = Category.objects.create(restaurant=r, name="Plats")
+        MenuItem.objects.create(
+            restaurant=r, category=cat, name="Indispo",
+            price=1000, is_available=False,
+        )
+        self.assertNotIn("Indispo", serialize_menu(r))
+
+    def test_serialize_uses_discount_price_when_set(self):
+        r = self._make_restaurant()
+        cat = Category.objects.create(restaurant=r, name="Plats")
+        MenuItem.objects.create(
+            restaurant=r, category=cat, name="Promo",
+            price=3000, discount_price=2000, is_available=True,
+        )
+        out = serialize_menu(r)
+        self.assertIn("2000", out)
+
+    def test_system_prompt_contains_restaurant_name_and_menu(self):
+        r = self._make_restaurant()
+        cat = Category.objects.create(restaurant=r, name="Plats")
+        MenuItem.objects.create(
+            restaurant=r, category=cat, name="Attieke", price=1500, is_available=True,
+        )
+        prompt = build_system_prompt(r)
+        self.assertIn("Chez Test", prompt)
+        self.assertIn("Attieke", prompt)
+        self.assertIn("JSON", prompt)
