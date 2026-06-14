@@ -2,12 +2,13 @@ import json
 from django.shortcuts import render, redirect, get_object_or_404
 from django.http import JsonResponse
 from django.views.decorators.csrf import csrf_exempt
-from django.views.decorators.http import require_GET
+from django.views.decorators.http import require_GET, require_POST
 from django.contrib import messages
 from django.db import transaction
 from django.db.models import F, Prefetch
 
-from base.models import Category, MenuItem, Order, OrderItem, RestaurantCustomization
+from base.models import Category, MenuItem, Order, OrderItem, RestaurantCustomization, AISettings
+from base.services.ai.assistant import ask, is_assistant_available
 from customer.utils import get_client_context
 
 
@@ -265,6 +266,52 @@ def get_item_details(request, item_id):
         })
     except MenuItem.DoesNotExist:
         return JsonResponse({'success': False, 'error': 'Article non trouvé'})
+
+
+MAX_USER_MESSAGE_LEN = 500
+
+
+@csrf_exempt
+@require_POST
+def chat_assistant(request, table_token):
+    restaurant, table, customization, error = get_client_context(request, table_token)
+    if error:
+        return JsonResponse({"reply": "Session invalide.", "actions": []}, status=400)
+
+    settings = AISettings.load()
+    if not settings.is_enabled or not settings.api_key:
+        return JsonResponse(
+            {"reply": "L'assistant n'est pas disponible.", "actions": [], "unavailable": True}
+        )
+
+    try:
+        data = json.loads(request.body)
+    except (json.JSONDecodeError, TypeError):
+        return JsonResponse({"reply": "Requête invalide.", "actions": []}, status=400)
+
+    user_message = str(data.get("message", "")).strip()[:MAX_USER_MESSAGE_LEN]
+    if not user_message:
+        return JsonResponse({"reply": "Posez-moi une question sur le menu.", "actions": []})
+
+    hist_key = f"chat_{restaurant.id}_{table_token}"
+    history = request.session.get(hist_key, [])
+
+    user_turns = sum(1 for m in history if m.get("role") == "user")
+    if user_turns >= settings.max_messages_per_session:
+        return JsonResponse({
+            "reply": "Vous avez atteint la limite de messages. Appelez un serveur pour plus d'aide.",
+            "actions": [{"type": "call_waiter", "label": "Appeler un serveur"}],
+            "limit_reached": True,
+        })
+
+    result = ask(restaurant, history, user_message)
+
+    history.append({"role": "user", "content": user_message})
+    history.append({"role": "assistant", "content": result["reply"]})
+    request.session[hist_key] = history[-(settings.max_messages_per_session * 2):]
+    request.session.modified = True
+
+    return JsonResponse({"reply": result["reply"], "actions": result.get("actions", [])})
 
 
 @require_GET

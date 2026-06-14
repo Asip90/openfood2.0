@@ -16,6 +16,7 @@ urlpatterns = [
     # Confirmation
     path("order/<int:order_id>/confirmation/", order_confirmation, name="order_confirmation"),
     path('item/<str:item_id>/details/', get_item_details, name='get_item_details'),
+    path("t/<str:table_token>/chat/", chat_assistant, name="chat_assistant"),
     path("api/customer/menu/<str:table_token>/", menu_api),
 
 ]
