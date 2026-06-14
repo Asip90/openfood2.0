@@ -21,3 +21,22 @@ class AISettingsModelTest(TestCase):
         self.assertFalse(a.is_enabled)
         self.assertEqual(a.max_messages_per_session, 20)
         self.assertEqual(a.provider, "mistral")
+
+
+from django.contrib import admin as dj_admin
+from base.admin import AISettingsAdmin
+
+
+class AISettingsAdminTest(TestCase):
+    def test_registered(self):
+        self.assertIn(AISettings, dj_admin.site._registry)
+
+    def test_add_disabled_when_instance_exists(self):
+        AISettings.load()
+        admin_obj = AISettingsAdmin(AISettings, dj_admin.site)
+        request = None
+        self.assertFalse(admin_obj.has_add_permission(request))
+
+    def test_add_allowed_when_empty(self):
+        admin_obj = AISettingsAdmin(AISettings, dj_admin.site)
+        self.assertTrue(admin_obj.has_add_permission(None))

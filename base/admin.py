@@ -1,3 +1,4 @@
+from django import forms
 from django.contrib import admin
 from django.utils.html import format_html
 
@@ -9,7 +10,8 @@ from .models import (
     Table,
     Order,
     OrderItem,
-    Payment
+    Payment,
+    AISettings
 )
 
 # =========================
@@ -183,3 +185,27 @@ class PaymentAdmin(admin.ModelAdmin):
     list_filter = ('payment_method', 'status')
     search_fields = ('order__order_number', 'transaction_id')
     readonly_fields = ('created_at',)
+
+
+# =========================
+# AI SETTINGS
+# =========================
+class AISettingsForm(forms.ModelForm):
+    class Meta:
+        model = AISettings
+        fields = "__all__"
+        widgets = {
+            "api_key": forms.PasswordInput(render_value=True),
+        }
+
+
+@admin.register(AISettings)
+class AISettingsAdmin(admin.ModelAdmin):
+    form = AISettingsForm
+    list_display = ("provider", "model", "is_enabled", "updated_at")
+
+    def has_add_permission(self, request):
+        return not AISettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
