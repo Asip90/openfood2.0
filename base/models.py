@@ -667,3 +667,33 @@ class QRSettings(models.Model):
 
     def __str__(self):
         return f"QR Settings - {self.restaurant.name}"
+
+
+class AISettings(models.Model):
+    PROVIDER_CHOICES = [
+        ('mistral', 'Mistral'),
+        ('gemini', 'Gemini'),
+    ]
+    provider = models.CharField(max_length=20, choices=PROVIDER_CHOICES, default='mistral')
+    api_key = models.CharField(max_length=255, blank=True)
+    model = models.CharField(max_length=100, default='mistral-small-latest')
+    is_enabled = models.BooleanField(default=False)
+    system_prompt = models.TextField(blank=True)
+    max_messages_per_session = models.PositiveIntegerField(default=20)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Paramètres IA"
+        verbose_name_plural = "Paramètres IA"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return f"Paramètres IA ({self.provider})"
