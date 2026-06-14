@@ -1,5 +1,6 @@
 from django.test import TestCase
 from base.models import AISettings
+from base.services.ai.base import AIProvider
 
 
 class AISettingsModelTest(TestCase):
@@ -40,3 +41,15 @@ class AISettingsAdminTest(TestCase):
     def test_add_allowed_when_empty(self):
         admin_obj = AISettingsAdmin(AISettings, dj_admin.site)
         self.assertTrue(admin_obj.has_add_permission(None))
+
+
+class AIProviderInterfaceTest(TestCase):
+    def test_stores_credentials(self):
+        p = AIProvider(api_key="k", model="m")
+        self.assertEqual(p.api_key, "k")
+        self.assertEqual(p.model, "m")
+
+    def test_complete_not_implemented(self):
+        p = AIProvider(api_key="k", model="m")
+        with self.assertRaises(NotImplementedError):
+            p.complete("sys", [{"role": "user", "content": "hi"}])
