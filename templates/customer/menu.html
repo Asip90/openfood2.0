@@ -220,40 +220,14 @@
 
 </div>
 
-<!-- ══ FLOATING WAITER BUTTON ════════════════════════ -->
-<script>var _waiterCallUrl = "{% url 'create_waiter_call' table_token=table.token %}";</script>
-<div id="waiterCallBtn"
-     class="fixed bottom-6 right-6 z-50"
-     x-data="{
-       called: false,
-       cooldown: false,
-       async callWaiter() {
-         if (this.cooldown) return;
-         try {
-           const r = await fetch(window._waiterCallUrl, {
-             method: 'POST',
-             headers: {'X-CSRFToken': '{{ csrf_token }}'}
-           });
-           const d = await r.json();
-           this.called = true;
-           this.cooldown = true;
-           setTimeout(() => { this.called = false; }, 4000);
-           setTimeout(() => { this.cooldown = false; }, 30000);
-         } catch(e) {}
-       }
-     }">
-  <button @click="callWaiter()"
-          :disabled="cooldown"
-          class="flex items-center gap-2 px-4 py-3 rounded-full text-white text-sm font-bold shadow-lg transition-all duration-200 active:scale-95 disabled:opacity-60"
-          style="background-color: var(--color-primary);">
-    <i class="ri-customer-service-2-line text-lg"></i>
-    <span x-text="called ? 'Serveur appelé ✓' : 'Appeler un serveur'"></span>
-  </button>
-</div>
-
+<!-- ══ FLOATING ASSISTANT (waiter bell + AI chat) ═══════ -->
 <script>
-document.getElementById('callWaiterEmpty')?.addEventListener('click', function() {
-  document.getElementById('waiterCallBtn').__x.$data.callWaiter();
-});
+  window._waiterCallUrl = "{% url 'create_waiter_call' table_token=table.token %}";
+  window._chatUrl = "{% url 'chat_assistant' table_token=table.token %}";
+  window.MENU_ITEMS = {
+    {% for category in categories %}{% for item in category.items.all %}"{{ item.id }}": {{ item|item_json }},
+    {% endfor %}{% endfor %}
+  };
 </script>
+{% include "customer/_chat_assistant.html" %}
 {% endblock %}

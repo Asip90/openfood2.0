@@ -1,0 +1,211 @@
+{# Floating assistant: bell (waiter call + confirm) + AI chat. #}
+{# Lives inside the cartStore() scope of base.html, so it can call #}
+{# addToCart() and openModal() via Alpine's scope chain. #}
+<div x-data="chatAssistant()" x-init="init()" class="select-none">
+
+  {# ---- Speed-dial actions (shown when fab is open) ---- #}
+  <div class="fixed bottom-24 right-6 z-50 flex flex-col items-end gap-3"
+       x-show="fabOpen" x-transition x-cloak>
+
+    {# Chat icon (only if AI enabled) #}
+    {% if ai_enabled %}
+    <button @click="openChat()"
+            class="flex items-center gap-2 rounded-full pl-4 pr-3 py-3 shadow-lg text-white"
+            style="background: var(--color-primary);">
+      <span class="text-sm font-semibold">Assistant</span>
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M8 10h.01M12 10h.01M16 10h.01M21 12a8 8 0 01-8 8 8.5 8.5 0 01-3.7-.84L3 21l1.9-5.3A8 8 0 1121 12z"/>
+      </svg>
+    </button>
+    {% endif %}
+
+    {# Bell -> confirm modal #}
+    <button @click="confirmWaiter = true"
+            class="flex items-center gap-2 rounded-full pl-4 pr-3 py-3 shadow-lg bg-white text-slate-800">
+      <span class="text-sm font-semibold" x-text="waiterCalled ? 'Serveur appelé' : 'Serveur'"></span>
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round"
+              d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
+      </svg>
+    </button>
+  </div>
+
+  {# ---- Main FAB ---- #}
+  <button @click="fabOpen = !fabOpen"
+          class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-white"
+          style="background: var(--color-primary);"
+          :aria-expanded="fabOpen">
+    <svg x-show="!fabOpen" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round"
+            d="M8 10h.01M12 10h.01M16 10h.01M21 12a8 8 0 01-8 8 8.5 8.5 0 01-3.7-.84L3 21l1.9-5.3A8 8 0 1121 12z"/>
+    </svg>
+    <svg x-show="fabOpen" x-cloak class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+    </svg>
+  </button>
+
+  {# ---- Waiter confirm modal ---- #}
+  <div x-show="confirmWaiter" x-cloak class="fixed inset-0 z-[60] flex items-center justify-center p-4"
+       style="background: rgba(0,0,0,.5);" @click.self="confirmWaiter = false">
+    <div class="bg-white rounded-2xl p-6 max-w-sm w-full text-center">
+      <p class="text-lg font-semibold text-slate-800 mb-1">Appeler un serveur ?</p>
+      <p class="text-sm text-slate-500 mb-5">Un membre du staff sera prévenu pour votre table.</p>
+      <div class="flex gap-3">
+        <button @click="confirmWaiter = false"
+                class="flex-1 py-2.5 rounded-xl border border-slate-200 text-slate-600 font-medium">Annuler</button>
+        <button @click="callWaiter()"
+                class="flex-1 py-2.5 rounded-xl text-white font-semibold" style="background: var(--color-primary);">Oui</button>
+      </div>
+    </div>
+  </div>
+
+  {# ---- Chat panel ---- #}
+  {% if ai_enabled %}
+  <div x-show="chatOpen" x-cloak
+       class="fixed z-[60] bg-slate-900 text-slate-100 shadow-2xl flex flex-col
+              inset-0 sm:inset-auto sm:bottom-6 sm:right-6 sm:w-96 sm:h-[70vh] sm:rounded-2xl overflow-hidden">
+    {# Header #}
+    <div class="flex items-center justify-between px-4 py-3 border-b border-white/10">
+      <div class="font-semibold truncate">{{ restaurant.name }}</div>
+      <button @click="chatOpen = false" class="p-1 text-slate-300 hover:text-white">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
+        </svg>
+      </button>
+    </div>
+
+    {# Messages #}
+    <div class="flex-1 overflow-y-auto px-3 py-4 space-y-3" x-ref="scroll">
+      <template x-if="messages.length === 0">
+        <div class="space-y-2">
+          <p class="text-sm text-slate-400 px-1">Comment puis-je vous aider ?</p>
+          <template x-for="chip in starterChips" :key="chip">
+            <button @click="send(chip)"
+                    class="block w-full text-left text-sm bg-white/5 hover:bg-white/10 rounded-xl px-3 py-2"
+                    x-text="chip"></button>
+          </template>
+        </div>
+      </template>
+
+      <template x-for="(msg, i) in messages" :key="i">
+        <div :class="msg.role === 'user' ? 'flex justify-end' : 'flex justify-start'">
+          <div class="max-w-[85%]">
+            <div :class="msg.role === 'user'
+                          ? 'bg-white text-slate-900 rounded-2xl rounded-br-sm px-3 py-2'
+                          : 'bg-white/10 text-slate-100 rounded-2xl rounded-bl-sm px-3 py-2'"
+                 class="text-sm whitespace-pre-wrap" x-text="msg.content"></div>
+            <template x-if="msg.actions && msg.actions.length">
+              <div class="mt-2 flex flex-wrap gap-2">
+                <template x-for="(action, ai) in msg.actions" :key="ai">
+                  <button
+                    @click="action.type === 'view_item'   ? (MENU_ITEMS[action.item_id] && openModal(MENU_ITEMS[action.item_id]))
+                          : action.type === 'add_to_cart'  ? (MENU_ITEMS[action.item_id] && addToCart(MENU_ITEMS[action.item_id]))
+                          : (confirmWaiter = true)"
+                    class="text-xs font-semibold rounded-full px-3 py-1.5 bg-white/10 hover:bg-white/20"
+                    x-text="action.label"></button>
+                </template>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
+      <template x-if="loading">
+        <div class="flex justify-start">
+          <div class="bg-white/10 rounded-2xl px-3 py-2 text-sm text-slate-400">…</div>
+        </div>
+      </template>
+    </div>
+
+    {# Input #}
+    <form @submit.prevent="send()" class="p-3 border-t border-white/10 flex gap-2">
+      <input x-model="input" type="text" maxlength="500" placeholder="Votre message…"
+             class="flex-1 bg-white/5 rounded-xl px-3 py-2 text-sm outline-none placeholder-slate-500"/>
+      <button type="submit" :disabled="loading"
+              class="w-10 h-10 rounded-xl flex items-center justify-center text-white disabled:opacity-50"
+              style="background: var(--color-primary);">
+        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M13 6l6 6-6 6"/>
+        </svg>
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+  <script>
+    function chatAssistant() {
+      return {
+        fabOpen: false,
+        chatOpen: false,
+        confirmWaiter: false,
+        waiterCalled: false,
+        loading: false,
+        input: '',
+        messages: [],
+        starterChips: [
+          'Propose-moi un plat',
+          "J'ai 2500F, qu'est-ce que je prends ?",
+          'Une entrée pas chère ?',
+        ],
+        init() {
+          window.MENU_ITEMS = window.MENU_ITEMS || {};
+          // Empty-state button (shown when no items) calls a waiter too.
+          const emptyBtn = document.getElementById('callWaiterEmpty');
+          if (emptyBtn) emptyBtn.addEventListener('click', () => { this.confirmWaiter = true; });
+        },
+        openChat() {
+          this.fabOpen = false;
+          this.chatOpen = true;
+        },
+        scrollDown() {
+          this.$nextTick(() => {
+            const el = this.$refs.scroll;
+            if (el) el.scrollTop = el.scrollHeight;
+          });
+        },
+        async send(preset) {
+          const text = (preset || this.input || '').trim();
+          if (!text || this.loading) return;
+          this.input = '';
+          this.messages.push({ role: 'user', content: text, actions: [] });
+          this.loading = true;
+          this.scrollDown();
+          try {
+            const r = await fetch(window._chatUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({ message: text }),
+            });
+            const data = await r.json();
+            this.messages.push({
+              role: 'assistant',
+              content: data.reply || '…',
+              actions: data.actions || [],
+            });
+          } catch (e) {
+            this.messages.push({
+              role: 'assistant',
+              content: "Souci de connexion. Réessayez ou appelez un serveur.",
+              actions: [{ type: 'call_waiter', label: 'Appeler un serveur' }],
+            });
+          } finally {
+            this.loading = false;
+            this.scrollDown();
+          }
+        },
+        async callWaiter() {
+          this.confirmWaiter = false;
+          try {
+            await fetch(window._waiterCallUrl, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({}),
+            });
+            this.waiterCalled = true;
+          } catch (e) { /* silent */ }
+        },
+      };
+    }
+  </script>
+</div>

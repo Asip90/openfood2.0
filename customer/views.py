@@ -68,6 +68,7 @@ def client_menu(request, table_token):
         "cart_count": cart_count,
         "table_token": table_token,
         "cart_json": json.dumps(cart_items),
+        "ai_enabled": is_assistant_available(),
     }
 
     return render(request, "customer/menu.html", context)
