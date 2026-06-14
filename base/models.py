@@ -152,14 +152,13 @@ class Restaurant(models.Model):
     
     def generate_qr_code(self):
         qr = qrcode.QRCode(version=1, box_size=10, border=5)
-        url = f"https://{self.subdomain}.votredomaine.com"
+        url = f"https://{self.subdomain}.openfood.site"
         qr.add_data(url)
         qr.make(fit=True)
         
         img = qr.make_image(fill_color=self.primary_color, back_color="white")
         buffer = BytesIO()
         img.save(buffer, format='PNG')
-        buffer.seek(0)
         filename = f'qr_{self.slug}.png'
         self.qr_code.save(filename, File(buffer), save=False)
         super().save(update_fields=['qr_code'])
