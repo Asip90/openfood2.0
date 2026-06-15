@@ -142,23 +142,8 @@
     });
   }
 
-  // Polling nouvelles commandes (son + refresh)
-  const orderSound = new Audio('{% static "sounds/new-order.mp3" %}');
-  let lastOrderId = {{ latest_order_id|default:"null" }};
-
-  async function checkNewOrders() {
-    try {
-      const r = await fetch('{% url "check_new_orders" %}', {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-      const d = await r.json();
-      if (d.latest_order_id && d.latest_order_id !== lastOrderId) {
-        orderSound.play().catch(() => {});
-        lastOrderId = d.latest_order_id;
-        location.reload();
-      }
-    } catch(e) {}
-  }
-  setInterval(checkNewOrders, 15000);
+  // Nouvelles commandes : le son + la notif sont gérés globalement (base.html).
+  // Ici on se contente de rafraîchir le dashboard quand l'évènement global arrive.
+  window.addEventListener('openfood:new-order', () => location.reload());
 </script>
 {% endblock %}

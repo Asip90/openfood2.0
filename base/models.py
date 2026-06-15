@@ -698,3 +698,28 @@ class AISettings(models.Model):
 
     def __str__(self):
         return f"Paramètres IA ({self.provider})"
+
+
+class PushSubscription(models.Model):
+    """A browser Web Push subscription for a staff member (owner or StaffMember)."""
+    user = models.ForeignKey(
+        'accounts.User', on_delete=models.CASCADE, related_name='push_subscriptions'
+    )
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='push_subscriptions',
+        null=True, blank=True,
+    )
+    endpoint = models.URLField(max_length=600, unique=True)
+    p256dh = models.CharField(max_length=200)
+    auth = models.CharField(max_length=100)
+    user_agent = models.CharField(max_length=300, blank=True, default='')
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def as_subscription_info(self):
+        return {
+            "endpoint": self.endpoint,
+            "keys": {"p256dh": self.p256dh, "auth": self.auth},
+        }
+
+    def __str__(self):
+        return f"PushSubscription({self.user_id}, {self.endpoint[:40]})"

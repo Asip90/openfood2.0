@@ -2,6 +2,7 @@ from django.urls import path
 from django.views.generic import TemplateView
 from base.views import *
 from base import staff_admin_views
+from base import push_views
 from base import subscription_views
 from base import landing_views
 from base import blog_views
@@ -100,4 +101,9 @@ urlpatterns = [
     path('api/waiter-call/<str:table_token>/', create_waiter_call, name='create_waiter_call'),
     path('api/waiter-calls/pending/', list_waiter_calls, name='list_waiter_calls'),
     path('api/waiter-calls/<int:call_id>/claim/', claim_waiter_call, name='claim_waiter_call'),
+
+    # Web Push API
+    path('api/push/vapid-public-key/', push_views.vapid_public_key, name='push_vapid_key'),
+    path('api/push/subscribe/', push_views.push_subscribe, name='push_subscribe'),
+    path('api/push/unsubscribe/', push_views.push_unsubscribe, name='push_unsubscribe'),
 ]

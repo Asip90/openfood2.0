@@ -13,10 +13,7 @@
             class="flex items-center gap-2 rounded-full pl-4 pr-3 py-3 shadow-lg text-white"
             style="background: var(--color-primary);">
       <span class="text-sm font-semibold">Assistant</span>
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              d="M8 10h.01M12 10h.01M16 10h.01M21 12a8 8 0 01-8 8 8.5 8.5 0 01-3.7-.84L3 21l1.9-5.3A8 8 0 1121 12z"/>
-      </svg>
+      <i class="ri-robot-2-line text-xl"></i>
     </button>
     {% endif %}
 
@@ -24,10 +21,7 @@
     <button @click="confirmWaiter = true"
             class="flex items-center gap-2 rounded-full pl-4 pr-3 py-3 shadow-lg bg-white text-slate-800">
       <span class="text-sm font-semibold" x-text="waiterCalled ? 'Serveur appelé' : 'Serveur'"></span>
-      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-        <path stroke-linecap="round" stroke-linejoin="round"
-              d="M15 17h5l-1.4-1.4A2 2 0 0118 14.2V11a6 6 0 10-12 0v3.2a2 2 0 01-.6 1.4L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"/>
-      </svg>
+      <i class="ri-bell-line text-xl"></i>
     </button>
   </div>
 
@@ -36,13 +30,8 @@
           class="fixed bottom-6 right-6 z-50 w-14 h-14 rounded-full shadow-xl flex items-center justify-center text-white"
           style="background: var(--color-primary);"
           :aria-expanded="fabOpen">
-    <svg x-show="!fabOpen" class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round"
-            d="M8 10h.01M12 10h.01M16 10h.01M21 12a8 8 0 01-8 8 8.5 8.5 0 01-3.7-.84L3 21l1.9-5.3A8 8 0 1121 12z"/>
-    </svg>
-    <svg x-show="fabOpen" x-cloak class="w-7 h-7" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"/>
-    </svg>
+    <i x-show="!fabOpen" class="ri-customer-service-2-line text-3xl"></i>
+    <i x-show="fabOpen" x-cloak class="ri-close-line text-3xl"></i>
   </button>
 
   {# ---- Waiter confirm modal ---- #}

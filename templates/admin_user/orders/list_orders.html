@@ -142,9 +142,7 @@
 
 <!-- ── Scripts ────────────────────────────────────────── -->
 <script>
-  const audio = new Audio('{% static "sounds/new-order.mp3" %}');
   const csrfToken = '{{ csrf_token }}';
-  let lastOrderId = {{ latest_order_id|default:"null" }};
 
   // ── Polling & refresh partiel ─────────────────────────
   function currentPage() {
@@ -174,24 +172,15 @@
     window.location.search = params.toString();
   }
 
-  setInterval(async () => {
-    try {
-      const r = await fetch('{% url "check_new_orders" %}', {
-        headers: { 'X-Requested-With': 'XMLHttpRequest' }
-      });
-      const d = await r.json();
-      if (d.latest_order_id && d.latest_order_id !== lastOrderId) {
-        audio.play().catch(() => {});
-        lastOrderId = d.latest_order_id;
-
-        if (currentPage() === 1) {
-          await refreshFeed();
-        } else {
-          document.getElementById('new-order-banner').classList.remove('hidden');
-        }
-      }
-    } catch(e) {}
-  }, 10000);
+  // Le son + la notif des nouvelles commandes sont gérés globalement (base.html).
+  // On réagit juste à l'évènement pour mettre à jour le flux sans re-sonner.
+  window.addEventListener('openfood:new-order', async () => {
+    if (currentPage() === 1) {
+      await refreshFeed();
+    } else {
+      document.getElementById('new-order-banner').classList.remove('hidden');
+    }
+  });
 
   // ── Changement de statut ──────────────────────────────
   async function changeStatus(pk, newStatus) {

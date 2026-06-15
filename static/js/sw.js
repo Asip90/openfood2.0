@@ -1,5 +1,5 @@
 // Open Food PWA Service Worker
-const CACHE_NAME = 'openfood-v1';
+const CACHE_NAME = 'openfood-v2';
 const STATIC_ASSETS = [
   '/static/sounds/new-order.mp3',
 ];
@@ -36,4 +36,40 @@ self.addEventListener('fetch', event => {
       })
     );
   }
+});
+
+// ── Web Push ──────────────────────────────────────────────
+self.addEventListener('push', event => {
+  let data = {};
+  try { data = event.data ? event.data.json() : {}; }
+  catch (e) { data = { title: 'OpenFood', body: event.data ? event.data.text() : '' }; }
+
+  const title = data.title || 'OpenFood';
+  const options = {
+    body: data.body || '',
+    icon: '/static/icons/icon-192.png',
+    badge: '/static/icons/icon-192.png',
+    tag: data.tag,
+    renotify: true,
+    requireInteraction: false,
+    vibrate: [120, 60, 120],
+    data: { url: data.url || '/dashboard/' },
+  };
+  event.waitUntil(self.registration.showNotification(title, options));
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = (event.notification.data && event.notification.data.url) || '/dashboard/';
+  event.waitUntil(
+    self.clients.matchAll({ type: 'window', includeUncontrolled: true }).then(wins => {
+      for (const w of wins) {
+        if ('focus' in w) {
+          if ('navigate' in w) { try { w.navigate(target); } catch (e) {} }
+          return w.focus();
+        }
+      }
+      if (self.clients.openWindow) return self.clients.openWindow(target);
+    })
+  );
 });
