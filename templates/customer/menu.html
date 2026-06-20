@@ -225,7 +225,7 @@
   window._waiterCallUrl = "{% url 'create_waiter_call' table_token=table.token %}";
   window._chatUrl = "{% url 'chat_assistant' table_token=table.token %}";
   window.MENU_ITEMS = {
-    {% for category in categories %}{% for item in category.items.all %}"{{ item.id }}": {{ item|item_json }},
+    {% for category in categories %}{% for item in category.items.all %}"{{ item.id }}": {{ item|item_json|safe }},
     {% endfor %}{% endfor %}
   };
 </script>

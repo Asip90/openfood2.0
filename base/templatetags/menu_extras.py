@@ -33,7 +33,7 @@ def item_json(item):
 
     video_media = next((m for m in media_qs if m.media_type == 'video'), None)
 
-    return json.dumps({
+    payload = json.dumps({
         'id': str(item.id),
         'name': item.name,
         'description': item.description or '',
@@ -49,3 +49,14 @@ def item_json(item):
         'allergens': getattr(item, 'allergens', '') or '',
         'ingredients': getattr(item, 'ingredients', '') or '',
     })
+    # Neutralize characters that could break out of a <script> block, so the
+    # output is safe to embed with |safe in an inline script. U+2028/U+2029 are
+    # already \u-escaped by json.dumps (ensure_ascii=True). These \uXXXX escapes
+    # are also harmless inside an HTML attribute, so the same filter stays valid
+    # in both template contexts (attribute use auto-escapes the quotes).
+    return (
+        payload
+        .replace('<', '\\u003c')
+        .replace('>', '\\u003e')
+        .replace('&', '\\u0026')
+    )
