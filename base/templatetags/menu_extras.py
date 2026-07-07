@@ -4,6 +4,17 @@ from django import template
 register = template.Library()
 
 @register.filter
+def discount_pct(item):
+    """Pourcentage de remise arrondi (badge « -X% »), ou None."""
+    try:
+        if item.discount_price and item.price and item.discount_price < item.price:
+            return round((1 - float(item.discount_price) / float(item.price)) * 100)
+    except (TypeError, ZeroDivisionError, ValueError):
+        pass
+    return None
+
+
+@register.filter
 def first_image_url(item):
     """Return the first Cloudinary image URL, falling back to the legacy image field."""
     for m in item.media.all():

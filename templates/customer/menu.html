@@ -6,6 +6,16 @@
 <script>
   var _cartInit = {{ cart_json|safe }};
 </script>
+<style>
+  /* Skeleton animé affiché tant que l'image du plat n'est pas chargée */
+  .img-skeleton {
+    background: linear-gradient(100deg, #eef2f7 30%, #f8fafc 50%, #eef2f7 70%);
+    background-size: 200% 100%;
+    animation: shimmerSlide 1.3s ease-in-out infinite;
+  }
+  .dish-img { opacity: 0; transition: opacity .3s ease; }
+  .dish-img.loaded { opacity: 1; }
+</style>
 
 <div x-data="{
   search: '',
@@ -33,15 +43,38 @@
       {% if restaurant.description %}
         <p class="text-white/65 text-xs mt-1 leading-relaxed line-clamp-1">{{ restaurant.description }}</p>
       {% endif %}
-      {% if restaurant.address or table %}
-      <div class="flex items-center gap-3 mt-2">
+      <div class="flex items-center gap-3 mt-2 flex-wrap">
+        {# Statut ouvert/fermé — calculé côté client (l'heure du téléphone = l'heure du resto) #}
+        <span id="open-status" class="hidden items-center gap-1.5 text-[11px] font-bold text-white/90">
+          <span id="open-dot" class="w-1.5 h-1.5 rounded-full bg-green-400"></span>
+          <span id="open-label"></span>
+          {% if avg_prep %}<span class="text-white/50 font-normal">· Prêt en ~{{ avg_prep }} min</span>{% endif %}
+        </span>
         {% if restaurant.address %}
         <span class="text-white/50 text-[11px] flex items-center gap-1">
           <i class="ri-map-pin-line"></i> {{ restaurant.address }}
         </span>
         {% endif %}
       </div>
-      {% endif %}
+      <script>
+        (function () {
+          var hours = {{ opening_hours_json|safe }};
+          var days = ['dimanche','lundi','mardi','mercredi','jeudi','vendredi','samedi'];
+          var now = new Date();
+          var day = days[now.getDay()];
+          var open = hours[day + '_open'], close = hours[day + '_close'];
+          if (!open || !close) return; // horaires non renseignés : on n'affiche rien
+          var cur = now.getHours() * 60 + now.getMinutes();
+          function mins(t) { var p = t.split(':'); return Number(p[0]) * 60 + Number(p[1]); }
+          var o = mins(open), c = mins(close);
+          // gère la fermeture après minuit (ex: 18:00 → 02:00)
+          var isOpen = c > o ? (cur >= o && cur < c) : (cur >= o || cur < c);
+          var el = document.getElementById('open-status');
+          el.classList.remove('hidden'); el.classList.add('flex');
+          document.getElementById('open-label').textContent = isOpen ? 'Ouvert' : 'Fermé · ouvre à ' + open;
+          if (!isOpen) document.getElementById('open-dot').style.background = '#f87171';
+        })();
+      </script>
     </div>
   </div>
 
@@ -119,85 +152,128 @@
         <span class="text-[11px] font-semibold text-slate-400">{{ category.items.all|length }} plat{{ category.items.all|length|pluralize }}</span>
       </div>
 
-      <div class="space-y-3">
+      <div class="grid grid-cols-2 gap-3">
         {% for item in category.items.all %}
 
-        {% with delay=forloop.counter0 %}
-        <div class="bg-white rounded-2xl overflow-hidden flex gap-0 cursor-pointer active:scale-[.985] transition-all duration-150 anim-up {% if forloop.counter == 1 %}s1{% elif forloop.counter == 2 %}s2{% elif forloop.counter == 3 %}s3{% elif forloop.counter == 4 %}s4{% else %}s5{% endif %}"
-             style="box-shadow: 0 1px 12px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.04);"
-             x-show="!search || '{{ item.name|lower|escapejs }}'.includes(search.toLowerCase())"
+        {% with thumb=item|first_image_url pct=item|discount_pct %}
+        <div class="bg-white rounded-2xl overflow-hidden cursor-pointer active:scale-[.985] transition-all duration-150 flex flex-col anim-up {% if forloop.counter == 1 %}s1{% elif forloop.counter == 2 %}s2{% elif forloop.counter == 3 %}s3{% elif forloop.counter == 4 %}s4{% else %}s5{% endif %}"
+             :class="cartQty('{{ item.id }}') > 0 ? 'ring-2' : ''"
+             :style="cartQty('{{ item.id }}') > 0
+               ? 'box-shadow: 0 1px 12px rgba(0,0,0,0.05); --tw-ring-color: var(--color-primary); border: 1px solid var(--color-primary);'
+               : 'box-shadow: 0 1px 12px rgba(0,0,0,0.05); border: 1px solid rgba(0,0,0,0.04);'"
+             role="button" tabindex="0"
+             x-show="!search || '{{ item.name|lower|escapejs }} {{ item.description|default:''|lower|escapejs }}'.includes(search.toLowerCase())"
+             @keydown.enter="openModal({{ item|item_json }})"
              @click="openModal({{ item|item_json }})">
 
-          <!-- Info side -->
-          <div class="flex-1 min-w-0 px-4 py-3.5 flex flex-col justify-between">
-            <!-- Badges -->
-            <div class="flex items-center gap-1 flex-wrap mb-1.5">
-              {% if item.is_vegetarian %}
-              <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 uppercase tracking-wide">Végé</span>
+          <!-- ── Image-first : photo pleine largeur ── -->
+          <div class="relative w-full aspect-[4/3] {% if thumb %}img-skeleton{% else %}bg-slate-50{% endif %}">
+            {% if thumb %}
+            <img src="{{ thumb }}" alt="{{ item.name }}" loading="lazy"
+                 onload="this.classList.add('loaded')"
+                 onerror="this.remove()"
+                 class="dish-img absolute inset-0 w-full h-full object-cover">
+            <div class="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <i class="ri-restaurant-2-line text-3xl text-slate-300"></i>
+            </div>
+            <div class="absolute inset-0"
+                 style="background: linear-gradient(to top, rgba(0,0,0,0.25) 0%, transparent 45%);"></div>
+            {% else %}
+            <div class="absolute inset-0 flex items-center justify-center">
+              <i class="ri-restaurant-2-line text-3xl text-slate-300"></i>
+            </div>
+            {% endif %}
+            <!-- Badges sur l'image -->
+            <div class="absolute top-2 left-2 flex items-center gap-1 flex-wrap">
+              {% if item.id in popular_ids %}
+              <span class="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded-full bg-white/95 text-slate-900 shadow-sm">
+                <i class="ri-fire-fill text-orange-500"></i>Populaire
+              </span>
               {% endif %}
-              {% if item.is_vegan %}
-              <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 uppercase tracking-wide">Vegan</span>
+              {% if pct %}
+              <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full text-white shadow-sm bg-red-500">-{{ pct }}%</span>
               {% endif %}
-              {% if item.is_spicy %}
-              <span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 uppercase tracking-wide">🌶 Épicé</span>
+            </div>
+            <!-- Badge « au panier » -->
+            <div x-show="cartQty('{{ item.id }}') > 0" x-cloak
+                 class="absolute top-2 right-2 min-w-[22px] h-[22px] px-1.5 rounded-full text-white text-[11px] font-black flex items-center justify-center shadow-md anim-pop"
+                 style="background-color: var(--color-primary);">
+              <i class="ri-check-line mr-0.5"></i><span x-text="cartQty('{{ item.id }}')"></span>
+            </div>
+          </div>
+
+          <!-- Info -->
+          <div class="px-3 py-2.5 flex flex-col flex-1">
+            <!-- Titre + temps de prépa sur la même ligne -->
+            <div class="flex items-start justify-between gap-1.5">
+              <h3 class="font-bold text-slate-900 text-sm leading-snug min-w-0">{{ item.name }}</h3>
+              {% if item.preparation_time %}
+              <span class="text-slate-400 text-[10px] flex items-center gap-0.5 flex-shrink-0 mt-0.5 whitespace-nowrap">
+                <i class="ri-time-line"></i>{{ item.preparation_time }} min
+              </span>
               {% endif %}
             </div>
 
-            <h3 class="font-bold text-slate-900 text-sm leading-snug">{{ item.name }}</h3>
-
-            {% if item.description %}
-            <p class="text-slate-400 text-xs mt-0.5 line-clamp-2 leading-relaxed">{{ item.description }}</p>
+            <!-- Badges régime -->
+            {% if item.is_vegetarian or item.is_vegan or item.is_spicy %}
+            <div class="flex items-center gap-1 flex-wrap mt-1">
+              {% if item.is_vegetarian %}<span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-green-100 text-green-700 uppercase">Végé</span>{% endif %}
+              {% if item.is_vegan %}<span class="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-emerald-100 text-emerald-700 uppercase">Vegan</span>{% endif %}
+              {% if item.is_spicy %}<span class="inline-flex items-center gap-0.5 text-[9px] font-black px-1.5 py-0.5 rounded-full bg-red-100 text-red-700 uppercase"><i class="ri-fire-line"></i>Épicé</span>{% endif %}
+            </div>
             {% endif %}
 
-            {% if item.preparation_time %}
-            <p class="text-slate-300 text-[11px] mt-1.5 flex items-center gap-1">
-              <i class="ri-time-line"></i> {{ item.preparation_time }} min
-            </p>
+            {% if item.description %}
+            <p class="text-slate-500 text-xs mt-1 line-clamp-2 leading-relaxed">{{ item.description }}</p>
             {% endif %}
 
             <!-- Price + add button -->
-            <div class="flex items-center justify-between mt-2.5 pt-2 border-t border-slate-50">
-              <div class="flex items-baseline gap-1.5">
+            <div class="flex items-center justify-between gap-1.5 mt-2 pt-2 border-t border-slate-50 mt-auto">
+              <div class="flex flex-col min-w-0">
                 {% if item.discount_price %}
-                <span class="font-black text-base leading-none" style="color: var(--color-primary);">
-                  {{ item.discount_price|floatformat:0 }} <span class="text-xs">FCFA</span>
+                <span class="font-black text-sm leading-none whitespace-nowrap" style="color: var(--color-primary);">
+                  {{ item.discount_price|floatformat:0 }} <span class="text-[10px]">FCFA</span>
                 </span>
-                <span class="text-slate-300 text-xs line-through">{{ item.price|floatformat:0 }}</span>
+                <span class="text-slate-400 text-[10px] line-through">{{ item.price|floatformat:0 }}</span>
                 {% else %}
-                <span class="font-black text-base leading-none text-slate-800">
-                  {{ item.price|floatformat:0 }} <span class="text-xs font-semibold text-slate-500">FCFA</span>
+                <span class="font-black text-sm leading-none text-slate-800 whitespace-nowrap">
+                  {{ item.price|floatformat:0 }} <span class="text-[10px] font-semibold text-slate-500">FCFA</span>
                 </span>
                 {% endif %}
               </div>
-              <button @click.stop="addToCart({{ item.id }}, '{{ item.name|escapejs }}', {{ item.discount_price|default:item.price }}, '{{ item|first_image_url|default:'' }}')"
-                      class="w-8 h-8 rounded-xl flex items-center justify-center text-white text-base transition-all active:scale-90"
+              <!-- Bouton + (article absent) -->
+              <button x-show="cartQty('{{ item.id }}') === 0"
+                      @click.stop="addToCart({{ item.id }}, '{{ item.name|escapejs }}', {{ item.discount_price|default:item.price }}, '{{ item|first_image_url|default:'' }}')"
+                      aria-label="Ajouter {{ item.name }} au panier"
+                      class="w-9 h-9 rounded-xl flex items-center justify-center text-white text-lg transition-all active:scale-90 flex-shrink-0"
                       style="background-color: var(--color-primary);">
                 <i class="ri-add-line"></i>
               </button>
+              <!-- Stepper (article au panier) -->
+              <div x-show="cartQty('{{ item.id }}') > 0" x-cloak
+                   class="flex items-center gap-1 flex-shrink-0"
+                   @click.stop>
+                <button @click="updateQty('{{ item.id }}', cartQty('{{ item.id }}') - 1)"
+                        aria-label="Retirer un {{ item.name }}"
+                        class="w-7 h-7 rounded-lg bg-slate-100 flex items-center justify-center text-slate-600 active:scale-90 transition-transform">
+                  <i class="ri-subtract-line"></i>
+                </button>
+                <span class="font-black text-slate-900 text-sm min-w-[0.9rem] text-center" x-text="cartQty('{{ item.id }}')"></span>
+                <button @click="addToCart({{ item.id }}, '{{ item.name|escapejs }}', {{ item.discount_price|default:item.price }}, '{{ item|first_image_url|default:'' }}')"
+                        aria-label="Ajouter un {{ item.name }}"
+                        class="w-7 h-7 rounded-lg flex items-center justify-center text-white active:scale-90 transition-transform"
+                        style="background-color: var(--color-primary);">
+                  <i class="ri-add-line"></i>
+                </button>
+              </div>
             </div>
           </div>
-
-          <!-- Image side -->
-          {% with thumb=item|first_image_url %}
-          {% if thumb %}
-          <div class="w-28 h-full relative flex-shrink-0">
-            <img src="{{ thumb }}" alt="{{ item.name }}"
-                 class="w-full h-full object-cover min-h-[120px]">
-            <div class="absolute inset-0"
-                 style="background: linear-gradient(to right, rgba(255,255,255,0.08) 0%, transparent 40%);"></div>
-          </div>
-          {% else %}
-          <div class="w-24 flex-shrink-0 bg-slate-50 flex items-center justify-center min-h-[120px]">
-            <i class="ri-restaurant-line text-2xl text-slate-200"></i>
-          </div>
-          {% endif %}
-          {% endwith %}
 
         </div>
         {% endwith %}
 
         {% empty %}
-        <div class="py-10 text-center">
+        <div class="col-span-2 py-10 text-center">
           <i class="ri-restaurant-line text-3xl text-slate-200 block mb-2"></i>
           <p class="text-slate-400 text-sm">Aucun article dans cette catégorie.</p>
         </div>
@@ -228,6 +304,7 @@
     {% for category in categories %}{% for item in category.items.all %}"{{ item.id }}": {{ item|item_json|safe }},
     {% endfor %}{% endfor %}
   };
+  window.POPULAR_IDS = [{% for pid in popular_ids %}"{{ pid }}",{% endfor %}];
 </script>
 {% include "customer/_chat_assistant.html" %}
 {% endblock %}

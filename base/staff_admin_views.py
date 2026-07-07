@@ -3,6 +3,8 @@ from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
 from django.utils import timezone
 from django.contrib.auth import get_user_model
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 
 from base.models import StaffMember, StaffInvitation
 from base.decorators import owner_or_coadmin_required, get_user_restaurant
@@ -149,6 +151,14 @@ def staff_invite_accept(request, token):
             return render(request, 'admin_user/staff/invite_accept.html', {
                 'invitation': invitation,
                 'error': "Tous les champs sont requis.",
+            })
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            return render(request, 'admin_user/staff/invite_accept.html', {
+                'invitation': invitation,
+                'error': " ".join(e.messages),
             })
 
         new_user = User.objects.create_user(

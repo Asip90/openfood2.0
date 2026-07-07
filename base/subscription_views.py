@@ -222,10 +222,26 @@ def fedapay_webhook(request):
     secret = getattr(settings, 'FEDAPAY_WEBHOOK_SECRET', '')
     sig = request.headers.get('X-Fedapay-Signature', '')
 
-    if secret:
+    # Sans secret configuré, n'importe qui pourrait s'octroyer un abonnement :
+    # on refuse tout webhook tant que FEDAPAY_WEBHOOK_SECRET n'est pas défini.
+    if not secret:
+        logger.error("FEDAPAY_WEBHOOK_SECRET non configuré — webhook rejeté")
+        return HttpResponse('Webhook secret not configured', status=403)
+
+    # FedaPay signe au format "t=<timestamp>,s=<hmac_sha256(timestamp.payload)>".
+    # On accepte aussi un HMAC brut du corps pour rester compatible.
+    valid = False
+    if 't=' in sig and 's=' in sig:
+        parts = dict(p.split('=', 1) for p in sig.split(',') if '=' in p)
+        timestamp, signature = parts.get('t', ''), parts.get('s', '')
+        signed_payload = f"{timestamp}.".encode() + request.body
+        expected = hmac.new(secret.encode(), signed_payload, hashlib.sha256).hexdigest()
+        valid = hmac.compare_digest(expected, signature)
+    else:
         expected = hmac.new(secret.encode(), request.body, hashlib.sha256).hexdigest()
-        if not hmac.compare_digest(expected, sig):
-            return HttpResponse('Invalid signature', status=400)
+        valid = hmac.compare_digest(expected, sig)
+    if not valid:
+        return HttpResponse('Invalid signature', status=400)
 
     try:
         payload = json.loads(request.body)

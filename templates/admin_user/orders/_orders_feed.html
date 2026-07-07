@@ -49,8 +49,43 @@
                 {% else %}bg-red-50 text-red-700{% endif %}">
                 {{ order.get_status_display }}
               </span>
-              {% if order.status == 'pending' %}
-              <span class="text-[10px] text-amber-500 font-semibold animate-pulse hidden sm:inline">● {% trans "Pending" %}</span>
+              {% if order.is_paid %}
+                {% if user_role == 'owner' or user_role == 'coadmin' %}
+                <form method="post" action="{% url 'mark_order_unpaid' order.pk %}" class="inline"
+                      data-confirm="La commande #{{ order.order_number|slice:'-6:' }} repassera en non payée{% if order.paid_by_name %} (encaissée par {{ order.paid_by_name }}){% endif %}."
+                      data-confirm-title="Annuler l'encaissement ?"
+                      data-confirm-btn="Oui, annuler" data-confirm-danger data-confirm-icon="ri-arrow-go-back-line">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors"
+                          title="Encaissée{% if order.paid_by_name %} par {{ order.paid_by_name }}{% endif %}{% if order.paid_at %} · {{ order.paid_at|date:'d/m H:i' }}{% endif %} — cliquer pour annuler">
+                    <i class="ri-cash-line"></i> Payée
+                  </button>
+                </form>
+                {% else %}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700"
+                      {% if order.paid_by_name %}title="Encaissée par {{ order.paid_by_name }}{% if order.paid_at %} · {{ order.paid_at|date:'d/m H:i' }}{% endif %}"{% endif %}>
+                  <i class="ri-cash-line"></i> Payée
+                </span>
+                {% endif %}
+              {% elif order.status != 'cancelled' %}
+                {% if user_role == 'owner' or user_role == 'coadmin' or user_role == 'serveur' %}
+                <form method="post" action="{% url 'mark_order_paid' order.pk %}" class="inline"
+                      data-confirm="Confirmer la réception de {{ order.total|floatformat:0 }} FCFA pour la commande #{{ order.order_number|slice:'-6:' }}{% if order.table %} (Table {{ order.table.number }}){% endif %}."
+                      data-confirm-title="Encaisser cette commande ?"
+                      data-confirm-btn="Encaisser">
+                  {% csrf_token %}
+                  <button type="submit"
+                          class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600 hover:bg-rose-100 transition-colors"
+                          title="Cliquer pour encaisser">
+                    Non payée
+                  </button>
+                </form>
+                {% else %}
+                <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-rose-50 text-rose-600">
+                  Non payée
+                </span>
+                {% endif %}
               {% endif %}
             </div>
 
@@ -81,6 +116,25 @@
                  class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="Imprimer le reçu">
                 <i class="ri-printer-line text-sm"></i>
               </a>
+
+              {% if user_role == 'owner' or user_role == 'coadmin' %}
+              <a href="{% url 'update_order' order.pk %}"
+                 class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors" title="{% trans "Edit" %}">
+                <i class="ri-pencil-line text-sm"></i>
+              </a>
+
+              <form method="post" action="{% url 'delete_order' order.pk %}"
+                    data-confirm="La commande #{{ order.order_number|slice:'-6:' }} sera définitivement supprimée. Cette action est irréversible."
+                    data-confirm-title="Supprimer la commande ?"
+                    data-confirm-btn="Supprimer" data-confirm-danger data-confirm-icon="ri-delete-bin-line"
+                    class="inline">
+                {% csrf_token %}
+                <button type="submit"
+                        class="p-2 rounded-xl hover:bg-red-50 text-slate-400 hover:text-red-600 transition-colors" title="{% trans "Delete" %}">
+                  <i class="ri-delete-bin-line text-sm"></i>
+                </button>
+              </form>
+              {% endif %}
 
               <div x-data="{ open: false, top: 0, right: 0 }">
                 <button

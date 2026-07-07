@@ -6,6 +6,7 @@ from base import push_views
 from base import subscription_views
 from base import landing_views
 from base import blog_views
+from base import cashier_views
 
 
 urlpatterns = [
@@ -57,6 +58,7 @@ urlpatterns = [
     path("menus/<int:pk>/update/", menu_update, name="menu_update"),
     path("menus/<int:pk>/delete/", menu_delete, name="menu_delete"),
     path("menus/create/", menu_create, name="menu_create"),
+    path("menus/ai-description/", menu_ai_description, name="menu_ai_description"),
     path("menus/<int:pk>/change-availability/", change_menu_status, name="menu_toggle_availability"),
 
     # Tables
@@ -76,6 +78,16 @@ urlpatterns = [
     path("settings/", restaurant_settings, name="restaurant_settings"),
     path("reglages/", settings_hub, name="settings_hub"),
 
+    # Support
+    path("support/", support_contact, name="support_contact"),
+
+    # Caisse / encaissement
+    path("caisse/", cashier_views.cashier, name="cashier"),
+    path("caisse/table/<int:table_id>/", cashier_views.cashier_table, name="cashier_table"),
+    path("caisse/commande/<int:order_id>/encaisser/", cashier_views.mark_order_paid, name="mark_order_paid"),
+    path("caisse/commande/<int:order_id>/annuler-encaissement/", cashier_views.mark_order_unpaid, name="mark_order_unpaid"),
+    path("caisse/table/<int:table_id>/encaisser/", cashier_views.mark_table_paid, name="mark_table_paid"),
+
     # Clients
     path("clients/", customers_list, name="customers_list"),
 
@@ -83,6 +95,7 @@ urlpatterns = [
     path("manifest/<slug:slug>.json", pwa_manifest, name="pwa_manifest"),
 
     # Équipe — invitation flow
+    path('activite/', activity_list, name='activity_list'),
     path('equipe/', staff_admin_views.staff_list, name='staff_list'),
     path('equipe/inviter/', staff_admin_views.staff_invite, name='staff_invite'),
     path('equipe/accepter/<uuid:token>/', staff_admin_views.staff_invite_accept, name='staff_invite_accept'),
@@ -101,6 +114,7 @@ urlpatterns = [
     path('api/waiter-call/<str:table_token>/', create_waiter_call, name='create_waiter_call'),
     path('api/waiter-calls/pending/', list_waiter_calls, name='list_waiter_calls'),
     path('api/waiter-calls/<int:call_id>/claim/', claim_waiter_call, name='claim_waiter_call'),
+    path('api/orders/ready/', list_ready_orders, name='list_ready_orders'),
 
     # Web Push API
     path('api/push/vapid-public-key/', push_views.vapid_public_key, name='push_vapid_key'),

@@ -727,3 +727,15 @@ msgstr ""
 
 #~ msgid "Language"
 #~ msgstr "Language"
+
+msgid "Order now"
+msgstr "Order now"
+
+msgid "My orders"
+msgstr "My orders"
+
+msgid "Support"
+msgstr "Support"
+
+msgid "Cashier"
+msgstr "Cashier"

@@ -1,0 +1,99 @@
+{% load static %}
+{# Vue Salle — commandes prêtes à servir + accès caisse (serveur) #}
+<div class="max-w-3xl mx-auto space-y-6">
+
+  <!-- Accès rapide caisse -->
+  <a href="{% url 'cashier' %}"
+     class="flex items-center gap-3 rounded-2xl p-4 text-white"
+     style="background: linear-gradient(135deg, var(--color-primary, #f97316), #ea580c);">
+    <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+      <i class="ri-cash-line text-2xl"></i>
+    </div>
+    <div class="flex-1 min-w-0">
+      <p class="font-black text-base leading-tight">Caisse / Addition</p>
+      <p class="text-white/80 text-xs">Encaisser une table, une commande ou par téléphone</p>
+    </div>
+    <i class="ri-arrow-right-s-line text-xl"></i>
+  </a>
+
+  <!-- Commandes prêtes à servir -->
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <h1 class="font-display font-black text-slate-900 text-xl">Prêtes à servir</h1>
+      <span class="text-xs font-bold px-3 py-1.5 rounded-full bg-green-100 text-green-700">{{ ready_orders|length }}</span>
+    </div>
+    <div class="space-y-3">
+      {% for order in ready_orders %}
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+        <div class="px-5 py-3 flex items-center justify-between">
+          <div>
+            <p class="font-black text-slate-900 text-sm">#{{ order.order_number|slice:"-6:" }}
+              <span class="text-slate-400 font-normal">· {% if order.table %}Table {{ order.table.number }}{% else %}À emporter{% endif %}</span>
+            </p>
+            <p class="text-slate-400 text-xs">{{ order.customer_name|default:"Client" }} · {{ order.total|floatformat:0 }} FCFA</p>
+          </div>
+          <form method="post" action="{% url 'order_change_status' order.id %}">
+            {% csrf_token %}<input type="hidden" name="status" value="delivered">
+            <button class="text-xs font-bold px-3 py-2 rounded-xl text-white bg-primary hover:bg-primary-dark transition-colors">Servie</button>
+          </form>
+        </div>
+      </div>
+      {% empty %}
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-10 text-center">
+        <i class="ri-check-double-line text-4xl text-slate-200 block mb-3"></i>
+        <p class="text-slate-600 font-semibold text-sm">Aucune commande prête</p>
+      </div>
+      {% endfor %}
+    </div>
+  </div>
+
+  <!-- Tables -->
+  {% if tables %}
+  <div>
+    <h2 class="font-bold text-slate-900 mb-3">Tables</h2>
+    <div class="grid grid-cols-3 sm:grid-cols-4 gap-2.5">
+      {% for table in tables %}
+      <a href="{% url 'cashier_table' table.id %}"
+         class="bg-white rounded-2xl border border-slate-100 shadow-soft p-3 text-center hover:border-primary/40 transition-colors">
+        <i class="ri-table-line text-primary text-lg"></i>
+        <p class="font-bold text-slate-900 text-sm mt-1">{{ table.number }}</p>
+      </a>
+      {% endfor %}
+    </div>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+  window.addEventListener('openfood:new-order', () => location.reload());
+
+  /* Polling « commandes prêtes » — son + toast quand la cuisine termine un plat. */
+  (function () {
+    var known = new Set([{% for order in ready_orders %}{{ order.id }}{% if not forloop.last %},{% endif %}{% endfor %}]);
+
+    async function pollReady() {
+      try {
+        var r = await fetch('{% url "list_ready_orders" %}', { credentials: 'same-origin' });
+        if (!r.ok) return;
+        var d = await r.json();
+        var ids = new Set(d.ready_ids || []);
+        var hasNew = d.ready_ids.some(function (id) { return !known.has(id); });
+        var hasGone = [...known].some(function (id) { return !ids.has(id); });
+        if (hasNew) {
+          OFNotify.playDing();
+          OFNotify.toast({
+            title: 'Commande prête 🛎️',
+            body: 'Une commande est à servir.',
+            icon: 'ri-restaurant-2-line',
+            color: '#16a34a',
+          });
+          setTimeout(function () { location.reload(); }, 1200);
+        } else if (hasGone) {
+          location.reload();
+        }
+        known = ids;
+      } catch (e) {}
+    }
+    setInterval(pollReady, 8000);
+  })();
+</script>

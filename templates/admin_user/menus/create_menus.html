@@ -115,12 +115,19 @@
 
       <!-- Description -->
       <div>
-        <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide mb-2">
-          {% trans "Description" %} <span class="text-slate-300">({% trans "optional" %})</span>
-        </label>
-        <textarea name="description" rows="3"
+        <div class="flex items-center justify-between mb-2">
+          <label class="block text-xs font-semibold text-slate-500 uppercase tracking-wide">
+            {% trans "Description" %} <span class="text-slate-300">({% trans "optional" %})</span>
+          </label>
+          <button type="button" id="aiDescBtn"
+            class="text-xs font-bold px-2.5 py-1 rounded-lg text-primary bg-primary/10 hover:bg-primary/20 transition-colors">
+            ✨ {% trans "Write with AI" %}
+          </button>
+        </div>
+        <textarea name="description" id="descriptionField" rows="3"
           class="w-full px-4 py-3 text-sm bg-white border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all placeholder:text-slate-300 resize-none"
           placeholder="{% trans "Ingredients, sides, special notes…" %}"></textarea>
+        <p id="aiDescError" class="hidden text-xs text-red-500 mt-1"></p>
       </div>
 
       <!-- Actions -->
@@ -245,6 +252,57 @@ function showToast(msg) {
   document.body.appendChild(t);
   setTimeout(() => t.remove(), 3000);
 }
+</script>
+
+
+<script>
+// ── Génération IA de la description ──
+(function () {
+  var btn = document.getElementById('aiDescBtn');
+  if (!btn) return;
+  var field = document.getElementById('descriptionField');
+  var errEl = document.getElementById('aiDescError');
+  var label = btn.innerHTML;
+
+  btn.addEventListener('click', async function () {
+    var name = (document.querySelector('input[name="name"]') || {}).value || '';
+    var catSel = document.getElementById('categorySelect');
+    var category = catSel && catSel.selectedIndex > -1 ? catSel.options[catSel.selectedIndex].text : '';
+    errEl.classList.add('hidden');
+    if (!name.trim()) {
+      errEl.textContent = "Renseignez d'abord le nom du plat.";
+      errEl.classList.remove('hidden');
+      return;
+    }
+    btn.disabled = true;
+    btn.innerHTML = '<i class="ri-loader-4-line animate-spin"></i> Génération…';
+    try {
+      var r = await fetch('{% url "menu_ai_description" %}', {
+        method: 'POST',
+        credentials: 'same-origin',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value,
+        },
+        body: JSON.stringify({ name: name, category: category }),
+      });
+      var d = await r.json();
+      if (r.ok && d.description) {
+        field.value = d.description;
+        field.focus();
+      } else {
+        errEl.textContent = d.error || 'Génération impossible. Réessayez.';
+        errEl.classList.remove('hidden');
+      }
+    } catch (e) {
+      errEl.textContent = 'Erreur réseau. Réessayez.';
+      errEl.classList.remove('hidden');
+    } finally {
+      btn.disabled = false;
+      btn.innerHTML = label;
+    }
+  });
+})();
 </script>
 
 {% endblock %}

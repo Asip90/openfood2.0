@@ -3,7 +3,6 @@
 
 {% block title %}Commande confirmée — {{ restaurant.name }}{% endblock %}
 
-{% block navbar %}{% endblock %}
 {% block cart_fab %}{% endblock %}
 
 {% block content %}
@@ -13,12 +12,6 @@
 </script>
 
 <div class="min-h-screen bg-slate-50 flex flex-col">
-
-  <!-- Top bar -->
-  <div class="bg-white border-b border-slate-100 px-5 h-14 flex items-center"
-       style="box-shadow: 0 1px 8px rgba(0,0,0,0.04);">
-    <span class="font-bold text-slate-900 text-sm">{{ restaurant.name }}</span>
-  </div>
 
   <div class="flex-1 flex flex-col items-center px-5 py-8 max-w-sm mx-auto w-full">
 
@@ -55,8 +48,9 @@
           <p class="text-[10px] font-black text-slate-400 uppercase tracking-widest">Commande</p>
           <p class="font-black text-slate-900 text-base leading-tight">#{{ order.order_number|slice:"-6:" }}</p>
         </div>
-        <span class="text-[11px] font-black px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 uppercase tracking-wide">
-          En cuisine
+        <span id="order-status-badge"
+              class="text-[11px] font-black px-3 py-1.5 rounded-full bg-amber-100 text-amber-700 uppercase tracking-wide transition-colors">
+          {{ order.get_status_display }}
         </span>
       </div>
 
@@ -101,6 +95,38 @@
     </div>
     {% endif %}
 
+    <!-- Notifications push : être prévenu quand la commande change d'état -->
+    <div id="notifyCard" class="w-full bg-white rounded-2xl px-4 py-3 mb-4 anim-up s3 hidden items-center gap-3"
+         style="box-shadow: 0 1px 8px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0"
+           style="background-color: color-mix(in srgb, var(--color-primary) 12%, white);">
+        <i class="ri-notification-3-line" style="color: var(--color-primary);"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="text-slate-900 font-bold text-sm leading-tight">Être prévenu quand c'est prêt</p>
+        <p id="notifyHint" class="text-slate-400 text-xs">Recevez une notification à chaque étape</p>
+      </div>
+      <button id="notifyBtn"
+              class="flex-shrink-0 text-xs font-bold px-3 py-2 rounded-xl text-white active:scale-95 transition-transform"
+              style="background-color: var(--color-primary);">
+        Activer
+      </button>
+    </div>
+
+    <!-- Voir mes commandes du jour -->
+    <a href="{% url 'my_orders' %}"
+       class="w-full flex items-center gap-3 bg-white rounded-2xl px-4 py-3 mb-4 anim-up s3 transition-colors"
+       style="box-shadow: 0 1px 8px rgba(0,0,0,0.04); border: 1px solid rgba(0,0,0,0.04);">
+      <div class="w-9 h-9 rounded-xl flex items-center justify-center flex-shrink-0 bg-slate-100">
+        <i class="ri-file-list-3-line text-slate-600"></i>
+      </div>
+      <div class="flex-1 min-w-0">
+        <p class="font-bold text-sm text-slate-900 leading-tight">Suivre mes commandes</p>
+        <p class="text-xs text-slate-400">Toutes mes commandes du jour sur cet appareil</p>
+      </div>
+      <i class="ri-arrow-right-s-line text-slate-400 text-lg"></i>
+    </a>
+
     <!-- WhatsApp ticket -->
     {% if restaurant.phone %}
     <a href="https://wa.me/{{ restaurant.phone|cut:'+' }}?text=Bonjour%20{{ restaurant.name|urlencode }}%20!%20Ma%20commande%20%23{{ order.order_number|slice:'-6:' }}%20est%20pass%C3%A9e.%20Total%20%3A%20{{ order.total|floatformat:0 }}%20FCFA."
@@ -139,7 +165,7 @@
     </a>
     {% endif %}
 
-    <p class="text-slate-400 text-xs text-center mt-5">
+    <p id="order-status-hint" class="text-slate-400 text-xs text-center mt-5">
       Un serveur passera bientôt vous voir 👋
     </p>
 
@@ -147,6 +173,106 @@
 </div>
 
 <script>
+  // ── Mémorise la commande sur cet appareil (pour « Mes commandes ») ──
+  (function () {
+    var TOKEN = "{{ order.public_token }}";
+    try {
+      var list = JSON.parse(localStorage.getItem('of_orders') || '[]');
+      if (!list.some(function (o) { return o.token === TOKEN; })) {
+        list.unshift({
+          token: TOKEN,
+          number: "{{ order.order_number|slice:'-6:' }}",
+          total: {{ order.total|floatformat:0 }},
+          restaurant: "{{ restaurant.name|escapejs }}",
+          {% if order.table %}table: "{{ order.table.number|escapejs }}",{% endif %}
+          ts: Date.now()
+        });
+        localStorage.setItem('of_orders', JSON.stringify(list.slice(0, 50)));
+      }
+    } catch (e) {}
+  })();
+
+  // ── Notifications push client (abonnement lié à CETTE commande) ──
+  (function () {
+    var card = document.getElementById('notifyCard');
+    var btn = document.getElementById('notifyBtn');
+    var hint = document.getElementById('notifyHint');
+    if (!card || !('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
+
+    function u8(b64) {
+      var pad = '='.repeat((4 - b64.length % 4) % 4);
+      var s = (b64 + pad).replace(/-/g, '+').replace(/_/g, '/');
+      var raw = atob(s), out = new Uint8Array(raw.length);
+      for (var i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
+      return out;
+    }
+
+    async function subscribe() {
+      var reg = await navigator.serviceWorker.ready;
+      var sub = await reg.pushManager.getSubscription();
+      if (!sub) {
+        var r = await fetch('/api/push/vapid-public-key/');
+        var info = await r.json();
+        if (!info.enabled || !info.publicKey) return false;
+        sub = await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: u8(info.publicKey) });
+      }
+      await fetch('{% url "customer_push_subscribe" public_token=order.public_token %}', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscription: sub.toJSON() }),
+      });
+      return true;
+    }
+
+    function done() {
+      hint.textContent = 'Notifications activées ✓';
+      btn.textContent = 'Activé';
+      btn.disabled = true;
+      btn.style.opacity = '.5';
+    }
+
+    // Déjà autorisé : on s'abonne en silence. Sinon, on montre la carte + bouton.
+    if (Notification.permission === 'granted') {
+      subscribe().then(function (ok) { if (ok) { card.classList.remove('hidden'); card.classList.add('flex'); done(); } }).catch(function () {});
+    } else if (Notification.permission === 'default') {
+      card.classList.remove('hidden'); card.classList.add('flex');
+      btn.addEventListener('click', async function () {
+        var p = await Notification.requestPermission();
+        if (p === 'granted') { try { await subscribe(); done(); } catch (e) {} }
+        else { hint.textContent = 'Autorisez les notifications dans le navigateur.'; }
+      });
+    }
+  })();
+
+  // ── Suivi du statut en direct ──
+  (function () {
+    var badge = document.getElementById('order-status-badge');
+    var hint = document.getElementById('order-status-hint');
+    var STYLES = {
+      pending:   { cls: 'bg-amber-100 text-amber-700',   hint: 'La cuisine a bien reçu votre commande.' },
+      confirmed: { cls: 'bg-blue-100 text-blue-700',     hint: 'Votre commande est confirmée 👍' },
+      preparing: { cls: 'bg-amber-100 text-amber-700',   hint: 'Votre commande est en préparation 🍳' },
+      ready:     { cls: 'bg-green-100 text-green-700',   hint: 'Votre commande est prête ! Un serveur arrive 🎉' },
+      delivered: { cls: 'bg-slate-100 text-slate-600',   hint: 'Bon appétit ! 😋' },
+      cancelled: { cls: 'bg-red-100 text-red-700',       hint: 'Votre commande a été annulée. Appelez un serveur si besoin.' },
+    };
+    var BASE = 'text-[11px] font-black px-3 py-1.5 rounded-full uppercase tracking-wide transition-colors ';
+    var timer = setInterval(poll, 10000);
+
+    async function poll() {
+      try {
+        var r = await fetch('{% url "order_status" public_token=order.public_token %}');
+        if (!r.ok) return;
+        var d = await r.json();
+        badge.textContent = d.status_display;
+        var s = STYLES[d.status] || STYLES.pending;
+        badge.className = BASE + s.cls;
+        if (hint) hint.textContent = s.hint;
+        if (d.status === 'delivered' || d.status === 'cancelled') clearInterval(timer);
+      } catch (e) {}
+    }
+  })();
+
   function shareMenu() {
     const url = '{% if order.table %}{% url "client_menu" table_token=order.table.token %}{% endif %}';
     const fullUrl = window.location.origin + url;

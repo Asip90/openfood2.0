@@ -691,3 +691,18 @@ msgstr "Voir mon panier"
 #: templates/customer/navbar.html:43
 msgid "Cart"
 msgstr "Panier"
+
+msgid "Order now"
+msgstr "Commander"
+
+msgid "My orders"
+msgstr "Mes commandes"
+
+msgid "Language"
+msgstr "Langue"
+
+msgid "Support"
+msgstr "Support"
+
+msgid "Cashier"
+msgstr "Caisse"

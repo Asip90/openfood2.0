@@ -38,7 +38,9 @@
 
       <!-- ── Media carousel ── -->
       <template x-if="modalItem && (modalItem.images?.length || modalItem.video)">
-        <div class="w-full relative overflow-hidden" style="height: 240px;">
+        <div class="w-full relative overflow-hidden select-none" style="height: 240px; touch-action: pan-y;"
+             @touchstart.passive="onTouchStart($event)"
+             @touchend="onTouchEnd($event)">
 
           <!-- Carousel track -->
           <div class="flex h-full transition-transform duration-300 ease-out will-change-transform"

@@ -1,6 +1,10 @@
 import json
+import re
 
 from base.models import AISettings, MenuItem
+
+# Retire tout identifiant technique qui aurait fui dans le texte ("(id=4)", "id: 4"…)
+_ID_LEAK_RE = re.compile(r"\s*\(?\s*id\s*[:=]\s*\d+\s*\)?", re.IGNORECASE)
 
 DEFAULT_SYSTEM_PROMPT = (
     'Tu es l\'assistant du restaurant "{restaurant_name}". '
@@ -17,6 +21,8 @@ DEFAULT_SYSTEM_PROMPT = (
     '{{"type":"add_to_cart","item_id":"<id>","label":"..."}}, '
     '{{"type":"call_waiter","label":"..."}}. '
     "N'invente jamais de plat : n'utilise que les id du MENU ci-dessous. "
+    "Les id sont INTERNES : ne les écris JAMAIS dans le champ \"reply\" "
+    "(ni \"id=4\", ni \"(id 4)\") — ils ne servent que dans les actions. "
     "actions peut être une liste vide.\n\nMENU:\n{menu}"
 )
 
@@ -93,7 +99,10 @@ def validate_response(raw, restaurant):
     reply = data.get("reply")
     if not isinstance(reply, str) or not reply.strip():
         reply = "Désolé, je n'ai pas compris. Pouvez-vous reformuler ?"
-    reply = reply.strip()[:600]
+    # Filet de sécurité : supprime les identifiants techniques qui auraient fui
+    reply = _ID_LEAK_RE.sub(" ", reply)
+    reply = re.sub(r"\s{2,}", " ", reply)
+    reply = re.sub(r"\s+([.,!?;:])", r"\1", reply).strip()[:600]
 
     valid_ids = set(
         str(i)

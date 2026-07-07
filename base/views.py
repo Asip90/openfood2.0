@@ -19,6 +19,10 @@ from .utils import generate_unique_subdomain
 from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from base.services.subscription import get_effective_plan
+from base.ratelimit import rate_limit
+import logging
+
+logger = logging.getLogger(__name__)
 
 FAQS = [
     {
@@ -558,6 +562,7 @@ def update_order(request, order_id):
 
         if order_form.is_valid() and formset.is_valid():
             try:
+                previous_status = order.status
                 with transaction.atomic():
                     order = order_form.save()
                     formset.save()
@@ -578,6 +583,12 @@ def update_order(request, order_id):
 
                     order.calculate_total()
                     order.save()
+
+                if order.status != previous_status:
+                    from base import push
+                    push.notify_customer_status(order.id, order.status)
+                    if order.status == 'ready':
+                        push.notify_order_ready(order.id)
 
                 messages.success(request, f"Commande #{order.id} mise à jour avec succès.")
                 return redirect("orders_list")
@@ -665,6 +676,7 @@ def orders_list(request):
         "status_choices": Order.STATUS_CHOICES,
         "pending_count": Order.objects.filter(restaurant=restaurant, status="pending").count(),
         "latest_order_id": latest_order_id,
+        "user_role": request.user_role,
     })
 
 
@@ -684,6 +696,7 @@ def orders_partial(request):
         "current_status": status_filter,
         "current_q": q,
         "status_choices": Order.STATUS_CHOICES,
+        "user_role": request.user_role,
     })
 
 
@@ -712,11 +725,19 @@ def order_change_status(request, pk):
         messages.error(request, "Action non autorisée.")
         return redirect("orders_list")
 
+    previous_status = order.status
     order.status = new_status
     if new_status == 'preparing':
         u = request.user
         order.preparing_by_name = f"{u.first_name} {u.last_name}".strip() or u.email
     order.save()
+
+    # Notifie le client (push) si le statut a réellement changé
+    if new_status != previous_status:
+        from base import push
+        push.notify_customer_status(order.id, new_status)
+        if new_status == 'ready':
+            push.notify_order_ready(order.id)
 
     status_display = dict(Order.STATUS_CHOICES).get(new_status, new_status)
 
@@ -747,6 +768,9 @@ def order_detail(request, pk):
             'order_number': order.order_number,
             'status': order.status,
             'status_display': order.get_status_display(),
+            'is_paid': order.is_paid,
+            'paid_by_name': order.paid_by_name or '',
+            'paid_at': order.paid_at.strftime('%d/%m/%Y %H:%M') if order.paid_at else '',
             'table': f"Table {order.table.number}" if order.table else "À emporter",
             'customer_name': order.customer_name or '',
             'customer_phone': order.customer_phone or '',
@@ -866,6 +890,52 @@ def menu_update(request, pk):
         "existing_images": existing_images,
         "existing_video": existing_video,
     })
+
+
+@restaurant_required(allowed_roles=['owner', 'coadmin', 'cuisinier'])
+@rate_limit("ai-desc", max_requests=20, window_seconds=300, json_response=True)
+def menu_ai_description(request):
+    """Génère une description de plat appétissante via le provider IA configuré."""
+    import json as _json
+    if request.method != "POST":
+        return JsonResponse({"error": "Méthode non autorisée"}, status=405)
+
+    from base.models import AISettings
+    from base.services.ai.factory import get_provider
+
+    ai_settings = AISettings.load()
+    if not (ai_settings.is_enabled and ai_settings.api_key):
+        return JsonResponse({"error": "L'assistant IA n'est pas configuré."}, status=503)
+
+    try:
+        data = _json.loads(request.body)
+    except (_json.JSONDecodeError, TypeError):
+        return JsonResponse({"error": "Requête invalide"}, status=400)
+
+    name = str(data.get("name", "")).strip()[:100]
+    category = str(data.get("category", "")).strip()[:60]
+    if not name:
+        return JsonResponse({"error": "Renseignez d'abord le nom du plat."}, status=400)
+
+    system = (
+        "Tu écris des descriptions de menu pour un restaurant en Afrique de l'Ouest. "
+        "Réponds UNIQUEMENT en JSON: {\"description\": \"...\"}. "
+        "La description : français, 1 à 2 phrases, 160 caractères max, appétissante et "
+        "concrète (ingrédients, cuisson, accompagnement), sans superlatifs creux ni emojis."
+    )
+    user_msg = f"Plat : {name}" + (f" (catégorie : {category})" if category else "")
+
+    try:
+        provider = get_provider(ai_settings)
+        raw = provider.complete(system, [{"role": "user", "content": user_msg}])
+        description = str(_json.loads(raw).get("description", "")).strip()[:220]
+    except Exception:
+        logger.exception("Génération IA de description échouée")
+        return JsonResponse({"error": "Génération impossible pour le moment. Réessayez."}, status=502)
+
+    if not description:
+        return JsonResponse({"error": "Génération vide. Réessayez."}, status=502)
+    return JsonResponse({"description": description})
 
 
 @restaurant_required(allowed_roles=['owner', 'coadmin', 'cuisinier'])
@@ -1215,6 +1285,43 @@ def pwa_manifest(request, slug):
     return JsonResponse(manifest, content_type='application/manifest+json')
 
 
+@restaurant_required()
+def support_contact(request):
+    """Page de contact support : le restaurateur nous écrit en cas de problème."""
+    restaurant = request.restaurant
+    if request.method == "POST":
+        subject = request.POST.get("subject", "").strip()[:150]
+        message = request.POST.get("message", "").strip()[:4000]
+        if not subject or not message:
+            messages.error(request, "Sujet et message sont requis.")
+        else:
+            from django.core.mail import send_mail
+            support_email = getattr(settings, "SUPPORT_EMAIL", settings.DEFAULT_FROM_EMAIL)
+            body = (
+                f"Restaurant : {restaurant.name} (#{restaurant.id}, {restaurant.subdomain})\n"
+                f"Utilisateur : {request.user.get_full_name() or request.user.email} <{request.user.email}>\n"
+                f"Rôle : {request.user_role}\n\n"
+                f"Sujet : {subject}\n\n{message}"
+            )
+            try:
+                send_mail(
+                    subject=f"[Support OpenFood] {subject}",
+                    message=body,
+                    from_email=settings.DEFAULT_FROM_EMAIL,
+                    recipient_list=[support_email],
+                    fail_silently=False,
+                )
+                messages.success(request, "Votre message a été envoyé. Nous vous répondrons par email.")
+                return redirect("support_contact")
+            except Exception:
+                messages.error(request, "Envoi impossible pour le moment. Réessayez ou écrivez-nous directement par email.")
+
+    return render(request, "admin_user/support.html", {
+        "restaurant": restaurant,
+        "support_email": getattr(settings, "SUPPORT_EMAIL", settings.DEFAULT_FROM_EMAIL),
+    })
+
+
 @owner_or_coadmin_required
 def settings_hub(request):
     restaurant = request.restaurant
@@ -1228,6 +1335,7 @@ def settings_hub(request):
 
 @csrf_exempt
 @require_POST
+@rate_limit("waiter-call", max_requests=10, window_seconds=60, json_response=True)
 def create_waiter_call(request, table_token):
     """Public endpoint — called by the customer floating button."""
     try:
@@ -1278,6 +1386,21 @@ def list_waiter_calls(request):
         })
 
     return JsonResponse({'calls': data})
+
+
+@login_required
+@require_GET
+def list_ready_orders(request):
+    """Polling endpoint — ids des commandes prêtes, pour la vue Salle (serveur)."""
+    restaurant, _ = get_user_restaurant(request.user)
+    if not restaurant:
+        return JsonResponse({'ready_ids': []})
+
+    ready_ids = list(
+        Order.objects.filter(restaurant=restaurant, status='ready')
+        .order_by('-created_at').values_list('id', flat=True)
+    )
+    return JsonResponse({'ready_ids': ready_ids})
 
 
 @login_required
@@ -1343,3 +1466,45 @@ def customers_list(request):
         'q': q,
     })
 
+
+
+@restaurant_required(allowed_roles=['owner', 'coadmin'])
+def activity_list(request):
+    """Journal d'activité de l'équipe — filtrable par action et par membre."""
+    from base.middleware import ACTION_CHOICES, AUDITED_ACTIONS
+    from base.models import ActivityLog, StaffMember
+
+    restaurant = request.restaurant
+    action = request.GET.get("action", "")
+    member = request.GET.get("member", "")
+
+    logs = ActivityLog.objects.filter(restaurant=restaurant).select_related('user')
+    if action:
+        logs = logs.filter(action=action)
+    if member.isdigit():
+        logs = logs.filter(user_id=int(member))
+
+    paginator = Paginator(logs, 30)
+    page = paginator.get_page(request.GET.get("page"))
+
+    labels = {slug: label for slug, (label, _) in AUDITED_ACTIONS.items()}
+    for log in page:
+        log.action_label = labels.get(log.action, log.action)
+
+    members = [(restaurant.owner_id,
+                f"{restaurant.owner.first_name} {restaurant.owner.last_name}".strip()
+                or restaurant.owner.email)]
+    members += [
+        (s.user_id, s.get_full_name() or s.user.email)
+        for s in StaffMember.objects.filter(restaurant=restaurant).select_related('user')
+    ]
+
+    return render(request, "admin_user/activity.html", {
+        "restaurant": restaurant,
+        "logs": page,
+        "action_choices": ACTION_CHOICES,
+        "members": members,
+        "current_action": action,
+        "current_member": member,
+        "user_role": request.user_role,
+    })

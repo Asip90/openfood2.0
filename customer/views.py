@@ -5,9 +5,10 @@ from django.views.decorators.csrf import csrf_exempt
 from django.views.decorators.http import require_GET, require_POST
 from django.contrib import messages
 from django.db import transaction
-from django.db.models import F, Prefetch
+from django.db.models import Avg, F, Prefetch, Sum
 
-from base.models import Category, MenuItem, Order, OrderItem, RestaurantCustomization, AISettings
+from base.models import Category, MenuItem, Order, OrderItem, RestaurantCustomization, AISettings, CustomerPushSubscription
+from base.ratelimit import rate_limit
 from base.services.ai.assistant import ask, is_assistant_available
 from customer.utils import get_client_context
 
@@ -57,6 +58,23 @@ def client_menu(request, table_token):
         except MenuItem.DoesNotExist:
             continue
 
+    # Top vendeurs du restaurant (badge « Populaire ») — 3 max, seuil 2 unités
+    popular_ids = set(
+        OrderItem.objects.filter(order__restaurant=restaurant)
+        .values("menu_item_id")
+        .annotate(qty=Sum("quantity"))
+        .filter(qty__gte=2)
+        .order_by("-qty")
+        .values_list("menu_item_id", flat=True)[:3]
+    )
+
+    # Temps de préparation moyen des plats actifs (hero « Prêt en ~X min »)
+    avg_prep = (
+        MenuItem.objects.filter(
+            restaurant=restaurant, is_available=True, preparation_time__gt=0
+        ).aggregate(avg=Avg("preparation_time"))["avg"]
+    )
+
     context = {
         "restaurant": restaurant,
         "table": table,
@@ -69,6 +87,9 @@ def client_menu(request, table_token):
         "table_token": table_token,
         "cart_json": json.dumps(cart_items),
         "ai_enabled": is_assistant_available(),
+        "popular_ids": popular_ids,
+        "avg_prep": int(round(avg_prep)) if avg_prep else None,
+        "opening_hours_json": json.dumps(restaurant.opening_hours or {}),
     }
 
     return render(request, "customer/menu.html", context)
@@ -169,6 +190,32 @@ def checkout(request, table_token):
     cart_key = f"cart_{restaurant.id}_{table_token}"
     cart = request.session.get(cart_key, {})
 
+    # Panier éventuellement modifié sur la page de finalisation (steppers)
+    if request.method == "POST" and request.POST.get("cart_data"):
+        try:
+            edited = json.loads(request.POST["cart_data"])
+        except (json.JSONDecodeError, TypeError):
+            edited = []
+        new_cart = {}
+        for it in edited:
+            iid = str(it.get("id", "")).strip()
+            qty = int(it.get("quantity", 0) or 0)
+            if not iid or qty <= 0:
+                continue
+            try:
+                mi = MenuItem.objects.get(id=iid, restaurant=restaurant, is_available=True)
+            except MenuItem.DoesNotExist:
+                continue
+            new_cart[iid] = {
+                "name": mi.name,
+                "price": str(mi.discount_price or mi.price),
+                "quantity": qty,
+                "image": mi.image.url if mi.image else None,
+            }
+        cart = new_cart
+        request.session[cart_key] = new_cart
+        request.session.modified = True
+
     if not cart:
         messages.error(request, "Votre panier est vide")
         return redirect("client_menu", table_token=table_token)
@@ -188,17 +235,23 @@ def checkout(request, table_token):
             )
 
             for item_id, data in cart.items():
+                # Prix relu en BDD au moment de la commande : le prix stocké en
+                # session peut être périmé si le restaurateur l'a modifié.
+                try:
+                    menu_item = MenuItem.objects.get(id=item_id, restaurant=restaurant)
+                except MenuItem.DoesNotExist:
+                    continue
                 OrderItem.objects.create(
                     order=order,
-                    menu_item_id=item_id,
+                    menu_item=menu_item,
                     quantity=data["quantity"],
-                    price=data["price"]
+                    price=menu_item.discount_price or menu_item.price,
                 )
 
             order.calculate_total()
             del request.session[cart_key]
 
-            return redirect("order_confirmation", order_id=order.id)
+            return redirect("order_confirmation", public_token=order.public_token)
 
     cart_items = []
     cart_total = 0
@@ -206,9 +259,11 @@ def checkout(request, table_token):
         item_total = float(data["price"]) * data["quantity"]
         cart_total += item_total
         cart_items.append({
+            "id": str(item_id),
             "name": data["name"],
             "price": float(data["price"]),
             "quantity": data["quantity"],
+            "image": data.get("image"),
             "total": item_total,
         })
 
@@ -219,11 +274,12 @@ def checkout(request, table_token):
         "table_token": table_token,
         "cart": cart_items,
         "cart_total": int(cart_total),
+        "cart_json": json.dumps(cart_items),
     })
 
 
-def order_confirmation(request, order_id):
-    order = get_object_or_404(Order, id=order_id)
+def order_confirmation(request, public_token):
+    order = get_object_or_404(Order, public_token=public_token)
     customization = RestaurantCustomization.objects.filter(
         restaurant=order.restaurant
     ).first()
@@ -239,13 +295,98 @@ def order_confirmation(request, order_id):
     })
 
 
+@require_GET
+def order_status(request, public_token):
+    """Suivi du statut par le client (page de confirmation)."""
+    order = get_object_or_404(Order, public_token=public_token)
+    return JsonResponse({
+        "status": order.status,
+        "status_display": order.get_status_display(),
+    })
+
+
+@csrf_exempt
+@require_POST
+def customer_push_subscribe(request, public_token):
+    """Abonne l'appareil du client au push pour suivre CETTE commande (sans compte)."""
+    order = get_object_or_404(Order, public_token=public_token)
+    try:
+        data = json.loads(request.body)
+        sub = data.get("subscription") or data
+        endpoint = sub["endpoint"]
+        keys = sub["keys"]
+        p256dh, auth = keys["p256dh"], keys["auth"]
+    except (ValueError, KeyError, TypeError):
+        return JsonResponse({"ok": False, "error": "payload invalide"}, status=400)
+
+    CustomerPushSubscription.objects.update_or_create(
+        order=order,
+        endpoint=endpoint,
+        defaults={"p256dh": p256dh, "auth": auth},
+    )
+    return JsonResponse({"ok": True})
+
+
+def my_orders(request):
+    """Page « Mes commandes du jour » — la liste vit dans le localStorage de l'appareil,
+    les statuts sont rafraîchis via order_status. Aucun compte requis."""
+    restaurant = getattr(request, "restaurant", None)
+    if not restaurant:
+        return render(request, "customer/error.html", {"message": "Restaurant non disponible"})
+    customization, _ = RestaurantCustomization.objects.get_or_create(restaurant=restaurant)
+    return render(request, "customer/my_orders.html", {
+        "restaurant": restaurant,
+        "customization": customization,
+    })
+
+
+@csrf_exempt
+@require_POST
+@rate_limit("orders-by-phone", max_requests=8, window_seconds=300, json_response=True)
+def my_orders_by_phone(request):
+    """Retrouve les commandes du jour par numéro de téléphone (résumé + statut only,
+    pas le jeton d'accès : évite l'énumération et l'accès au détail complet)."""
+    from django.utils import timezone
+    restaurant = getattr(request, "restaurant", None)
+    if not restaurant:
+        return JsonResponse({"orders": []})
+    try:
+        phone = str(json.loads(request.body).get("phone", "")).strip()
+    except (json.JSONDecodeError, TypeError):
+        phone = ""
+    digits = "".join(c for c in phone if c.isdigit())
+    if len(digits) < 6:
+        return JsonResponse({"error": "Numéro invalide.", "orders": []}, status=400)
+
+    today = timezone.localdate()
+    qs = Order.objects.filter(
+        restaurant=restaurant,
+        customer_phone__icontains=digits,
+        created_at__date=today,
+    ).select_related("table").order_by("-created_at")[:20]
+
+    orders = [{
+        "number": o.order_number[-6:] if o.order_number else str(o.id),
+        "total": int(o.total or 0),
+        "table": o.table.number if o.table else None,
+        "status": o.status,
+        "status_display": o.get_status_display(),
+    } for o in qs]
+    return JsonResponse({"orders": orders})
+
+
 @csrf_exempt
 def get_item_details(request, item_id):
     if request.method != 'GET':
         return JsonResponse({'success': False})
 
+    # Scopé au restaurant du sous-domaine : pas de fuite inter-restaurants
+    restaurant = getattr(request, "restaurant", None)
+    if restaurant is None:
+        return JsonResponse({'success': False, 'error': 'Restaurant non disponible'}, status=404)
+
     try:
-        item = MenuItem.objects.get(id=item_id, is_available=True)
+        item = MenuItem.objects.get(id=item_id, restaurant=restaurant, is_available=True)
         MenuItem.objects.filter(pk=item.pk).update(view_count=F('view_count') + 1)
         return JsonResponse({
             'success': True,
@@ -274,6 +415,7 @@ MAX_USER_MESSAGE_LEN = 500
 
 @csrf_exempt
 @require_POST
+@rate_limit("chat", max_requests=15, window_seconds=60, json_response=True)
 def chat_assistant(request, table_token):
     restaurant, table, customization, error = get_client_context(request, table_token)
     if error:

@@ -29,10 +29,37 @@
       </div>
     </div>
 
-    <!-- Language toggle -->
+    <!-- Sélecteur de langue + Mes commandes -->
     <div class="flex items-center gap-0.5">
-      <button onclick="setLang('fr')" class="px-1.5 py-1 rounded-lg text-sm hover:bg-slate-100 transition-colors" title="Français">🇫🇷</button>
-      <button onclick="setLang('en')" class="px-1.5 py-1 rounded-lg text-sm hover:bg-slate-100 transition-colors" title="English">🇬🇧</button>
+
+      <!-- Langue : icône + dropdown -->
+      <div class="relative" x-data="{ langOpen: false }">
+        <button @click="langOpen = !langOpen" @keydown.escape="langOpen = false"
+                class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors"
+                :aria-expanded="langOpen" aria-label="{% trans 'Language' %}">
+          <i class="ri-translate-2 text-lg"></i>
+        </button>
+        <div x-show="langOpen" x-cloak @click.outside="langOpen = false"
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 -translate-y-1"
+             x-transition:enter-end="opacity-100 translate-y-0"
+             class="absolute right-0 top-full mt-1.5 w-36 bg-white rounded-2xl border border-slate-100 py-1.5 z-50"
+             style="box-shadow: 0 8px 32px rgba(0,0,0,0.10);">
+          <button onclick="setLang('fr')"
+                  class="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="text-base">🇫🇷</span> Français
+          </button>
+          <button onclick="setLang('en')"
+                  class="w-full flex items-center gap-2.5 px-3.5 py-2 text-sm text-slate-700 hover:bg-slate-50 transition-colors">
+            <span class="text-base">🇬🇧</span> English
+          </button>
+        </div>
+      </div>
+
+      <a href="{% url 'my_orders' %}" title="{% trans 'My orders' %}"
+         class="w-8 h-8 rounded-lg flex items-center justify-center text-slate-500 hover:bg-slate-100 transition-colors">
+        <i class="ri-file-list-3-line text-lg"></i>
+      </a>
     </div>
 
     <!-- Cart CTA -->

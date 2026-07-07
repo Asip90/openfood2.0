@@ -1,0 +1,73 @@
+{% extends "admin_user/base.html" %}
+{% load i18n %}
+{% block title %}Table {{ table.number }} — Caisse{% endblock %}
+{% block page_title %}Addition — Table {{ table.number }}{% endblock %}
+
+{% block header_actions %}
+<a href="{% url 'cashier' %}"
+   class="flex items-center gap-2 px-3 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-600 hover:bg-slate-50 transition-colors">
+  <i class="ri-arrow-left-line"></i><span class="hidden sm:block">Caisse</span>
+</a>
+{% endblock %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto space-y-4">
+
+  {% for order in orders %}
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+    <div class="px-5 py-3 border-b border-slate-50 flex items-center justify-between">
+      <div>
+        <p class="font-bold text-slate-900 text-sm">Commande #{{ order.order_number|slice:"-6:" }}</p>
+        <p class="text-slate-400 text-xs">{{ order.customer_name|default:"Client" }} · {{ order.get_status_display }} · {{ order.created_at|date:"H:i" }}</p>
+      </div>
+      <span class="font-black text-slate-900">{{ order.total|floatformat:0 }} FCFA</span>
+    </div>
+    <div class="divide-y divide-slate-50">
+      {% for item in order.items.all %}
+      <div class="flex items-center justify-between px-5 py-2.5">
+        <span class="text-slate-700 text-sm"><span class="font-bold">{{ item.quantity }}×</span> {{ item.menu_item.name }}</span>
+        <span class="text-slate-500 text-sm">{{ item.get_total|floatformat:0 }} FCFA</span>
+      </div>
+      {% endfor %}
+    </div>
+    <div class="px-5 py-3 flex justify-end">
+      <form method="post" action="{% url 'mark_order_paid' order.id %}"
+            data-confirm="Confirmer la réception de {{ order.total|floatformat:0 }} FCFA pour la commande #{{ order.order_number|slice:'-6:' }} (Table {{ table.number }})."
+            data-confirm-title="Encaisser cette commande ?"
+            data-confirm-btn="Encaisser">
+        {% csrf_token %}
+        <button class="text-xs font-bold px-3 py-2 rounded-xl text-green-700 bg-green-50 hover:bg-green-100 transition-colors">
+          Encaisser cette commande
+        </button>
+      </form>
+    </div>
+  </div>
+  {% empty %}
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-8 text-center">
+    <i class="ri-checkbox-circle-line text-3xl text-green-500 block mb-2"></i>
+    <p class="text-slate-600 font-semibold text-sm">Rien à encaisser sur cette table.</p>
+    <a href="{% url 'cashier' %}" class="inline-block mt-3 text-xs font-bold text-primary">← Retour à la caisse</a>
+  </div>
+  {% endfor %}
+
+  {% if orders %}
+  <!-- Total + encaisser toute la table -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-5 sticky bottom-20 lg:bottom-4">
+    <div class="flex items-center justify-between mb-3">
+      <span class="text-slate-600 text-sm font-semibold">Total à encaisser</span>
+      <span class="font-black text-slate-900 text-2xl">{{ total_due|floatformat:0 }} FCFA</span>
+    </div>
+    <form method="post" action="{% url 'mark_table_paid' table.id %}"
+          data-confirm="Confirmer la réception de {{ total_due|floatformat:0 }} FCFA pour la table {{ table.number }} ({{ orders|length }} commande{{ orders|length|pluralize }})."
+          data-confirm-title="Encaisser toute la table ?"
+          data-confirm-btn="Encaisser">
+      {% csrf_token %}
+      <button class="w-full py-3.5 rounded-2xl text-white font-black text-base bg-green-600 hover:bg-green-700 transition-colors">
+        <i class="ri-cash-line mr-1"></i> Encaisser toute la table
+      </button>
+    </form>
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

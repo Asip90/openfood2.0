@@ -430,6 +430,9 @@ class Order(models.Model):
     restaurant = models.ForeignKey(Restaurant, on_delete=models.CASCADE, related_name='orders')
     table = models.ForeignKey(Table, on_delete=models.SET_NULL, null=True, blank=True)
     order_number = models.CharField(max_length=20, unique=True, blank=True)
+    # Token non devinable pour l'accès public (confirmation/suivi) — les ids
+    # séquentiels permettraient d'énumérer les commandes d'autrui.
+    public_token = models.UUIDField(default=uuid.uuid4, unique=True, editable=False)
     
     # Client info
     customer_name = models.CharField(max_length=200, blank=True)
@@ -447,6 +450,11 @@ class Order(models.Model):
     
     notes = models.TextField(blank=True)
     preparing_by_name = models.CharField(max_length=150, blank=True, default='')
+
+    # Encaissement (option A : paiement manuel espèces / mobile money hors app)
+    is_paid = models.BooleanField(default=False)
+    paid_at = models.DateTimeField(null=True, blank=True)
+    paid_by_name = models.CharField(max_length=150, blank=True, default='')
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -723,3 +731,59 @@ class PushSubscription(models.Model):
 
     def __str__(self):
         return f"PushSubscription({self.user_id}, {self.endpoint[:40]})"
+
+
+class CustomerPushSubscription(models.Model):
+    """Web Push d'un client (non authentifié) pour suivre UNE commande.
+    Aucun compte : l'abonnement est rattaché à la commande, pas à un utilisateur."""
+    order = models.ForeignKey(
+        Order, on_delete=models.CASCADE, related_name='customer_push_subscriptions'
+    )
+    endpoint = models.URLField(max_length=600)
+    p256dh = models.CharField(max_length=200)
+    auth = models.CharField(max_length=100)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        unique_together = ('order', 'endpoint')
+
+    def as_subscription_info(self):
+        return {
+            "endpoint": self.endpoint,
+            "keys": {"p256dh": self.p256dh, "auth": self.auth},
+        }
+
+    def __str__(self):
+        return f"CustomerPushSubscription(order={self.order_id}, {self.endpoint[:40]})"
+
+
+class ActivityLog(models.Model):
+    """Journal d'audit : toute action de l'équipe faite depuis l'espace admin.
+    Rempli automatiquement par base.middleware.ActivityLogMiddleware."""
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='activity_logs'
+    )
+    user = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='activity_logs',
+    )
+    # Dénormalisé pour garder l'historique lisible même si le compte est supprimé
+    user_name = models.CharField(max_length=150, blank=True, default='')
+    user_role = models.CharField(max_length=20, blank=True, default='')
+    action = models.CharField(max_length=60)  # url_name de la vue (slug stable pour filtrer)
+    target = models.CharField(max_length=150, blank=True, default='')
+    details = models.CharField(max_length=255, blank=True, default='')
+    # Détail complet : instantané de l'objet avant l'action + données envoyées
+    extra = models.JSONField(default=dict, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['restaurant', '-created_at']),
+            models.Index(fields=['restaurant', 'action']),
+            models.Index(fields=['restaurant', 'user']),
+        ]
+
+    def __str__(self):
+        return f"{self.user_name} · {self.action} · {self.created_at:%d/%m %H:%M}"

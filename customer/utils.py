@@ -4,12 +4,9 @@ from base.models import Restaurant, Table, RestaurantCustomization
 
 def get_client_context(request, table_token):
     # Restaurant injecté par le middleware
-    print('depart')
     restaurant = getattr(request, "restaurant", None)
-    
-    print(restaurant)
+
     if not restaurant:
-        
         return None, None, None, render(
             request,
             "customer/error.html",

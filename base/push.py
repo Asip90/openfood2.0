@@ -111,6 +111,53 @@ def _worker_waiter_call(call_id):
     })
 
 
+def _worker_order_ready(order_id):
+    from base.models import Order
+    order = Order.objects.select_related('restaurant', 'table').filter(id=order_id).first()
+    if not order:
+        return
+    where = f"Table {order.table.number}" if order.table else (order.customer_name or "À emporter")
+    number = order.order_number[-6:] if order.order_number else str(order.id)
+    _send_to_roles(order.restaurant, ['owner', 'coadmin', 'serveur'], {
+        "title": "Commande prête 🛎️",
+        "body": f"#{number} · {where} — à servir",
+        "tag": f"ready-{order.id}",
+        "url": "/dashboard/",
+    })
+
+
+CUSTOMER_STATUS_MESSAGES = {
+    'confirmed': "Votre commande est confirmée 👍",
+    'preparing': "Votre commande est en préparation 🍳",
+    'ready':     "Votre commande est prête ! 🎉",
+    'delivered': "Bon appétit ! 😋",
+    'cancelled': "Votre commande a été annulée.",
+}
+
+
+def _worker_customer_status(order_id, status):
+    from base.models import Order, CustomerPushSubscription
+    order = Order.objects.select_related('restaurant').filter(id=order_id).first()
+    if not order:
+        return
+    body = CUSTOMER_STATUS_MESSAGES.get(status)
+    if not body:
+        return
+    number = order.order_number[-6:] if order.order_number else str(order.id)
+    payload = {
+        "title": f"{order.restaurant.name} · Commande #{number}",
+        "body": body,
+        "tag": f"orderstatus-{order.id}",
+        "url": "/mes-commandes/",
+    }
+    for sub in CustomerPushSubscription.objects.filter(order=order):
+        send_web_push(sub, payload)
+
+
+def notify_customer_status(order_id, status):
+    _run_async(_worker_customer_status, order_id, status)
+
+
 def _run_async(fn, *args):
     if not push_enabled():
         return
@@ -132,3 +179,7 @@ def notify_new_order(order_id):
 
 def notify_waiter_call(call_id):
     _run_async(_worker_waiter_call, call_id)
+
+
+def notify_order_ready(order_id):
+    _run_async(_worker_order_ready, order_id)

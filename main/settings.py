@@ -19,8 +19,8 @@ INSTALLED_APPS = [
     'django.contrib.contenttypes',
     'django.contrib.sessions',
     'django.contrib.messages',
-    'cloudinary_storage',
     'django.contrib.staticfiles',
+    'cloudinary_storage',
     'cloudinary',
     'base',
     'accounts',
@@ -40,9 +40,15 @@ MIDDLEWARE = [
     "django.contrib.auth.middleware.AuthenticationMiddleware",
     "django.contrib.messages.middleware.MessageMiddleware",
     "django.middleware.clickjacking.XFrameOptionsMiddleware",
+    "base.middleware.ActivityLogMiddleware",
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS limité aux domaines du produit (sous-domaines restaurants inclus)
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https://([a-z0-9-]+\.)?openfood\.site$",
+    r"^http://([a-z0-9-]+\.)?localhost(:\d+)?$",
+    r"^http://([a-z0-9-]+\.)?127\.0\.0\.1(:\d+)?$",
+]
 ROOT_URLCONF = 'main.urls'
 
 TEMPLATES = [
@@ -142,10 +148,13 @@ CSRF_TRUSTED_ORIGINS = [
 # HTTPS security (active uniquement derrière un proxy SSL)
 if os.getenv("BACKEND_DOMAIN", "").startswith("https://"):
     SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
+    SECURE_SSL_REDIRECT = True
     SESSION_COOKIE_SECURE = True
     CSRF_COOKIE_SECURE = True
     SECURE_BROWSER_XSS_FILTER = True
     SECURE_CONTENT_TYPE_NOSNIFF = True
+    SECURE_HSTS_SECONDS = 2592000  # 30 jours
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
 
 # Cloudinary
 # Cloudinary Configuration
@@ -157,6 +166,9 @@ import cloudinary.api
 CLOUDINARY_CLOUD_NAME = os.getenv('CLOUDINARY_CLOUD_NAME')
 CLOUDINARY_API_KEY = os.getenv('CLOUDINARY_API_KEY')
 CLOUDINARY_API_SECRET = os.getenv('CLOUDINARY_API_SECRET')
+
+# Ne pas planter collectstatic si un fichier référencé (ex: sourcemap) est absent
+WHITENOISE_MANIFEST_STRICT = False
 
 STORAGES = {
     'staticfiles': {'BACKEND': 'whitenoise.storage.CompressedManifestStaticFilesStorage'},

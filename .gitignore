@@ -24,9 +24,8 @@ db.sqlite3
 db.sqlite3-journal
 media/
 
-# Secrets — ne jamais commiter
+# Secrets — ne jamais commiter (.env.example reste versionné : placeholders uniquement)
 .env
-.env.example
 
 # Environnements virtuels
 env/
@@ -47,3 +46,7 @@ Thumbs.db
 # Git worktrees
 .worktrees/
 .env
+.gstack/
+
+# Collectstatic output
+staticfiles/

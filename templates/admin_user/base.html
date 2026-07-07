@@ -69,8 +69,12 @@
     .goog-text-highlight{background:none!important;box-shadow:none!important}
     .font-display { font-family: 'Syne', system-ui, sans-serif; }
     [x-cloak]     { display: none !important; }
-    /* Safe area for bottom nav on iOS */
-    .pb-safe { padding-bottom: max(6rem, calc(6rem + env(safe-area-inset-bottom))); }
+    /* Safe area for bottom nav on iOS.
+       !important requis : la feuille Tailwind CDN est injectée après ce bloc,
+       donc p-4 (padding: 1rem) écraserait le padding-bottom sans lui. */
+    @media (max-width: 1023.98px) {
+      .pb-safe { padding-bottom: max(7rem, calc(5rem + env(safe-area-inset-bottom))) !important; }
+    }
     .bottom-safe { padding-bottom: env(safe-area-inset-bottom, 0); }
     /* Smooth sidebar collapse */
     .sidebar-label { transition: opacity 0.2s ease, width 0.2s ease; }
@@ -500,7 +504,25 @@ window.OFNotify = (function() {
 })();
 </script>
 
-<!-- ── Web Push subscription (notifs even when app closed) ─ -->
+<!-- ── Web Push subscription (notifs même app fermée) ─ -->
+<!-- Bannière explicite d'activation : le clic caché d'avant laissait 0 abonné -->
+<div id="ofPushBanner"
+     class="hidden fixed bottom-20 lg:bottom-6 left-1/2 -translate-x-1/2 z-[90] w-[calc(100%-2rem)] max-w-md">
+  <div class="flex items-center gap-3 bg-slate-900 text-white rounded-2xl shadow-card px-4 py-3">
+    <div class="h-9 w-9 rounded-xl bg-primary flex items-center justify-center flex-shrink-0">
+      <i class="ri-notification-3-line text-lg"></i>
+    </div>
+    <div class="min-w-0 flex-1">
+      <p class="text-sm font-bold leading-tight">Activer les notifications</p>
+      <p class="text-xs text-slate-300 leading-snug mt-0.5">Soyez alerté dès qu'une commande arrive, même app fermée.</p>
+    </div>
+    <button id="ofPushEnable"
+            class="flex-shrink-0 text-xs font-bold px-3 py-2 rounded-xl bg-primary text-white active:scale-95 transition-transform">
+      Activer
+    </button>
+    <button id="ofPushDismiss" class="flex-shrink-0 text-slate-400 hover:text-white p-1"><i class="ri-close-line"></i></button>
+  </div>
+</div>
 <script>
 (function() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
@@ -515,36 +537,58 @@ window.OFNotify = (function() {
   }
   function csrf() { var m = document.cookie.match(/csrftoken=([^;]+)/); return m ? m[1] : ''; }
 
+  var banner = document.getElementById('ofPushBanner');
+  function showBanner() {
+    if (banner && localStorage.getItem('ofPushDismissed') !== '1') banner.classList.remove('hidden');
+  }
+  function hideBanner() { if (banner) banner.classList.add('hidden'); }
+
   async function subscribe() {
-    try {
-      var reg = await navigator.serviceWorker.ready;
-      var sub = await reg.pushManager.getSubscription();
-      if (!sub) {
-        var r = await fetch('/api/push/vapid-public-key/', { credentials: 'same-origin' });
-        var info = await r.json();
-        if (!info.enabled || !info.publicKey) return;
-        sub = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlB64ToUint8Array(info.publicKey),
-        });
-      }
-      await fetch('/api/push/subscribe/', {
-        method: 'POST',
-        credentials: 'same-origin',
-        headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
-        body: JSON.stringify({ subscription: sub.toJSON() }),
+    var reg = await navigator.serviceWorker.ready;
+    var sub = await reg.pushManager.getSubscription();
+    if (!sub) {
+      var r = await fetch('/api/push/vapid-public-key/', { credentials: 'same-origin' });
+      var info = await r.json();
+      if (!info.enabled || !info.publicKey) return false;
+      sub = await reg.pushManager.subscribe({
+        userVisibleOnly: true,
+        applicationServerKey: urlB64ToUint8Array(info.publicKey),
       });
+    }
+    await fetch('/api/push/subscribe/', {
+      method: 'POST',
+      credentials: 'same-origin',
+      headers: { 'Content-Type': 'application/json', 'X-CSRFToken': csrf() },
+      body: JSON.stringify({ subscription: sub.toJSON() }),
+    });
+    return true;
+  }
+
+  async function enable() {
+    try {
+      var perm = Notification.permission;
+      if (perm !== 'granted') perm = await Notification.requestPermission();
+      if (perm === 'granted') { await subscribe(); hideBanner(); }
+      else if (perm === 'denied') {
+        OFNotify.toast({ title: 'Notifications bloquées',
+          body: 'Autorisez les notifications dans les réglages du navigateur.',
+          icon: 'ri-notification-off-line', color: '#ef4444' });
+        hideBanner();
+      }
     } catch (e) {}
   }
 
-  if (Notification.permission === 'granted') {
-    subscribe();
-  } else if (Notification.permission === 'default') {
-    // Browsers require a user gesture to prompt — piggy-back on the first click.
-    document.addEventListener('click', function ask() {
-      Notification.requestPermission().then(function(p) { if (p === 'granted') subscribe(); });
-    }, { once: true });
-  }
+  var enableBtn = document.getElementById('ofPushEnable');
+  var dismissBtn = document.getElementById('ofPushDismiss');
+  if (enableBtn) enableBtn.addEventListener('click', enable);
+  if (dismissBtn) dismissBtn.addEventListener('click', function () {
+    localStorage.setItem('ofPushDismissed', '1'); hideBanner();
+  });
+
+  // Déjà autorisé : on (ré)abonne silencieusement à chaque chargement pour ne
+  // jamais rester avec 0 abonnement côté serveur. Sinon on propose la bannière.
+  if (Notification.permission === 'granted') { subscribe().catch(function(){}); }
+  else { showBanner(); }
 })();
 </script>
 
@@ -658,5 +702,72 @@ window.OFNotify = (function() {
 </script>
 {% endif %}{# user_role != cuisinier #}
 {% endif %}{# request.user.is_authenticated #}
+
+<!-- ── Modale de confirmation générique (form[data-confirm]) ─ -->
+<div id="ofConfirmModal" class="hidden fixed inset-0 z-[110] flex items-end sm:items-center justify-center p-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]" onclick="ofConfirmClose()"></div>
+  <div class="relative bg-white rounded-3xl shadow-card w-full max-w-sm p-6"
+       style="animation: ofToastIn .2s ease;">
+    <div id="ofConfirmIconWrap" class="w-12 h-12 rounded-2xl flex items-center justify-center mb-4 bg-primary/10 text-primary">
+      <i id="ofConfirmIcon" class="ri-cash-line text-2xl"></i>
+    </div>
+    <p id="ofConfirmTitle" class="font-display font-black text-slate-900 text-lg leading-tight"></p>
+    <p id="ofConfirmMsg" class="text-sm text-slate-500 mt-1.5 leading-snug"></p>
+    <div class="flex gap-3 mt-6">
+      <button type="button" onclick="ofConfirmClose()"
+              class="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+        Annuler
+      </button>
+      <button type="button" id="ofConfirmBtn"
+              class="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-dark transition-colors">
+        Confirmer
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+(function() {
+  var pendingForm = null;
+  var modal = document.getElementById('ofConfirmModal');
+  var btn = document.getElementById('ofConfirmBtn');
+  var iconWrap = document.getElementById('ofConfirmIconWrap');
+
+  window.ofConfirmClose = function() {
+    modal.classList.add('hidden');
+    pendingForm = null;
+  };
+
+  document.addEventListener('submit', function(e) {
+    var f = e.target;
+    if (!f.matches || !f.matches('form[data-confirm]') || f.dataset.confirmed) return;
+    e.preventDefault();
+    pendingForm = f;
+    document.getElementById('ofConfirmTitle').textContent = f.dataset.confirmTitle || 'Confirmer';
+    document.getElementById('ofConfirmMsg').textContent = f.dataset.confirm;
+    btn.textContent = f.dataset.confirmBtn || 'Confirmer';
+    var danger = 'confirmDanger' in f.dataset;
+    btn.className = 'flex-1 py-3 rounded-xl text-sm font-bold text-white transition-colors ' +
+      (danger ? 'bg-red-500 hover:bg-red-600' : 'bg-primary hover:bg-primary-dark');
+    iconWrap.className = 'w-12 h-12 rounded-2xl flex items-center justify-center mb-4 ' +
+      (danger ? 'bg-red-50 text-red-500' : 'bg-primary/10 text-primary');
+    document.getElementById('ofConfirmIcon').className =
+      (f.dataset.confirmIcon || (danger ? 'ri-error-warning-line' : 'ri-cash-line')) + ' text-2xl';
+    modal.classList.remove('hidden');
+  }, true);
+
+  btn.addEventListener('click', function() {
+    if (!pendingForm) return;
+    var f = pendingForm;
+    f.dataset.confirmed = '1';
+    modal.classList.add('hidden');
+    pendingForm = null;
+    f.requestSubmit ? f.requestSubmit() : f.submit();
+  });
+
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape' && !modal.classList.contains('hidden')) ofConfirmClose();
+  });
+})();
+</script>
 </body>
 </html>

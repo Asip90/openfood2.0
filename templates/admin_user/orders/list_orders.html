@@ -87,6 +87,7 @@
         <p id="modalCreatedAt" class="text-xs text-slate-400 mt-0.5"></p>
       </div>
       <div class="flex items-center gap-2">
+        <span id="modalPaidBadge" class="text-[10px] font-bold px-2.5 py-1 rounded-full hidden"></span>
         <span id="modalStatusBadge" class="text-[10px] font-bold px-2.5 py-1 rounded-full"></span>
         <button onclick="closeDetail()" class="p-2 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-700 transition-colors">
           <i class="ri-close-line text-lg"></i>
@@ -228,6 +229,16 @@
           cancelled: 'bg-red-50 text-red-700',
         };
         badge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-full ' + (colors[d.status] || 'bg-slate-100 text-slate-600');
+
+        const paidBadge = document.getElementById('modalPaidBadge');
+        if (d.status !== 'cancelled') {
+          paidBadge.textContent = d.is_paid ? 'Payée' : 'Non payée';
+          paidBadge.className = 'text-[10px] font-bold px-2.5 py-1 rounded-full ' +
+            (d.is_paid ? 'bg-emerald-50 text-emerald-700' : 'bg-rose-50 text-rose-600');
+          paidBadge.title = d.is_paid && d.paid_by_name ? `Encaissée par ${d.paid_by_name}${d.paid_at ? ' · ' + d.paid_at : ''}` : '';
+        } else {
+          paidBadge.className = 'hidden';
+        }
 
         document.getElementById('modalTable').textContent = d.table;
 

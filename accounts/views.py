@@ -1,15 +1,19 @@
 from django.shortcuts import get_object_or_404, render, redirect
 from django.contrib import messages
 from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.password_validation import validate_password
+from django.core.exceptions import ValidationError
 from django.utils import timezone
 from datetime import timedelta
 
 from base.decorators import get_user_restaurant
 from base.models import StaffInvitation
+from base.ratelimit import rate_limit
 from .utils import send_verification_email, send_password_reset_email
 from .models import User
 
 
+@rate_limit("login", max_requests=10, window_seconds=60)
 def connexion(request):
     if request.method == "POST":
         email = request.POST.get("email")
@@ -52,6 +56,7 @@ def connexion(request):
     return render(request, "auth/connexion.html", {'next': next_url})
 
 
+@rate_limit("signup", max_requests=10, window_seconds=3600)
 def inscription(request):
     if request.method == "POST":
         first_name = request.POST.get("first_name")
@@ -61,6 +66,13 @@ def inscription(request):
 
         if User.objects.filter(email=email).exists():
             messages.error(request, "Cet email existe déjà.")
+            return redirect("inscription")
+
+        try:
+            validate_password(password)
+        except ValidationError as e:
+            for msg in e.messages:
+                messages.error(request, msg)
             return redirect("inscription")
 
         user = User.objects.create_user(
@@ -102,6 +114,7 @@ def log_out(request):
     return redirect("connexion")
 
 
+@rate_limit("pwd-reset", max_requests=5, window_seconds=900)
 def mot_de_passe_oublie(request):
     if request.method == "POST":
         email = request.POST.get("email", "").strip()
@@ -137,8 +150,11 @@ def reinitialiser_mot_de_passe(request, token):
         password = request.POST.get("password", "")
         password_confirm = request.POST.get("password_confirm", "")
 
-        if len(password) < 8:
-            messages.error(request, "Le mot de passe doit contenir au moins 8 caractères.")
+        try:
+            validate_password(password, user=user)
+        except ValidationError as e:
+            for msg in e.messages:
+                messages.error(request, msg)
             return render(request, "auth/reinitialiser_mot_de_passe.html", {"token": token})
 
         if password != password_confirm:

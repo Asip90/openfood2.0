@@ -9,6 +9,7 @@
   {% url 'customization'        as url_custom       %}
   {% url 'restaurant_settings'  as url_settings     %}
   {% url 'staff_list'           as url_staff        %}
+  {% url 'activity_list'        as url_activity     %}
   {% url 'subscription_status'  as url_subscription %}
   {% url 'customers_list'       as url_customers    %}
 {% endif %}
@@ -35,6 +36,20 @@
   <span class="truncate" x-show="sidebarOpen !== false"
         x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
     {% trans "Analytiques" %}
+  </span>
+</a>
+{% endif %}
+
+<!-- Caisse — owner, coadmin, serveur -->
+{% if user_role != 'cuisinier' %}
+{% url 'cashier' as url_cashier %}
+<a href="{{ url_cashier }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_cashier %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-cash-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    {% trans "Cashier" %}
   </span>
 </a>
 {% endif %}
@@ -118,6 +133,16 @@
   </span>
 </a>
 
+<a href="{{ url_activity }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_activity %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-history-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    Activité
+  </span>
+</a>
+
 <a href="{{ url_settings }}"
    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
           {% if current == url_settings %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
@@ -139,5 +164,17 @@
 </a>
 
 {% endif %}
+
+<!-- Support — tous les rôles -->
+{% url 'support_contact' as url_support %}
+<a href="{{ url_support }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_support %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-customer-service-2-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    {% trans "Support" %}
+  </span>
+</a>
 
 {% endwith %}

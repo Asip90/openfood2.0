@@ -1,0 +1,130 @@
+{% extends "admin_user/base.html" %}
+{% load i18n %}
+{% block title %}Activité — OpenFood{% endblock %}
+{% block page_title %}Activité{% endblock %}
+
+{% block content %}
+<div class="max-w-4xl mx-auto">
+
+  <!-- Filtres -->
+  <form method="get" class="mb-5 flex flex-wrap items-center gap-2.5">
+    <select name="action" onchange="this.form.submit()"
+            class="text-sm font-medium bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-700 focus:outline-none focus:border-primary">
+      <option value="">Toutes les actions</option>
+      {% for slug, label in action_choices %}
+      <option value="{{ slug }}" {% if current_action == slug %}selected{% endif %}>{{ label }}</option>
+      {% endfor %}
+    </select>
+
+    <select name="member" onchange="this.form.submit()"
+            class="text-sm font-medium bg-white border border-slate-200 rounded-xl px-3.5 py-2.5 text-slate-700 focus:outline-none focus:border-primary">
+      <option value="">Toute l'équipe</option>
+      {% for uid, name in members %}
+      <option value="{{ uid }}" {% if current_member == uid|stringformat:"s" %}selected{% endif %}>{{ name }}</option>
+      {% endfor %}
+    </select>
+
+    {% if current_action or current_member %}
+    <a href="{% url 'activity_list' %}"
+       class="text-xs font-semibold text-slate-400 hover:text-slate-600 px-2 py-2 transition-colors">
+      <i class="ri-close-line"></i> Réinitialiser
+    </a>
+    {% endif %}
+  </form>
+
+  <!-- Journal -->
+  <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+    {% for log in logs %}
+    <details class="group {% if not forloop.last %}border-b border-slate-50{% endif %}">
+      <summary class="px-5 py-3.5 flex items-start gap-3 cursor-pointer list-none hover:bg-slate-50/60 transition-colors [&::-webkit-details-marker]:hidden">
+
+        <!-- Avatar initiales -->
+        <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center flex-shrink-0 font-black text-xs uppercase">
+          {{ log.user_name|slice:":2" }}
+        </div>
+
+        <div class="flex-1 min-w-0">
+          <p class="text-sm text-slate-800 leading-snug">
+            <span class="font-bold">{{ log.user_name }}</span>
+            {% if log.user_role %}
+            <span class="text-[10px] font-bold px-1.5 py-0.5 rounded-full align-middle
+              {% if log.user_role == 'owner' %}bg-primary/10 text-primary
+              {% elif log.user_role == 'coadmin' %}bg-indigo-50 text-indigo-600
+              {% elif log.user_role == 'cuisinier' %}bg-amber-50 text-amber-600
+              {% else %}bg-sky-50 text-sky-600{% endif %}">
+              {% if log.user_role == 'owner' %}Admin{% elif log.user_role == 'coadmin' %}Co-admin{% elif log.user_role == 'cuisinier' %}Cuisinier{% else %}Serveur{% endif %}
+            </span>
+            {% endif %}
+            — {{ log.action_label }}
+          </p>
+          <p class="text-xs text-slate-400 mt-0.5">
+            {% if log.target %}{{ log.target }}{% endif %}
+            {% if log.details %}{% if log.target %} · {% endif %}{{ log.details }}{% endif %}
+          </p>
+        </div>
+
+        <div class="flex-shrink-0 flex items-start gap-2">
+          <p class="text-[11px] text-slate-400 text-right leading-tight">
+            {{ log.created_at|date:"d/m/Y" }}<br>{{ log.created_at|date:"H:i" }}
+          </p>
+          {% if log.extra %}
+          <i class="ri-arrow-down-s-line text-slate-300 group-open:rotate-180 transition-transform mt-0.5"></i>
+          {% endif %}
+        </div>
+      </summary>
+
+      {% if log.extra %}
+      <div class="px-5 pb-4 pl-[68px]">
+        <div class="bg-slate-50 rounded-xl px-4 py-3 space-y-1.5">
+          {% for key, value in log.extra.items %}
+            {% if key == "Données envoyées" %}
+            <div class="pt-1.5 mt-1.5 border-t border-slate-200/70">
+              <p class="text-[10px] font-bold text-slate-400 uppercase tracking-wide mb-1">Données envoyées</p>
+              {% for k, v in value.items %}
+              <div class="flex gap-2 text-xs">
+                <span class="text-slate-400 w-36 flex-shrink-0 truncate">{{ k }}</span>
+                <span class="text-slate-700 font-medium break-all">{{ v }}</span>
+              </div>
+              {% endfor %}
+            </div>
+            {% else %}
+            <div class="flex gap-2 text-xs">
+              <span class="text-slate-400 w-36 flex-shrink-0">{{ key }}</span>
+              <span class="text-slate-700 font-medium break-all">{{ value }}</span>
+            </div>
+            {% endif %}
+          {% endfor %}
+        </div>
+      </div>
+      {% endif %}
+    </details>
+    {% empty %}
+    <div class="p-12 text-center">
+      <i class="ri-history-line text-4xl text-slate-200 block mb-3"></i>
+      <p class="text-slate-600 font-semibold text-sm">Aucune activité pour le moment</p>
+      <p class="text-slate-400 text-xs mt-1">Les actions de l'équipe apparaîtront ici automatiquement.</p>
+    </div>
+    {% endfor %}
+  </div>
+
+  <!-- Pagination -->
+  {% if logs.has_other_pages %}
+  <div class="flex items-center justify-center gap-2 mt-5">
+    {% if logs.has_previous %}
+    <a href="?page={{ logs.previous_page_number }}{% if current_action %}&action={{ current_action }}{% endif %}{% if current_member %}&member={{ current_member }}{% endif %}"
+       class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary/40 transition-colors">
+      <i class="ri-arrow-left-s-line"></i>
+    </a>
+    {% endif %}
+    <span class="text-xs text-slate-400 font-medium px-2">Page {{ logs.number }} / {{ logs.paginator.num_pages }}</span>
+    {% if logs.has_next %}
+    <a href="?page={{ logs.next_page_number }}{% if current_action %}&action={{ current_action }}{% endif %}{% if current_member %}&member={{ current_member }}{% endif %}"
+       class="px-3.5 py-2 rounded-xl bg-white border border-slate-200 text-sm font-semibold text-slate-600 hover:border-primary/40 transition-colors">
+      <i class="ri-arrow-right-s-line"></i>
+    </a>
+    {% endif %}
+  </div>
+  {% endif %}
+
+</div>
+{% endblock %}

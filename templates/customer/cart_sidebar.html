@@ -94,6 +94,42 @@
         </div>
       </template>
 
+      <!-- ── Cross-sell : « Une envie en plus ? » ── -->
+      <template x-if="cartItems.length > 0 && cartSuggestions.length > 0">
+        <div class="pt-3">
+          <p class="text-[11px] font-black text-slate-500 uppercase tracking-widest mb-2">Une envie en plus ?</p>
+          <div class="flex gap-2.5 overflow-x-auto scrollbar-none pb-1 -mx-1 px-1">
+            <template x-for="s in cartSuggestions" :key="'sug-' + s.id">
+              <div class="flex-shrink-0 w-32 bg-white rounded-2xl border border-slate-100 overflow-hidden"
+                   style="box-shadow: 0 1px 6px rgba(0,0,0,0.04);">
+                <template x-if="s.image">
+                  <img :src="s.image" :alt="s.name" loading="lazy" class="w-full h-16 object-cover"
+                       @error="$el.style.display='none'">
+                </template>
+                <template x-if="!s.image">
+                  <div class="w-full h-16 bg-slate-50 flex items-center justify-center">
+                    <i class="ri-restaurant-line text-lg text-slate-200"></i>
+                  </div>
+                </template>
+                <div class="p-2">
+                  <p class="text-slate-800 text-xs font-semibold leading-tight truncate" x-text="s.name"></p>
+                  <div class="flex items-center justify-between mt-1.5">
+                    <span class="text-xs font-black" style="color: var(--color-primary);"
+                          x-text="Number(s.discount_price || s.price).toLocaleString('fr-FR')"></span>
+                    <button @click="addToCart(s)"
+                            :aria-label="'Ajouter ' + s.name"
+                            class="w-6 h-6 rounded-lg flex items-center justify-center text-white text-sm active:scale-90 transition-transform"
+                            style="background-color: var(--color-primary);">
+                      <i class="ri-add-line"></i>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </template>
+          </div>
+        </div>
+      </template>
+
     </div>
 
     <!-- Footer -->
