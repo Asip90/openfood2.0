@@ -4,7 +4,7 @@
 {% if user_role == 'owner' or user_role == 'coadmin' %}{% url 'analytics' as url_analytics %}{% endif %}
 {% if user_role != 'serveur' %}{% url 'menus_list'          as url_menus     %}{% endif %}
 {% if user_role != 'cuisinier' %}{% url 'tables_list'        as url_tables    %}{% endif %}
-{% if user_role != 'cuisinier' %}{% url 'qr_settings'         as url_qr        %}{% endif %}
+{% if user_role == 'owner' or user_role == 'coadmin' %}{% url 'qr_settings' as url_qr %}{% endif %}
 {% if user_role == 'owner' or user_role == 'coadmin' %}
   {% url 'customization'        as url_custom       %}
   {% url 'restaurant_settings'  as url_settings     %}
@@ -89,6 +89,10 @@
     {% trans "Tables" %}
   </span>
 </a>
+{% endif %}
+
+<!-- Personnaliser QR — owner / coadmin uniquement -->
+{% if user_role == 'owner' or user_role == 'coadmin' %}
 <a href="{{ url_qr }}"
    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
           {% if current == url_qr %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
@@ -165,7 +169,8 @@
 
 {% endif %}
 
-<!-- Support — tous les rôles -->
+<!-- Support — owner / coadmin uniquement -->
+{% if user_role == 'owner' or user_role == 'coadmin' %}
 {% url 'support_contact' as url_support %}
 <a href="{{ url_support }}"
    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
@@ -176,5 +181,6 @@
     {% trans "Support" %}
   </span>
 </a>
+{% endif %}
 
 {% endwith %}

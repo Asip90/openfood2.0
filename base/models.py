@@ -420,6 +420,33 @@ class Order(models.Model):
         ('delivered', 'Livrée'),
         ('cancelled', 'Annulée'),
     ]
+
+    # Ordre du cycle de vie ; dès « preparing », plus de retour en arrière
+    # ni d'annulation — uniquement vers l'avant.
+    STATUS_FLOW = ['pending', 'confirmed', 'preparing', 'ready', 'delivered']
+
+    ROLE_STATUS_PERMISSIONS = {
+        'owner':     {'pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'},
+        'coadmin':   {'pending', 'confirmed', 'preparing', 'ready', 'delivered', 'cancelled'},
+        'cuisinier': {'confirmed', 'preparing', 'ready', 'cancelled'},
+        'serveur':   {'delivered', 'cancelled'},
+    }
+
+    def allowed_next_statuses(self, role=None):
+        """Statuts atteignables depuis l'état courant, filtrés par rôle.
+        Retourne une liste ordonnée de (valeur, libellé)."""
+        if self.status in ('cancelled', 'delivered'):
+            return []
+        flow = self.STATUS_FLOW
+        i = flow.index(self.status) if self.status in flow else 0
+        if i < flow.index('preparing'):
+            allowed = (set(flow) | {'cancelled'}) - {self.status}
+        else:
+            allowed = set(flow[i + 1:])
+        if role is not None:
+            allowed &= self.ROLE_STATUS_PERMISSIONS.get(role, set())
+        labels = dict(self.STATUS_CHOICES)
+        return [(s, labels[s]) for s in flow + ['cancelled'] if s in allowed]
     
     ORDER_TYPE_CHOICES = [
         ('dine_in', 'Sur place'),

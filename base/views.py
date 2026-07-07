@@ -169,14 +169,27 @@ def dashboard(request):
     latest_order_id = latest_order.id if latest_order else None
 
     if role == 'cuisinier':
-        active_orders = Order.objects.filter(
-            restaurant=restaurant,
-            status__in=['pending', 'confirmed', 'preparing']
-        ).order_by('-created_at').prefetch_related('items__menu_item')
+        today = timezone.now().date()
+        kitchen_stats = {
+            'to_prepare': Order.objects.filter(
+                restaurant=restaurant, status__in=['pending', 'confirmed']).count(),
+            'preparing': Order.objects.filter(
+                restaurant=restaurant, status='preparing').count(),
+            'ready': Order.objects.filter(
+                restaurant=restaurant, status='ready').count(),
+            'today_total': Order.objects.filter(
+                restaurant=restaurant, created_at__date=today).count(),
+        }
+        latest_orders = (
+            Order.objects.filter(restaurant=restaurant)
+            .order_by('-created_at')
+            .prefetch_related('items__menu_item')[:3]
+        )
         return render(request, "admin_user/index.html", {
             "restaurant": restaurant,
             "user_role": role,
-            "active_orders": active_orders,
+            "kitchen_stats": kitchen_stats,
+            "latest_orders": latest_orders,
             "latest_order_id": latest_order_id,
         })
 
@@ -642,6 +655,13 @@ def delete_order(request, order_id):
     return redirect("orders_list")
 
 
+def _annotate_transitions(orders, role):
+    """Attache à chaque commande la liste (valeur, libellé) des statuts
+    atteignables pour ce rôle — utilisée par le menu déroulant du feed."""
+    for o in orders:
+        o.transitions = o.allowed_next_statuses(role)
+
+
 def _orders_queryset(restaurant, status_filter, q):
     qs = Order.objects.filter(restaurant=restaurant).order_by("-created_at")
     if status_filter:
@@ -664,6 +684,7 @@ def orders_list(request):
     orders_qs = _orders_queryset(restaurant, status_filter, q)
     paginator = Paginator(orders_qs, 10)
     orders = paginator.get_page(request.GET.get("page"))
+    _annotate_transitions(orders, request.user_role)
 
     latest_order = Order.objects.filter(restaurant=restaurant).order_by('-created_at', '-id').first()
     latest_order_id = latest_order.id if latest_order else None
@@ -690,6 +711,7 @@ def orders_partial(request):
     orders_qs = _orders_queryset(restaurant, status_filter, q)
     paginator = Paginator(orders_qs, 10)
     orders = paginator.get_page(request.GET.get("page", 1))
+    _annotate_transitions(orders, request.user_role)
 
     return render(request, "admin_user/orders/_orders_feed.html", {
         "orders": orders,
@@ -709,21 +731,14 @@ def order_change_status(request, pk):
     order = get_object_or_404(Order, pk=pk, restaurant=restaurant)
     new_status = request.POST.get("status")
 
-    # Role-based allowed status transitions
-    if role in ('owner', 'coadmin'):
-        allowed = {s[0] for s in Order.STATUS_CHOICES}
-    elif role == 'cuisinier':
-        allowed = {'confirmed', 'preparing', 'ready', 'cancelled'}
-    elif role == 'serveur':
-        allowed = {'delivered'}
-    else:
-        allowed = set()
+    # Transitions autorisées = cycle de vie de la commande ∩ permissions du rôle
+    allowed = {value for value, _ in order.allowed_next_statuses(role)}
 
     if new_status not in allowed:
         if is_ajax:
-            return JsonResponse({'ok': False, 'error': 'Action non autorisée.'}, status=403)
-        messages.error(request, "Action non autorisée.")
-        return redirect("orders_list")
+            return JsonResponse({'ok': False, 'error': 'Transition non autorisée.'}, status=403)
+        messages.error(request, "Transition non autorisée.")
+        return redirect(request.META.get("HTTP_REFERER") or "orders_list")
 
     previous_status = order.status
     order.status = new_status
@@ -745,7 +760,8 @@ def order_change_status(request, pk):
         return JsonResponse({'ok': True, 'status': new_status, 'status_display': status_display})
 
     messages.success(request, f"Statut de la commande #{order.order_number} mis à jour : {status_display}")
-    return redirect("orders_list")
+    # Retour à la page d'origine (ex. le serveur qui sert depuis son tableau de bord)
+    return redirect(request.META.get("HTTP_REFERER") or "orders_list")
 
 
 @restaurant_required()

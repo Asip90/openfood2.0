@@ -1,62 +1,111 @@
 {% load static %}
-{# Vue Cuisine — file des commandes à préparer (cuisinier) #}
-<div class="max-w-3xl mx-auto">
+{# Tableau de bord Cuisine — stats du service + dernières commandes (cuisinier) #}
+<div class="max-w-3xl mx-auto space-y-6">
 
-  <div class="flex items-center justify-between mb-5">
-    <div>
-      <h1 class="font-display font-black text-slate-900 text-xl">Cuisine</h1>
-      <p class="text-slate-400 text-sm">Commandes à préparer</p>
-    </div>
-    <span class="text-xs font-bold px-3 py-1.5 rounded-full bg-primary/10 text-primary">
-      {{ active_orders|length }} en cours
-    </span>
+  <div>
+    <h1 class="font-display font-black text-slate-900 text-xl">Cuisine</h1>
+    <p class="text-slate-400 text-sm">Vue d'ensemble du service</p>
   </div>
 
-  <div class="space-y-3">
-    {% for order in active_orders %}
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
-      <div class="px-5 py-3 border-b border-slate-50 flex items-center justify-between">
-        <div>
-          <p class="font-black text-slate-900 text-sm">#{{ order.order_number|slice:"-6:" }}
-            <span class="text-slate-400 font-normal">· {% if order.table %}Table {{ order.table.number }}{% else %}À emporter{% endif %}</span>
-          </p>
-          <p class="text-slate-400 text-xs">{{ order.created_at|date:"H:i" }}{% if order.notes %} · <span class="text-amber-600">{{ order.notes }}</span>{% endif %}</p>
-        </div>
-        <span class="text-[11px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide
-          {% if order.status == 'pending' %}bg-amber-100 text-amber-700
-          {% elif order.status == 'confirmed' %}bg-blue-100 text-blue-700
-          {% else %}bg-orange-100 text-orange-700{% endif %}">
-          {{ order.get_status_display }}
-        </span>
+  <!-- Stats -->
+  <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+    <a href="{% url 'orders_list' %}?status=pending"
+       class="bg-white rounded-2xl border border-slate-100 shadow-soft p-4 hover:border-amber-200 transition-colors">
+      <div class="w-9 h-9 rounded-xl bg-amber-50 text-amber-500 flex items-center justify-center mb-2">
+        <i class="ri-time-line text-lg"></i>
       </div>
-      <div class="divide-y divide-slate-50">
-        {% for item in order.items.all %}
-        <div class="flex items-center gap-3 px-5 py-2.5">
-          <span class="w-6 h-6 rounded-lg bg-primary text-white text-[11px] font-black flex items-center justify-center flex-shrink-0">{{ item.quantity }}</span>
-          <span class="text-slate-700 text-sm">{{ item.menu_item.name }}</span>
-        </div>
-        {% endfor %}
+      <p class="font-display font-black text-slate-900 text-2xl leading-none">{{ kitchen_stats.to_prepare }}</p>
+      <p class="text-slate-400 text-xs mt-1">À préparer</p>
+    </a>
+
+    <a href="{% url 'orders_list' %}?status=preparing"
+       class="bg-white rounded-2xl border border-slate-100 shadow-soft p-4 hover:border-indigo-200 transition-colors">
+      <div class="w-9 h-9 rounded-xl bg-indigo-50 text-indigo-600 flex items-center justify-center mb-2">
+        <i class="ri-fire-line text-lg"></i>
       </div>
-      <div class="px-5 py-3 flex gap-2 justify-end">
-        {% if order.status != 'preparing' %}
-        <form method="post" action="{% url 'order_change_status' order.id %}">
-          {% csrf_token %}<input type="hidden" name="status" value="preparing">
-          <button class="text-xs font-bold px-3 py-2 rounded-xl text-orange-700 bg-orange-50 hover:bg-orange-100 transition-colors">Je prépare</button>
-        </form>
+      <p class="font-display font-black text-slate-900 text-2xl leading-none">{{ kitchen_stats.preparing }}</p>
+      <p class="text-slate-400 text-xs mt-1">En préparation</p>
+    </a>
+
+    <a href="{% url 'orders_list' %}?status=ready"
+       class="bg-white rounded-2xl border border-slate-100 shadow-soft p-4 hover:border-green-200 transition-colors">
+      <div class="w-9 h-9 rounded-xl bg-green-50 text-green-600 flex items-center justify-center mb-2">
+        <i class="ri-checkbox-circle-line text-lg"></i>
+      </div>
+      <p class="font-display font-black text-slate-900 text-2xl leading-none">{{ kitchen_stats.ready }}</p>
+      <p class="text-slate-400 text-xs mt-1">Prêtes à servir</p>
+    </a>
+
+    <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-4">
+      <div class="w-9 h-9 rounded-xl bg-primary/10 text-primary flex items-center justify-center mb-2">
+        <i class="ri-shopping-bag-3-line text-lg"></i>
+      </div>
+      <p class="font-display font-black text-slate-900 text-2xl leading-none">{{ kitchen_stats.today_total }}</p>
+      <p class="text-slate-400 text-xs mt-1">Commandes aujourd'hui</p>
+    </div>
+  </div>
+
+  <!-- 3 dernières commandes -->
+  <div>
+    <div class="flex items-center justify-between mb-3">
+      <h2 class="font-bold text-slate-900">Dernières commandes reçues</h2>
+      <a href="{% url 'orders_list' %}"
+         class="text-xs font-bold text-primary hover:text-primary-dark transition-colors">
+        Voir tout <i class="ri-arrow-right-line align-middle"></i>
+      </a>
+    </div>
+
+    <div class="space-y-3">
+      {% for order in latest_orders %}
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden">
+        <div class="px-5 py-3 border-b border-slate-50 flex items-center justify-between">
+          <div>
+            <p class="font-black text-slate-900 text-sm">#{{ order.order_number|slice:"-6:" }}
+              <span class="text-slate-400 font-normal">· {% if order.table %}Table {{ order.table.number }}{% else %}À emporter{% endif %}</span>
+            </p>
+            <p class="text-slate-400 text-xs">{{ order.created_at|date:"H:i" }}{% if order.notes %} · <span class="text-amber-600">{{ order.notes }}</span>{% endif %}</p>
+          </div>
+          <span class="text-[11px] font-black px-2.5 py-1 rounded-full uppercase tracking-wide
+            {% if order.status == 'pending' %}bg-amber-100 text-amber-700
+            {% elif order.status == 'confirmed' %}bg-blue-100 text-blue-700
+            {% elif order.status == 'preparing' %}bg-indigo-100 text-indigo-700
+            {% elif order.status == 'ready' %}bg-green-100 text-green-700
+            {% elif order.status == 'delivered' %}bg-slate-100 text-slate-600
+            {% else %}bg-red-100 text-red-700{% endif %}">
+            {{ order.get_status_display }}
+          </span>
+        </div>
+        <div class="divide-y divide-slate-50">
+          {% for item in order.items.all %}
+          <div class="flex items-center gap-3 px-5 py-2.5">
+            <span class="w-6 h-6 rounded-lg bg-primary text-white text-[11px] font-black flex items-center justify-center flex-shrink-0">{{ item.quantity }}</span>
+            <span class="text-slate-700 text-sm">{{ item.menu_item.name }}</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% if order.status == 'pending' or order.status == 'confirmed' or order.status == 'preparing' %}
+        <div class="px-5 py-3 flex gap-2 justify-end">
+          {% if order.status != 'preparing' %}
+          <form method="post" action="{% url 'order_change_status' order.id %}">
+            {% csrf_token %}<input type="hidden" name="status" value="preparing">
+            <button class="text-xs font-bold px-3 py-2 rounded-xl text-orange-700 bg-orange-50 hover:bg-orange-100 transition-colors">Je prépare</button>
+          </form>
+          {% endif %}
+          <form method="post" action="{% url 'order_change_status' order.id %}">
+            {% csrf_token %}<input type="hidden" name="status" value="ready">
+            <button class="text-xs font-bold px-3 py-2 rounded-xl text-white bg-green-600 hover:bg-green-700 transition-colors">Marquer prête</button>
+          </form>
+        </div>
         {% endif %}
-        <form method="post" action="{% url 'order_change_status' order.id %}">
-          {% csrf_token %}<input type="hidden" name="status" value="ready">
-          <button class="text-xs font-bold px-3 py-2 rounded-xl text-white bg-green-600 hover:bg-green-700 transition-colors">Marquer prête</button>
-        </form>
       </div>
+      {% empty %}
+      <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-10 text-center">
+        <i class="ri-restaurant-2-line text-4xl text-slate-200 block mb-3"></i>
+        <p class="text-slate-600 font-semibold text-sm">Aucune commande pour le moment</p>
+        <p class="text-slate-400 text-xs mt-1">Les nouvelles commandes apparaîtront ici automatiquement.</p>
+      </div>
+      {% endfor %}
     </div>
-    {% empty %}
-    <div class="bg-white rounded-2xl border border-slate-100 shadow-soft p-10 text-center">
-      <i class="ri-restaurant-2-line text-4xl text-slate-200 block mb-3"></i>
-      <p class="text-slate-600 font-semibold text-sm">Aucune commande en attente</p>
-      <p class="text-slate-400 text-xs mt-1">Les nouvelles commandes apparaîtront ici automatiquement.</p>
-    </div>
-    {% endfor %}
   </div>
 </div>
 

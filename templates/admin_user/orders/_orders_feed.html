@@ -136,6 +136,7 @@
               </form>
               {% endif %}
 
+              {% if order.transitions %}
               <div x-data="{ open: false, top: 0, right: 0 }">
                 <button
                   @click.stop="
@@ -158,10 +159,9 @@
                      x-transition:leave-start="opacity-100 scale-100"
                      x-transition:leave-end="opacity-0 scale-95"
                      class="w-44 bg-white rounded-2xl shadow-card border border-slate-100 overflow-hidden">
-                  {% for value, label in status_choices %}
+                  {% for value, label in order.transitions %}
                   <button @click="changeStatus({{ order.pk }}, '{{ value }}'); open = false"
-                    class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2
-                      {% if order.status == value %}bg-primary/5 text-primary{% else %}text-slate-600{% endif %}">
+                    class="w-full text-left px-4 py-2.5 text-xs font-semibold hover:bg-slate-50 transition-colors flex items-center gap-2 text-slate-600">
                     <span class="w-2 h-2 rounded-full flex-shrink-0
                       {% if value == 'pending' %}bg-amber-400
                       {% elif value == 'confirmed' %}bg-blue-400
@@ -170,11 +170,11 @@
                       {% elif value == 'delivered' %}bg-slate-400
                       {% else %}bg-red-400{% endif %}"></span>
                     {{ label }}
-                    {% if order.status == value %}<i class="ri-check-line ml-auto text-primary text-xs"></i>{% endif %}
                   </button>
                   {% endfor %}
                 </div>
               </div>
+              {% endif %}
             </div>
           </div>
 
