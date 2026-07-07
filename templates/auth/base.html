@@ -6,6 +6,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <meta name="robots" content="noindex, nofollow">
   <title>{% block title %}OpenFood{% endblock %}</title>
+
+  {# PWA staff : installer depuis la connexion → démarre sur le dashboard #}
+  <link rel="manifest" href="{% static 'manifest.webmanifest' %}">
+  <meta name="theme-color" content="#f97316">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="OpenFood">
+  <link rel="apple-touch-icon" href="{% static 'icons/icon-192.png' %}">
   <meta name="description" content="{% block meta_description %}OpenFood — Menu digital QR Code pour restaurants en Afrique de l'Ouest.{% endblock %}">
   <meta property="og:title" content="{% block og_title %}OpenFood{% endblock %}">
   <meta property="og:description" content="{% block og_description %}Créez votre menu digital QR Code en 5 minutes. Gratuit pour démarrer.{% endblock %}">
@@ -104,5 +112,14 @@
     }
   </script>
   <script src="//translate.google.com/translate_a/element.js?cb=googleTranslateElementInit" async></script>
+
+  <!-- Service worker : rend la PWA installable dès la page de connexion -->
+  <script>
+    if ('serviceWorker' in navigator) {
+      window.addEventListener('load', function () {
+        navigator.serviceWorker.register('/sw.js').catch(function () {});
+      });
+    }
+  </script>
 </body>
 </html>

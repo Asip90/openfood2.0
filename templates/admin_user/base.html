@@ -547,6 +547,55 @@ window.OFNotify = (function() {
     <button id="ofPushDismiss" class="flex-shrink-0 text-slate-400 hover:text-white p-1"><i class="ri-close-line"></i></button>
   </div>
 </div>
+
+<!-- ── Modale d'aide : notifications bloquées ─────────────── -->
+<div id="ofPushHelp" class="hidden fixed inset-0 z-[115] flex items-end sm:items-center justify-center p-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]" onclick="ofPushHelpClose()"></div>
+  <div class="relative bg-white rounded-3xl shadow-card w-full max-w-md p-6" style="animation: ofToastIn .2s ease;">
+    <div class="w-12 h-12 rounded-2xl bg-red-50 text-red-500 flex items-center justify-center mb-4">
+      <i class="ri-notification-off-line text-2xl"></i>
+    </div>
+    <p class="font-display font-black text-slate-900 text-lg leading-tight">Notifications bloquées</p>
+    <p class="text-sm text-slate-500 mt-1.5 leading-snug">
+      Votre navigateur a bloqué les notifications pour ce site. Réactivez-les en 4 étapes :
+    </p>
+    <ol class="mt-4 space-y-3">
+      <li class="flex gap-3">
+        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center">1</span>
+        <span class="text-sm text-slate-700 leading-snug">En haut, cliquez sur l'icône
+          <i class="ri-lock-2-line align-middle"></i> (cadenas) ou
+          <i class="ri-equalizer-line align-middle"></i> (curseurs) à gauche de l'adresse du site.</span>
+      </li>
+      <li class="flex gap-3">
+        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center">2</span>
+        <span class="text-sm text-slate-700 leading-snug">Ouvrez <b>« Notifications »</b> (ou « Paramètres du site »).</span>
+      </li>
+      <li class="flex gap-3">
+        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center">3</span>
+        <span class="text-sm text-slate-700 leading-snug">Choisissez <b>« Autoriser »</b>.</span>
+      </li>
+      <li class="flex gap-3">
+        <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center">4</span>
+        <span class="text-sm text-slate-700 leading-snug">Revenez ici et <b>rechargez la page</b>.</span>
+      </li>
+    </ol>
+    <div class="flex gap-3 mt-6">
+      <button type="button" onclick="ofPushHelpClose()"
+              class="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+        Fermer
+      </button>
+      <button type="button" onclick="location.reload()"
+              class="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-dark transition-colors">
+        <i class="ri-refresh-line align-middle"></i> Recharger
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+  window.ofPushHelpClose = function () { document.getElementById('ofPushHelp').classList.add('hidden'); };
+  window.ofPushHelpShow = function () { document.getElementById('ofPushHelp').classList.remove('hidden'); };
+</script>
+
 <script>
 (function() {
   if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) return;
@@ -595,12 +644,17 @@ window.OFNotify = (function() {
     try {
       var perm = Notification.permission;
       if (perm !== 'granted') perm = await Notification.requestPermission();
-      if (perm === 'granted') { await subscribe(); hideBanner(); }
-      else if (perm === 'denied') {
-        OFNotify.toast({ title: 'Notifications bloquées',
-          body: 'Autorisez les notifications dans les réglages du navigateur.',
-          icon: 'ri-notification-off-line', color: '#ef4444' });
+      if (perm === 'granted') {
+        var ok = await subscribe();
         hideBanner();
+        OFNotify.toast({ title: 'Notifications activées ✓',
+          body: 'Vous serez alerté sur toutes les pages, même app fermée.',
+          icon: 'ri-notification-3-line', color: '#16a34a' });
+      }
+      else if (perm === 'denied') {
+        // Permission bloquée : le navigateur ne redemandera pas — on explique.
+        hideBanner();
+        ofPushHelpShow();
       }
     } catch (e) {}
   }
