@@ -410,7 +410,14 @@
 <script>
   if ('serviceWorker' in navigator) {
     window.addEventListener('load', function() {
-      navigator.serviceWorker.register('/static/js/sw.js').catch(function(){});
+      // Scope '/' : le SW couvre toutes les pages admin (push partout).
+      navigator.serviceWorker.register('/sw.js').catch(function(){});
+      // Nettoie l'ancien enregistrement à scope /static/js/ (0 abonné).
+      navigator.serviceWorker.getRegistrations().then(function(regs) {
+        regs.forEach(function(r) {
+          if (r.scope && r.scope.indexOf('/static/') !== -1) r.unregister();
+        });
+      }).catch(function(){});
     });
   }
 </script>
@@ -561,6 +568,9 @@ window.OFNotify = (function() {
   function hideBanner() { if (banner) banner.classList.add('hidden'); }
 
   async function subscribe() {
+    // register() est idempotent : garantit un enregistrement même si le
+    // handler window.load n'a pas encore tourné, puis on attend le worker actif.
+    await navigator.serviceWorker.register('/sw.js').catch(function(){});
     var reg = await navigator.serviceWorker.ready;
     var sub = await reg.pushManager.getSubscription();
     if (!sub) {

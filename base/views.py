@@ -1273,6 +1273,33 @@ def table_update(request, table_id):
 from django.views.decorators.cache import cache_control
 
 @cache_control(max_age=86400)
+def service_worker(request):
+    """Sert le service worker depuis la racine du site.
+
+    Servi via /static/js/sw.js, le SW a un scope limité à /static/js/ et
+    navigator.serviceWorker.ready ne se résout jamais sur /dashboard/, /orders/…
+    → l'abonnement push échouait silencieusement (0 abonné). Servi ici depuis
+    la racine, son scope est '/' : le push fonctionne sur toutes les pages.
+    """
+    import os
+    from django.contrib.staticfiles import finders
+    from django.http import HttpResponse, HttpResponseNotFound
+
+    path = finders.find('js/sw.js')
+    if not path:
+        candidate = os.path.join(str(settings.STATIC_ROOT), 'js', 'sw.js')
+        path = candidate if os.path.exists(candidate) else None
+    if not path:
+        return HttpResponseNotFound('// service worker introuvable')
+
+    with open(path, 'rb') as f:
+        content = f.read()
+    resp = HttpResponse(content, content_type='application/javascript')
+    resp['Service-Worker-Allowed'] = '/'
+    resp['Cache-Control'] = 'no-cache'
+    return resp
+
+
 def pwa_manifest(request, slug):
     try:
         restaurant = Restaurant.objects.get(slug=slug, is_active=True)

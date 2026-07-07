@@ -290,7 +290,13 @@
   </script>
   <script>
     if ('serviceWorker' in navigator) {
-      window.addEventListener('load', () => navigator.serviceWorker.register('/static/js/sw.js').catch(() => {}));
+      // Scope '/' (servi à la racine) : le push fonctionne sur toutes les pages.
+      window.addEventListener('load', () => {
+        navigator.serviceWorker.register('/sw.js').catch(() => {});
+        navigator.serviceWorker.getRegistrations().then(regs => {
+          regs.forEach(r => { if (r.scope && r.scope.indexOf('/static/') !== -1) r.unregister(); });
+        }).catch(() => {});
+      });
     }
   </script>
   {% block extra_js %}{% endblock %}

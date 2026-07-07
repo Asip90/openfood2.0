@@ -12,6 +12,9 @@ from base import cashier_views
 urlpatterns = [
     path('', home, name="home"),
 
+    # Service worker servi à la racine → scope '/' (push sur toutes les pages)
+    path('sw.js', service_worker, name='service_worker'),
+
     # Landing pages géographiques
     path('benin/', landing_views.landing_pays, {'pays_slug': 'benin'}, name='landing_benin'),
     path('cote-divoire/', landing_views.landing_pays, {'pays_slug': 'cote-divoire'}, name='landing_cote_divoire'),

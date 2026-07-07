@@ -208,6 +208,8 @@
     }
 
     async function subscribe() {
+      // register() idempotent + attente du worker actif (scope '/').
+      await navigator.serviceWorker.register('/sw.js').catch(function () {});
       var reg = await navigator.serviceWorker.ready;
       var sub = await reg.pushManager.getSubscription();
       if (!sub) {
