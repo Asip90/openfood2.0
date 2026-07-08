@@ -171,6 +171,17 @@ class GeneratorTest(TestCase):
         self.assertEqual(child.parent, parent)
         self.assertEqual(child.user_text, "plus lumineux")
 
+    @patch("base.services.imagegen.generator.cloudinary.uploader.upload",
+           side_effect=Exception("boom"))
+    @patch("base.services.imagegen.generator.openrouter.generate_image", return_value=b"PNG")
+    @patch("base.services.imagegen.generator.prompt_builder.build",
+           return_value={"image_prompt": "p", "caption": "c", "style": "macro"})
+    def test_upload_failure_raises_imagegenerror(self, mb, mg, mu):
+        with self.assertRaises(ImageGenError):
+            generator.generate(self.resto, self.user)
+        # aucun poster ne doit rester enregistré après l'échec
+        self.assertEqual(self.resto.posters.count(), 0)
+
 
 def make_pro(resto):
     from base.models import SubscriptionPlan

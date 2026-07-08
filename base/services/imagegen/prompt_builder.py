@@ -68,5 +68,5 @@ def build(restaurant, menu_item, user_text, source_image_present, exclude_style=
             "caption": data.get("caption") or _fallback(restaurant, menu_item, style)["caption"],
             "style": data.get("style") or style["key"],
         }
-    except (ValueError, KeyError, TypeError, Exception):
+    except Exception:
         return _fallback(restaurant, menu_item, style)

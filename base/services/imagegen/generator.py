@@ -1,19 +1,18 @@
 """Orchestration : quota → prompt (Mistral) → image (OpenRouter) → Cloudinary."""
-from datetime import timedelta
 from io import BytesIO
 
 import cloudinary.uploader
+from django.db import transaction
 from django.utils import timezone
 
-from base.models import ImageGenSettings, MarketingPoster
+from base.models import ImageGenSettings, MarketingPoster, Restaurant
 from . import prompt_builder, openrouter
 from .errors import Disabled, QuotaExceeded, ImageGenError
 
 
 def _used_today(restaurant):
-    since = timezone.now() - timedelta(days=1)
     return MarketingPoster.objects.filter(
-        restaurant=restaurant, created_at__gte=since).count()
+        restaurant=restaurant, created_at__date=timezone.localdate()).count()
 
 
 def remaining_quota(restaurant):
@@ -29,31 +28,40 @@ def _check(settings, restaurant):
 
 
 def _run(restaurant, user, menu_item, user_text, source_image_url, parent, exclude_style):
-    settings = ImageGenSettings.load()
-    _check(settings, restaurant)
+    with transaction.atomic():
+        Restaurant.objects.select_for_update().filter(pk=restaurant.pk).first()
+        settings = ImageGenSettings.load()
+        _check(settings, restaurant)
 
-    built = prompt_builder.build(
-        restaurant, menu_item, user_text, bool(source_image_url), exclude_style)
-    image_bytes = openrouter.generate_image(
-        built["image_prompt"], settings.effective_model(),
-        settings.image_size, settings.openrouter_api_key,
-        reference_image_url=source_image_url)
+        built = prompt_builder.build(
+            restaurant, menu_item, user_text, bool(source_image_url), exclude_style)
+        image_bytes = openrouter.generate_image(
+            built["image_prompt"], settings.effective_model(),
+            settings.image_size, settings.openrouter_api_key,
+            reference_image_url=source_image_url)
 
-    upload = cloudinary.uploader.upload(
-        BytesIO(image_bytes), folder=f"posters/{restaurant.id}",
-        resource_type="image")
+        try:
+            upload = cloudinary.uploader.upload(
+                BytesIO(image_bytes), folder=f"posters/{restaurant.id}",
+                resource_type="image")
 
-    return MarketingPoster.objects.create(
-        restaurant=restaurant,
-        menu_item=menu_item,
-        image=upload.get("public_id", ""),
-        caption=built["caption"],
-        prompt_used=built["image_prompt"],
-        style=built["style"],
-        user_text=user_text,
-        parent=parent,
-        created_by=user,
-    )
+            poster = MarketingPoster.objects.create(
+                restaurant=restaurant,
+                menu_item=menu_item,
+                image=upload.get("public_id", ""),
+                caption=built["caption"],
+                prompt_used=built["image_prompt"],
+                style=built["style"],
+                user_text=user_text,
+                parent=parent,
+                created_by=user,
+            )
+        except ImageGenError:
+            raise
+        except Exception as exc:
+            raise ImageGenError(f"Enregistrement de l'affiche échoué : {exc}") from exc
+
+        return poster
 
 
 def generate(restaurant, user, menu_item=None, user_text="", source_image_url=None):
