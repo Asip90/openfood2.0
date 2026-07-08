@@ -164,6 +164,13 @@ class Restaurant(models.Model):
         self.qr_code.save(filename, File(buffer), save=False)
         super().save(update_fields=['qr_code'])
     
+    def hide_branding(self):
+        """Vrai si le plan effectif du restaurant retire le branding OpenFood
+        (badge « Propulsé par OpenFood » masqué). Plans Pro/Max."""
+        from base.services.subscription import get_effective_plan
+        plan = get_effective_plan(self)
+        return bool(plan and plan.remove_branding)
+
     def __str__(self):
         return self.name
 

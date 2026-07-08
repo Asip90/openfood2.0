@@ -186,6 +186,46 @@
     {% endif %}
   </div>
 
+  <!-- ══ Section : Exploitation ══ -->
+  <div class="mb-5">
+    <div class="section-head">
+      <span class="section-label">Exploitation</span>
+      <span class="section-line"></span>
+    </div>
+
+    <div class="space-y-2">
+
+      <!-- Caisse -->
+      <div class="hub-item">
+        <a href="{% url 'cashier' %}" class="hub-tile">
+          <div class="tile-icon bg-green-50">
+            <i class="ri-cash-line text-green-600"></i>
+          </div>
+          <div class="tile-body">
+            <p class="tile-title">Caisse</p>
+            <p class="tile-desc">Encaisser les tables et les commandes</p>
+          </div>
+          <i class="ri-arrow-right-s-line tile-arrow"></i>
+        </a>
+      </div>
+
+      <!-- Activité -->
+      <div class="hub-item">
+        <a href="{% url 'activity_list' %}" class="hub-tile">
+          <div class="tile-icon bg-slate-50">
+            <i class="ri-history-line text-slate-700"></i>
+          </div>
+          <div class="tile-body">
+            <p class="tile-title">Activité</p>
+            <p class="tile-desc">Journal des actions de l'équipe</p>
+          </div>
+          <i class="ri-arrow-right-s-line tile-arrow"></i>
+        </a>
+      </div>
+
+    </div>
+  </div>
+
   <!-- ══ Section : Configuration ══ -->
   <div class="mb-5">
     <div class="section-head">
@@ -317,6 +357,27 @@
             <p class="tile-desc">Débloquer toutes les fonctionnalités</p>
             <span class="tile-badge bg-orange-100 text-orange-600">Upgrade disponible</span>
           {% endif %}
+        </div>
+        <i class="ri-arrow-right-s-line tile-arrow"></i>
+      </a>
+    </div>
+  </div>
+
+  <!-- ══ Section : Aide ══ -->
+  <div class="mb-6">
+    <div class="section-head">
+      <span class="section-label">Aide</span>
+      <span class="section-line"></span>
+    </div>
+
+    <div class="hub-item">
+      <a href="{% url 'support_contact' %}" class="hub-tile">
+        <div class="tile-icon bg-sky-50">
+          <i class="ri-customer-service-2-line text-sky-600"></i>
+        </div>
+        <div class="tile-body">
+          <p class="tile-title">Support</p>
+          <p class="tile-desc">Contacter l'assistance OpenFood</p>
         </div>
         <i class="ri-arrow-right-s-line tile-arrow"></i>
       </a>

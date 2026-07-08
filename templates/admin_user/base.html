@@ -673,6 +673,114 @@ window.OFNotify = (function() {
 })();
 </script>
 
+<!-- ── Installation PWA (invite sur le dashboard) ────────── -->
+<div id="ofInstallModal" class="hidden fixed inset-0 z-[112] flex items-end sm:items-center justify-center p-4">
+  <div class="absolute inset-0 bg-slate-900/60 backdrop-blur-[2px]" onclick="ofInstallDismiss()"></div>
+  <div class="relative bg-white rounded-3xl shadow-card w-full max-w-sm p-6" style="animation: ofToastIn .2s ease;">
+    <div class="w-12 h-12 rounded-2xl bg-primary/10 text-primary flex items-center justify-center mb-4">
+      <i class="ri-install-line text-2xl"></i>
+    </div>
+    <p class="font-display font-black text-slate-900 text-lg leading-tight">Installer l'application</p>
+    <p class="text-sm text-slate-500 mt-1.5 leading-snug">
+      Ajoutez OpenFood à votre écran d'accueil : accès en un tap à vos commandes, notifications, même app fermée.
+    </p>
+
+    <!-- Android / Chrome : bouton d'installation natif -->
+    <div id="ofInstallAndroid" class="hidden flex gap-3 mt-6">
+      <button type="button" onclick="ofInstallDismiss()"
+              class="flex-1 py-3 rounded-xl border border-slate-200 text-sm font-bold text-slate-600 hover:bg-slate-50 transition-colors">
+        Plus tard
+      </button>
+      <button type="button" id="ofInstallGo"
+              class="flex-1 py-3 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-dark transition-colors">
+        <i class="ri-download-2-line align-middle"></i> Installer
+      </button>
+    </div>
+
+    <!-- iOS Safari : pas d'installation programmatique → instructions -->
+    <div id="ofInstallIos" class="hidden mt-5">
+      <ol class="space-y-2.5">
+        <li class="flex gap-3 items-center text-sm text-slate-700">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center">1</span>
+          Appuyez sur <i class="ri-share-box-line align-middle text-primary"></i> <b>Partager</b> en bas de Safari.
+        </li>
+        <li class="flex gap-3 items-center text-sm text-slate-700">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center">2</span>
+          Choisissez <b>« Sur l'écran d'accueil »</b>.
+        </li>
+        <li class="flex gap-3 items-center text-sm text-slate-700">
+          <span class="flex-shrink-0 w-6 h-6 rounded-full bg-primary/10 text-primary text-xs font-black flex items-center justify-center">3</span>
+          Appuyez sur <b>« Ajouter »</b>.
+        </li>
+      </ol>
+      <button type="button" onclick="ofInstallDismiss()"
+              class="w-full mt-5 py-3 rounded-xl text-sm font-bold text-white bg-primary hover:bg-primary-dark transition-colors">
+        J'ai compris
+      </button>
+    </div>
+  </div>
+</div>
+<script>
+(function () {
+  // Invite d'installation, uniquement sur le dashboard (évite de harceler
+  // sur chaque page). Réaffichée après 7 jours si « Plus tard ».
+  if (location.pathname.indexOf('/dashboard') !== 0 && location.pathname !== '/dashboard/') return;
+
+  function isStandalone() {
+    return window.matchMedia('(display-mode: standalone)').matches || navigator.standalone === true;
+  }
+  var modal = document.getElementById('ofInstallModal');
+  var androidBox = document.getElementById('ofInstallAndroid');
+  var iosBox = document.getElementById('ofInstallIos');
+  var goBtn = document.getElementById('ofInstallGo');
+  var deferred = null;
+
+  window.ofInstallDismiss = function () {
+    modal.classList.add('hidden');
+    localStorage.setItem('ofInstallDismissedAt', String(Date.now()));
+  };
+  function suppressed() {
+    var t = localStorage.getItem('ofInstallDismissedAt');
+    return t && (Date.now() - Number(t) < 7 * 24 * 60 * 60 * 1000);
+  }
+
+  if (isStandalone()) return;   // déjà installée
+  if (suppressed()) return;
+
+  // Android / Chrome / Edge : l'événement arrive quand l'app est installable.
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    deferred = e;
+    androidBox.classList.remove('hidden');
+    iosBox.classList.add('hidden');
+    modal.classList.remove('hidden');
+  });
+
+  if (goBtn) goBtn.addEventListener('click', async function () {
+    if (!deferred) return;
+    deferred.prompt();
+    try { await deferred.userChoice; } catch (e) {}
+    deferred = null;
+    modal.classList.add('hidden');
+  });
+
+  // iOS Safari : pas de beforeinstallprompt → on montre les instructions.
+  var ua = navigator.userAgent.toLowerCase();
+  var isIos = /iphone|ipad|ipod/.test(ua) || (ua.indexOf('mac') !== -1 && 'ontouchend' in document);
+  var isSafari = /safari/.test(ua) && !/crios|fxios|edgios/.test(ua);
+  if (isIos && isSafari && !isStandalone()) {
+    androidBox.classList.add('hidden');
+    iosBox.classList.remove('hidden');
+    setTimeout(function () { modal.classList.remove('hidden'); }, 900);
+  }
+
+  window.addEventListener('appinstalled', function () {
+    modal.classList.add('hidden');
+    localStorage.setItem('ofInstallDismissedAt', String(Date.now()));
+  });
+})();
+</script>
+
 <!-- ── Waiter-call polling (skip kitchen) ───────────────── -->
 {% if user_role != 'cuisinier' %}
 <script>
