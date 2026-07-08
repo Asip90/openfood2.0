@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Sum, Avg, Max, Prefetch, Q
 from django.db.models.functions import TruncDate, TruncMonth, ExtractHour, ExtractWeekDay
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.core.paginator import Paginator
 from django.utils import timezone
 from base.models import Category, Table
@@ -1472,6 +1472,8 @@ def claim_waiter_call(request, call_id):
 @owner_or_coadmin_required
 def feedback_list(request):
     restaurant = request.restaurant
+    if not restaurant.is_pro():
+        raise Http404
     feedbacks = restaurant.feedbacks.all()
     # marquer comme lus à l'ouverture
     restaurant.feedbacks.filter(is_read=False).update(is_read=True)

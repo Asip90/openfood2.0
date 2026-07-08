@@ -289,6 +289,10 @@ def checkout(request, table_token):
         "cart_total": int(cart_total),
         "cart_json": json.dumps(cart_items),
         "phone_countries": phone_service.COUNTRIES,
+        "prev_name": request.POST.get("customer_name", ""),
+        "prev_phone": request.POST.get("customer_phone", ""),
+        "prev_notes": request.POST.get("notes", ""),
+        "prev_country": request.POST.get("phone_country", ""),
     })
 
 
@@ -328,6 +332,8 @@ def order_status(request, public_token):
 @require_POST
 def submit_feedback(request, public_token):
     order = get_object_or_404(Order, public_token=public_token)
+    if not order.restaurant.is_pro():
+        return redirect("order_confirmation", public_token=public_token)
     # anti double-envoi : un seul feedback par commande
     if order.feedbacks.exists():
         return redirect("order_confirmation", public_token=public_token)
@@ -336,13 +342,18 @@ def submit_feedback(request, public_token):
         rating = int(rating) if rating else None
     except (TypeError, ValueError):
         rating = None
+    if rating is not None and not 1 <= rating <= 5:
+        rating = None
+    message = request.POST.get("message", "").strip()
+    if rating is None and message == "":
+        return redirect("order_confirmation", public_token=public_token)
     from base.models import CustomerFeedback
     from base import push
     fb = CustomerFeedback.objects.create(
         restaurant=order.restaurant,
         order=order,
         rating=rating,
-        message=request.POST.get("message", "").strip(),
+        message=message,
         phone=order.customer_phone or "",
     )
     push.notify_new_feedback(fb.id)

@@ -141,6 +141,7 @@
             Prénom <span style="color: var(--color-primary);">*</span>
           </label>
           <input type="text" name="customer_name" required placeholder="ex : Jean"
+                 value="{{ prev_name|default:'' }}"
                  class="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm bg-slate-50 focus:bg-white transition-all input-primary">
         </div>
 
@@ -153,7 +154,7 @@
             <select name="phone_country" id="phone_country"
                     class="px-2 py-3 border border-slate-200 rounded-2xl text-sm bg-slate-50 focus:bg-white transition-all input-primary">
               {% for c in phone_countries %}
-              <option value="{{ c.iso2 }}" data-example="{{ c.example }}">
+              <option value="{{ c.iso2 }}" data-example="{{ c.example }}" {% if c.iso2 == prev_country %}selected{% endif %}>
                 {{ c.dial }} {{ c.label }}
               </option>
               {% endfor %}
@@ -161,6 +162,7 @@
             <input type="tel" name="customer_phone" id="customer_phone" required
                    placeholder="01 97 00 00 00"
                    inputmode="tel"
+                   value="{{ prev_phone|default:'' }}"
                    oninput="this.value = this.value.replace(/[^0-9\s\+\-\(\)]/g, '')"
                    class="flex-1 min-w-0 px-4 py-3 border border-slate-200 rounded-2xl text-sm bg-slate-50 focus:bg-white transition-all input-primary">
           </div>
@@ -176,7 +178,7 @@
           </label>
           <textarea name="notes" rows="2"
                     placeholder="Allergie, cuisson, demande spéciale…"
-                    class="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm resize-none bg-slate-50 focus:bg-white transition-all input-primary"></textarea>
+                    class="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm resize-none bg-slate-50 focus:bg-white transition-all input-primary">{{ prev_notes|default:'' }}</textarea>
         </div>
 
       </div>

@@ -166,6 +166,11 @@ class SuccessPageTest(TestCase):
 class SubmitFeedbackTest(TestCase):
     def setUp(self):
         self.resto = make_restaurant(make_user())
+        # Le retour client est une fonctionnalité Pro : on active le plan
+        # pour exercer la création réelle dans ces tests.
+        self.resto.subscription_plan = make_pro_plan()
+        self.resto.subscription_end = timezone.now() + timedelta(days=10)
+        self.resto.save()
         self.host = f"{self.resto.subdomain}.localhost"
         self.order = Order.objects.create(
             restaurant=self.resto, customer_phone="+2290197000000")
@@ -186,11 +191,45 @@ class SubmitFeedbackTest(TestCase):
         self.assertEqual(
             CustomerFeedback.objects.filter(order=self.order).count(), 1)
 
+    def test_non_pro_restaurant_rejects_feedback(self):
+        # Restaurant free : pas de plan pro -> aucune création côté serveur,
+        # même si le client force le POST (gating doit être serveur, pas juste UI).
+        free_resto = make_restaurant(make_user(email="free@test.com"))
+        host = f"{free_resto.subdomain}.localhost"
+        order = Order.objects.create(
+            restaurant=free_resto, customer_phone="+2290197000001")
+        resp = self.client.post(
+            reverse("submit_feedback", args=[order.public_token]),
+            {"rating": "4", "message": "Bien"}, HTTP_HOST=host)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(CustomerFeedback.objects.filter(order=order).count(), 0)
+
+    def test_empty_submission_creates_no_feedback(self):
+        resp = self.client.post(
+            reverse("submit_feedback", args=[self.order.public_token]),
+            {"rating": "", "message": ""}, HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 302)
+        self.assertEqual(
+            CustomerFeedback.objects.filter(order=self.order).count(), 0)
+
+    def test_out_of_range_rating_is_clamped_to_none(self):
+        resp = self.client.post(
+            reverse("submit_feedback", args=[self.order.public_token]),
+            {"rating": "9", "message": "Bien quand même"}, HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 302)
+        fb = CustomerFeedback.objects.get(order=self.order)
+        self.assertIsNone(fb.rating)
+
 
 class FeedbackDashboardTest(TestCase):
     def setUp(self):
         self.owner = make_user()
         self.resto = make_restaurant(self.owner)
+        # La liste des retours est réservée aux restaurants Pro (cohérent
+        # avec le masquage de l'onglet dans la sidebar).
+        self.resto.subscription_plan = make_pro_plan()
+        self.resto.subscription_end = timezone.now() + timedelta(days=10)
+        self.resto.save()
         self.host = f"{self.resto.subdomain}.localhost"
         self.client.force_login(self.owner)
         CustomerFeedback.objects.create(
@@ -202,3 +241,11 @@ class FeedbackDashboardTest(TestCase):
         self.assertContains(resp, "Bof")
         self.assertFalse(
             CustomerFeedback.objects.filter(restaurant=self.resto, is_read=False).exists())
+
+    def test_feedback_list_404_for_non_pro_restaurant(self):
+        free_owner = make_user(email="free-dashboard@test.com")
+        free_resto = make_restaurant(free_owner)
+        host = f"{free_resto.subdomain}.localhost"
+        self.client.force_login(free_owner)
+        resp = self.client.get(reverse("feedback_list"), HTTP_HOST=host)
+        self.assertEqual(resp.status_code, 404)
