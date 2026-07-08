@@ -1,8 +1,9 @@
 from django.test import TestCase
 from django.utils import timezone
 from datetime import timedelta
+from django.urls import reverse
 from base.services import phone
-from base.models import Restaurant, SubscriptionPlan, Order, CustomerFeedback
+from base.models import Restaurant, SubscriptionPlan, Order, CustomerFeedback, MenuItem, Category, Table
 from base.tests import make_user, make_restaurant
 
 
@@ -70,3 +71,45 @@ class CustomerFeedbackModelTest(TestCase):
             message="Très bon", phone="+2290197000000")
         self.assertFalse(fb.is_read)
         self.assertEqual(resto.feedbacks.count(), 1)
+
+
+class CheckoutPhoneTest(TestCase):
+    def setUp(self):
+        self.resto = make_restaurant(make_user())
+        self.host = f"{self.resto.subdomain}.localhost"
+        self.table = Table.objects.create(restaurant=self.resto, number=1, capacity=4)
+        cat = Category.objects.create(restaurant=self.resto, name="Plats")
+        self.item = MenuItem.objects.create(
+            restaurant=self.resto, category=cat, name="Riz", price=1500)
+
+    def _seed_cart(self, client):
+        session = client.session
+        session[f"cart_{self.resto.id}_{self.table.token}"] = {
+            str(self.item.id): {"name": "Riz", "price": "1500", "quantity": 1, "image": None}
+        }
+        session.save()
+
+    def test_valid_phone_creates_order_in_e164(self):
+        c = self.client
+        self._seed_cart(c)
+        resp = c.post(
+            reverse("checkout", args=[self.table.token]),
+            {"order_type": "dine_in", "customer_name": "Ali",
+             "phone_country": "BJ", "customer_phone": "0197000000"},
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(resp.status_code, 302)
+        order = Order.objects.get(restaurant=self.resto)
+        self.assertEqual(order.customer_phone, "+2290197000000")
+
+    def test_invalid_phone_does_not_create_order(self):
+        c = self.client
+        self._seed_cart(c)
+        resp = c.post(
+            reverse("checkout", args=[self.table.token]),
+            {"order_type": "dine_in", "customer_name": "Ali",
+             "phone_country": "BJ", "customer_phone": "123"},
+            HTTP_HOST=self.host,
+        )
+        self.assertEqual(resp.status_code, 200)  # ré-affiche le form
+        self.assertFalse(Order.objects.filter(restaurant=self.resto).exists())

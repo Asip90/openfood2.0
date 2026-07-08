@@ -183,6 +183,8 @@ def update_cart(request, table_token):
 
 
 def checkout(request, table_token):
+    from base.services import phone as phone_service
+
     restaurant, table, customization, error = get_client_context(request, table_token)
     if error:
         return error
@@ -223,35 +225,46 @@ def checkout(request, table_token):
     if request.method == "POST":
         raw_type = request.POST.get("order_type", "dine_in")
         order_type = raw_type if raw_type in ("dine_in", "takeaway") else "dine_in"
-        with transaction.atomic():
-            order = Order.objects.create(
-                restaurant=restaurant,
-                table=table,
-                order_type=order_type,
-                status="pending",
-                customer_name=request.POST.get("customer_name", "").strip(),
-                customer_phone=request.POST.get("customer_phone", "").strip(),
-                notes=request.POST.get("notes", "").strip(),
-            )
 
-            for item_id, data in cart.items():
-                # Prix relu en BDD au moment de la commande : le prix stocké en
-                # session peut être périmé si le restaurateur l'a modifié.
-                try:
-                    menu_item = MenuItem.objects.get(id=item_id, restaurant=restaurant)
-                except MenuItem.DoesNotExist:
-                    continue
-                OrderItem.objects.create(
-                    order=order,
-                    menu_item=menu_item,
-                    quantity=data["quantity"],
-                    price=menu_item.discount_price or menu_item.price,
+        phone_country = request.POST.get("phone_country", "BJ").strip() or "BJ"
+        raw_phone = request.POST.get("customer_phone", "").strip()
+        try:
+            customer_phone = phone_service.normalize(raw_phone, phone_country)
+        except ValueError:
+            messages.error(request, "Numéro de téléphone invalide.")
+            # on retombe sur le rendu du formulaire en bas de la vue
+            customer_phone = None
+
+        if customer_phone:
+            with transaction.atomic():
+                order = Order.objects.create(
+                    restaurant=restaurant,
+                    table=table,
+                    order_type=order_type,
+                    status="pending",
+                    customer_name=request.POST.get("customer_name", "").strip(),
+                    customer_phone=customer_phone,
+                    notes=request.POST.get("notes", "").strip(),
                 )
 
-            order.calculate_total()
-            del request.session[cart_key]
+                for item_id, data in cart.items():
+                    # Prix relu en BDD au moment de la commande : le prix stocké en
+                    # session peut être périmé si le restaurateur l'a modifié.
+                    try:
+                        menu_item = MenuItem.objects.get(id=item_id, restaurant=restaurant)
+                    except MenuItem.DoesNotExist:
+                        continue
+                    OrderItem.objects.create(
+                        order=order,
+                        menu_item=menu_item,
+                        quantity=data["quantity"],
+                        price=menu_item.discount_price or menu_item.price,
+                    )
 
-            return redirect("order_confirmation", public_token=order.public_token)
+                order.calculate_total()
+                del request.session[cart_key]
+
+                return redirect("order_confirmation", public_token=order.public_token)
 
     cart_items = []
     cart_total = 0
@@ -275,6 +288,7 @@ def checkout(request, table_token):
         "cart": cart_items,
         "cart_total": int(cart_total),
         "cart_json": json.dumps(cart_items),
+        "phone_countries": phone_service.COUNTRIES,
     })
 
 
