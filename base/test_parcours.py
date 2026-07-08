@@ -137,3 +137,51 @@ class SettingsCommunityTest(TestCase):
         self.resto.refresh_from_db()
         self.assertEqual(self.resto.whatsapp_community_url, "https://chat.whatsapp.com/abc")
         self.assertEqual(self.resto.google_place_id, "ChIJ_test")
+
+
+class SuccessPageTest(TestCase):
+    def setUp(self):
+        self.resto = make_restaurant(make_user())
+        self.host = f"{self.resto.subdomain}.localhost"
+        self.order = Order.objects.create(
+            restaurant=self.resto, customer_phone="+2290197000000")
+
+    def test_free_plan_hides_after_order_blocks(self):
+        resp = self.client.get(
+            reverse("order_confirmation", args=[self.order.public_token]),
+            HTTP_HOST=self.host)
+        self.assertNotContains(resp, "Rejoignez notre communauté")
+
+    def test_pro_plan_shows_whatsapp_when_url_set(self):
+        self.resto.subscription_plan = make_pro_plan()
+        self.resto.subscription_end = timezone.now() + timedelta(days=10)
+        self.resto.whatsapp_community_url = "https://chat.whatsapp.com/abc"
+        self.resto.save()
+        resp = self.client.get(
+            reverse("order_confirmation", args=[self.order.public_token]),
+            HTTP_HOST=self.host)
+        self.assertContains(resp, "chat.whatsapp.com/abc")
+
+
+class SubmitFeedbackTest(TestCase):
+    def setUp(self):
+        self.resto = make_restaurant(make_user())
+        self.host = f"{self.resto.subdomain}.localhost"
+        self.order = Order.objects.create(
+            restaurant=self.resto, customer_phone="+2290197000000")
+
+    def test_submit_creates_feedback(self):
+        resp = self.client.post(
+            reverse("submit_feedback", args=[self.order.public_token]),
+            {"rating": "4", "message": "Bien"}, HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 302)
+        fb = CustomerFeedback.objects.get(restaurant=self.resto)
+        self.assertEqual(fb.rating, 4)
+        self.assertEqual(fb.phone, "+2290197000000")
+
+    def test_double_submit_creates_single_feedback(self):
+        url = reverse("submit_feedback", args=[self.order.public_token])
+        self.client.post(url, {"rating": "5", "message": "A"}, HTTP_HOST=self.host)
+        self.client.post(url, {"rating": "1", "message": "B"}, HTTP_HOST=self.host)
+        self.assertEqual(
+            CustomerFeedback.objects.filter(order=self.order).count(), 1)

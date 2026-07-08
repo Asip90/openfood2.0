@@ -299,13 +299,19 @@ def order_confirmation(request, public_token):
     ).first()
 
     table_token = order.table.token if order.table else None
+    resto = order.restaurant
+    is_pro = resto.is_pro()
 
     return render(request, "customer/confirmation.html", {
         "order": order,
-        "restaurant": order.restaurant,
+        "restaurant": resto,
         "customization": customization,
         "table": order.table,
         "table_token": table_token,
+        "is_pro": is_pro,
+        "whatsapp_url": resto.whatsapp_community_url if is_pro else "",
+        "google_review_url": resto.google_review_url if is_pro else "",
+        "feedback_submitted": order.feedbacks.exists(),
     })
 
 
@@ -317,6 +323,30 @@ def order_status(request, public_token):
         "status": order.status,
         "status_display": order.get_status_display(),
     })
+
+
+@require_POST
+def submit_feedback(request, public_token):
+    order = get_object_or_404(Order, public_token=public_token)
+    # anti double-envoi : un seul feedback par commande
+    if order.feedbacks.exists():
+        return redirect("order_confirmation", public_token=public_token)
+    rating = request.POST.get("rating")
+    try:
+        rating = int(rating) if rating else None
+    except (TypeError, ValueError):
+        rating = None
+    from base.models import CustomerFeedback
+    from base import push
+    fb = CustomerFeedback.objects.create(
+        restaurant=order.restaurant,
+        order=order,
+        rating=rating,
+        message=request.POST.get("message", "").strip(),
+        phone=order.customer_phone or "",
+    )
+    push.notify_new_feedback(fb.id)
+    return redirect("order_confirmation", public_token=public_token)
 
 
 @csrf_exempt

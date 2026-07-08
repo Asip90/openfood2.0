@@ -16,6 +16,7 @@ urlpatterns = [
     # Confirmation + suivi (token non devinable — pas l'id séquentiel)
     path("order/<uuid:public_token>/confirmation/", order_confirmation, name="order_confirmation"),
     path("order/<uuid:public_token>/status/", order_status, name="order_status"),
+    path("order/<uuid:public_token>/feedback/", submit_feedback, name="submit_feedback"),
     path("order/<uuid:public_token>/push-subscribe/", customer_push_subscribe, name="customer_push_subscribe"),
 
     # Mes commandes du jour (device-based, sans compte)

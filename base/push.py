@@ -126,6 +126,21 @@ def _worker_order_ready(order_id):
     })
 
 
+def _worker_new_feedback(feedback_id):
+    from base.models import CustomerFeedback
+    fb = CustomerFeedback.objects.select_related('restaurant').filter(id=feedback_id).first()
+    if not fb:
+        return
+    note = f"{fb.rating}★ " if fb.rating else ""
+    extrait = (fb.message[:60] + "…") if len(fb.message) > 60 else fb.message
+    _send_to_roles(fb.restaurant, ['owner', 'coadmin'], {
+        "title": "Nouveau retour client 💬",
+        "body": f"{note}{extrait}".strip() or "Un client a laissé un retour",
+        "tag": f"feedback-{fb.id}",
+        "url": "/retours/",
+    })
+
+
 CUSTOMER_STATUS_MESSAGES = {
     'confirmed': "Votre commande est confirmée 👍",
     'preparing': "Votre commande est en préparation 🍳",
@@ -183,3 +198,7 @@ def notify_waiter_call(call_id):
 
 def notify_order_ready(order_id):
     _run_async(_worker_order_ready, order_id)
+
+
+def notify_new_feedback(feedback_id):
+    _run_async(_worker_new_feedback, feedback_id)
