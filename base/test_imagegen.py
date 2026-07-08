@@ -107,3 +107,65 @@ class OpenRouterClientTest(TestCase):
         mock_post.return_value = MagicMock(status_code=500, raise_for_status=boom)
         with self.assertRaises(ImageGenError):
             openrouter.generate_image("a plate", "m", "1024x1536", "KEY")
+
+
+from base.services.imagegen import generator
+from base.services.imagegen.errors import QuotaExceeded, Disabled
+
+
+def _enable_imagegen(quota=5):
+    s = ImageGenSettings.load()
+    s.is_enabled = True
+    s.openrouter_api_key = "KEY"
+    s.daily_quota_per_restaurant = quota
+    s.save()
+    return s
+
+
+class GeneratorTest(TestCase):
+    def setUp(self):
+        self.resto = make_restaurant(make_user())
+        self.user = self.resto.owner
+        _enable_imagegen()
+
+    @patch("base.services.imagegen.generator.cloudinary.uploader.upload",
+           return_value={"public_id": "posters/x", "secure_url": "http://img"})
+    @patch("base.services.imagegen.generator.openrouter.generate_image",
+           return_value=b"PNG")
+    @patch("base.services.imagegen.generator.prompt_builder.build",
+           return_value={"image_prompt": "p", "caption": "c", "style": "macro"})
+    def test_generate_creates_poster(self, mb, mg, mu):
+        poster = generator.generate(self.resto, self.user, user_text="promo")
+        self.assertEqual(poster.caption, "c")
+        self.assertEqual(poster.style, "macro")
+        self.assertEqual(self.resto.posters.count(), 1)
+
+    def test_generate_disabled_raises(self):
+        s = ImageGenSettings.load()
+        s.is_enabled = False
+        s.save()
+        with self.assertRaises(Disabled):
+            generator.generate(self.resto, self.user)
+
+    @patch("base.services.imagegen.generator.cloudinary.uploader.upload",
+           return_value={"public_id": "posters/x"})
+    @patch("base.services.imagegen.generator.openrouter.generate_image", return_value=b"PNG")
+    @patch("base.services.imagegen.generator.prompt_builder.build",
+           return_value={"image_prompt": "p", "caption": "c", "style": "macro"})
+    def test_quota_exceeded_raises(self, mb, mg, mu):
+        _enable_imagegen(quota=1)
+        generator.generate(self.resto, self.user)
+        with self.assertRaises(QuotaExceeded):
+            generator.generate(self.resto, self.user)
+
+    @patch("base.services.imagegen.generator.cloudinary.uploader.upload",
+           return_value={"public_id": "posters/x"})
+    @patch("base.services.imagegen.generator.openrouter.generate_image", return_value=b"PNG")
+    @patch("base.services.imagegen.generator.prompt_builder.build",
+           return_value={"image_prompt": "p2", "caption": "c2", "style": "pop"})
+    def test_refine_links_parent(self, mb, mg, mu):
+        parent = MarketingPoster.objects.create(
+            restaurant=self.resto, caption="c", style="macro")
+        child = generator.refine(parent, "plus lumineux", self.user)
+        self.assertEqual(child.parent, parent)
+        self.assertEqual(child.user_text, "plus lumineux")
