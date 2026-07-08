@@ -13,6 +13,7 @@
   {% url 'subscription_status'  as url_subscription %}
   {% url 'customers_list'       as url_customers    %}
   {% url 'feedback_list'        as url_feedback     %}
+  {% url 'posters_studio'       as url_posters      %}
 {% endif %}
 
 {% with current=request.path %}
@@ -130,6 +131,15 @@
     <span class="rounded-full bg-rose-500 text-white text-xs px-2 leading-5">{{ unread_feedback_count }}</span>
     {% endif %}
   </span>
+</a>
+{% endif %}
+
+{% if restaurant.is_pro %}
+<a href="{{ url_posters }}"
+   class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm
+          {% if current == url_posters %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <span>🎨</span>
+  {% trans "Affiches" %}
 </a>
 {% endif %}
 
