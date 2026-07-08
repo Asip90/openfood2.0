@@ -6,11 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
   <title>{% block title %}{{ restaurant.name }} — Menu{% endblock %}</title>
   <meta name="description" content="{{ restaurant.description|default:'Découvrez notre menu digital' }}">
-  {% if restaurant %}<link rel="manifest" href="{% url 'pwa_manifest' restaurant.slug %}">{% endif %}
+  {# Pas de manifest côté client : on ne propose pas au client d'installer la PWA #}
   <meta name="theme-color" content="{{ customization.primary_color|default:'#f97316' }}">
-  <meta name="apple-mobile-web-app-capable" content="yes">
-  <meta name="apple-mobile-web-app-status-bar-style" content="default">
-  <meta name="apple-mobile-web-app-title" content="{{ restaurant.name }}">
   {% block schema_org %}{% endblock %}
   <style>
     :root {

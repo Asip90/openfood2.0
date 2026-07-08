@@ -183,6 +183,8 @@ def update_cart(request, table_token):
 
 
 def checkout(request, table_token):
+    from base.services import phone as phone_service
+
     restaurant, table, customization, error = get_client_context(request, table_token)
     if error:
         return error
@@ -223,35 +225,46 @@ def checkout(request, table_token):
     if request.method == "POST":
         raw_type = request.POST.get("order_type", "dine_in")
         order_type = raw_type if raw_type in ("dine_in", "takeaway") else "dine_in"
-        with transaction.atomic():
-            order = Order.objects.create(
-                restaurant=restaurant,
-                table=table,
-                order_type=order_type,
-                status="pending",
-                customer_name=request.POST.get("customer_name", "").strip(),
-                customer_phone=request.POST.get("customer_phone", "").strip(),
-                notes=request.POST.get("notes", "").strip(),
-            )
 
-            for item_id, data in cart.items():
-                # Prix relu en BDD au moment de la commande : le prix stocké en
-                # session peut être périmé si le restaurateur l'a modifié.
-                try:
-                    menu_item = MenuItem.objects.get(id=item_id, restaurant=restaurant)
-                except MenuItem.DoesNotExist:
-                    continue
-                OrderItem.objects.create(
-                    order=order,
-                    menu_item=menu_item,
-                    quantity=data["quantity"],
-                    price=menu_item.discount_price or menu_item.price,
+        phone_country = request.POST.get("phone_country", "BJ").strip() or "BJ"
+        raw_phone = request.POST.get("customer_phone", "").strip()
+        try:
+            customer_phone = phone_service.normalize(raw_phone, phone_country)
+        except ValueError:
+            messages.error(request, "Numéro de téléphone invalide.")
+            # on retombe sur le rendu du formulaire en bas de la vue
+            customer_phone = None
+
+        if customer_phone:
+            with transaction.atomic():
+                order = Order.objects.create(
+                    restaurant=restaurant,
+                    table=table,
+                    order_type=order_type,
+                    status="pending",
+                    customer_name=request.POST.get("customer_name", "").strip(),
+                    customer_phone=customer_phone,
+                    notes=request.POST.get("notes", "").strip(),
                 )
 
-            order.calculate_total()
-            del request.session[cart_key]
+                for item_id, data in cart.items():
+                    # Prix relu en BDD au moment de la commande : le prix stocké en
+                    # session peut être périmé si le restaurateur l'a modifié.
+                    try:
+                        menu_item = MenuItem.objects.get(id=item_id, restaurant=restaurant)
+                    except MenuItem.DoesNotExist:
+                        continue
+                    OrderItem.objects.create(
+                        order=order,
+                        menu_item=menu_item,
+                        quantity=data["quantity"],
+                        price=menu_item.discount_price or menu_item.price,
+                    )
 
-            return redirect("order_confirmation", public_token=order.public_token)
+                order.calculate_total()
+                del request.session[cart_key]
+
+                return redirect("order_confirmation", public_token=order.public_token)
 
     cart_items = []
     cart_total = 0
@@ -275,6 +288,11 @@ def checkout(request, table_token):
         "cart": cart_items,
         "cart_total": int(cart_total),
         "cart_json": json.dumps(cart_items),
+        "phone_countries": phone_service.COUNTRIES,
+        "prev_name": request.POST.get("customer_name", ""),
+        "prev_phone": request.POST.get("customer_phone", ""),
+        "prev_notes": request.POST.get("notes", ""),
+        "prev_country": request.POST.get("phone_country", ""),
     })
 
 
@@ -285,13 +303,19 @@ def order_confirmation(request, public_token):
     ).first()
 
     table_token = order.table.token if order.table else None
+    resto = order.restaurant
+    is_pro = resto.is_pro()
 
     return render(request, "customer/confirmation.html", {
         "order": order,
-        "restaurant": order.restaurant,
+        "restaurant": resto,
         "customization": customization,
         "table": order.table,
         "table_token": table_token,
+        "is_pro": is_pro,
+        "whatsapp_url": resto.whatsapp_community_url if is_pro else "",
+        "google_review_url": resto.google_review_url if is_pro else "",
+        "feedback_submitted": order.feedbacks.exists(),
     })
 
 
@@ -303,6 +327,37 @@ def order_status(request, public_token):
         "status": order.status,
         "status_display": order.get_status_display(),
     })
+
+
+@require_POST
+def submit_feedback(request, public_token):
+    order = get_object_or_404(Order, public_token=public_token)
+    if not order.restaurant.is_pro():
+        return redirect("order_confirmation", public_token=public_token)
+    # anti double-envoi : un seul feedback par commande
+    if order.feedbacks.exists():
+        return redirect("order_confirmation", public_token=public_token)
+    rating = request.POST.get("rating")
+    try:
+        rating = int(rating) if rating else None
+    except (TypeError, ValueError):
+        rating = None
+    if rating is not None and not 1 <= rating <= 5:
+        rating = None
+    message = request.POST.get("message", "").strip()
+    if rating is None and message == "":
+        return redirect("order_confirmation", public_token=public_token)
+    from base.models import CustomerFeedback
+    from base import push
+    fb = CustomerFeedback.objects.create(
+        restaurant=order.restaurant,
+        order=order,
+        rating=rating,
+        message=message,
+        phone=order.customer_phone or "",
+    )
+    push.notify_new_feedback(fb.id)
+    return redirect("order_confirmation", public_token=public_token)
 
 
 @csrf_exempt

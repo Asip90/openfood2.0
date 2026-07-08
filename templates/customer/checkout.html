@@ -141,19 +141,34 @@
             Prénom <span style="color: var(--color-primary);">*</span>
           </label>
           <input type="text" name="customer_name" required placeholder="ex : Jean"
+                 value="{{ prev_name|default:'' }}"
                  class="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm bg-slate-50 focus:bg-white transition-all input-primary">
         </div>
 
-        <!-- Téléphone -->
+        <!-- Téléphone (obligatoire) -->
         <div>
           <label class="text-[11px] font-black text-slate-600 uppercase tracking-widest block mb-1.5">
-            Téléphone <span class="text-slate-400 font-normal normal-case">(optionnel)</span>
+            Téléphone <span style="color: var(--color-primary);">*</span>
           </label>
-          <input type="tel" name="customer_phone" placeholder="+229 01 23 45 67"
-                 inputmode="tel"
-                 pattern="[\d\s\+\-\(\)]{6,20}"
-                 oninput="this.value = this.value.replace(/[^0-9\s\+\-\(\)]/g, '')"
-                 class="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm bg-slate-50 focus:bg-white transition-all input-primary">
+          <div class="flex gap-2">
+            <select name="phone_country" id="phone_country"
+                    class="px-2 py-3 border border-slate-200 rounded-2xl text-sm bg-slate-50 focus:bg-white transition-all input-primary">
+              {% for c in phone_countries %}
+              <option value="{{ c.iso2 }}" data-example="{{ c.example }}" {% if c.iso2 == prev_country %}selected{% endif %}>
+                {{ c.dial }} {{ c.label }}
+              </option>
+              {% endfor %}
+            </select>
+            <input type="tel" name="customer_phone" id="customer_phone" required
+                   placeholder="01 97 00 00 00"
+                   inputmode="tel"
+                   value="{{ prev_phone|default:'' }}"
+                   oninput="this.value = this.value.replace(/[^0-9\s\+\-\(\)]/g, '')"
+                   class="flex-1 min-w-0 px-4 py-3 border border-slate-200 rounded-2xl text-sm bg-slate-50 focus:bg-white transition-all input-primary">
+          </div>
+          <p id="phone_error" class="mt-1.5 text-xs font-semibold hidden" style="color: var(--color-primary);">
+            Entrez un numéro valide.
+          </p>
         </div>
 
         <!-- Notes -->
@@ -163,7 +178,7 @@
           </label>
           <textarea name="notes" rows="2"
                     placeholder="Allergie, cuisson, demande spéciale…"
-                    class="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm resize-none bg-slate-50 focus:bg-white transition-all input-primary"></textarea>
+                    class="w-full px-4 py-3 border border-slate-200 rounded-2xl text-sm resize-none bg-slate-50 focus:bg-white transition-all input-primary">{{ prev_notes|default:'' }}</textarea>
         </div>
 
       </div>
@@ -186,4 +201,21 @@
 
   </div>
 </div>
+
+<script>
+(function () {
+  var form = document.querySelector('form');
+  var input = document.getElementById('customer_phone');
+  var err = document.getElementById('phone_error');
+  if (!form || !input) return;
+  form.addEventListener('submit', function (e) {
+    var digits = (input.value || '').replace(/\D/g, '');
+    if (digits.length < 8) {           // garde-fou léger ; la vraie validation est côté serveur
+      e.preventDefault();
+      err.classList.remove('hidden');
+      input.focus();
+    }
+  });
+})();
+</script>
 {% endblock %}

@@ -9,6 +9,20 @@
 {% elif user_role == 'serveur' %}
   {% include 'admin_user/roles/hall.html' %}
 {% else %}
+<!-- Accès rapide caisse (mobile — le desktop l'a dans la sidebar) -->
+<a href="{% url 'cashier' %}"
+   class="lg:hidden flex items-center gap-3 rounded-2xl p-4 mb-5 text-white shadow-soft active:scale-[.99] transition-transform"
+   style="background: linear-gradient(135deg, var(--color-primary, #f97316), #ea580c);">
+  <div class="w-11 h-11 rounded-xl bg-white/20 flex items-center justify-center flex-shrink-0">
+    <i class="ri-cash-line text-2xl"></i>
+  </div>
+  <div class="flex-1 min-w-0">
+    <p class="font-black text-base leading-tight">Ouvrir la caisse</p>
+    <p class="text-white/80 text-xs">Encaisser une table, une commande ou par téléphone</p>
+  </div>
+  <i class="ri-arrow-right-s-line text-xl"></i>
+</a>
+
 <!-- Stats cards -->
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
 

@@ -296,6 +296,17 @@
       </button>
     </div>
 
+    {% if not restaurant.hide_branding %}
+    <!-- Badge « Propulsé par OpenFood » — masqué pour les plans Pro/Max -->
+    <div class="pt-6 pb-2 text-center">
+      <a href="https://openfood.site" target="_blank" rel="noopener"
+         class="inline-flex items-center gap-1.5 text-[11px] font-semibold text-slate-300 hover:text-slate-400 transition-colors">
+        <i class="ri-flashlight-line"></i>
+        Propulsé par <span class="notranslate">Open<span class="text-primary/70">Food</span></span>
+      </a>
+    </div>
+    {% endif %}
+
   </div>
 
 </div>

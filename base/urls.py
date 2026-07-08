@@ -94,6 +94,9 @@ urlpatterns = [
     # Clients
     path("clients/", customers_list, name="customers_list"),
 
+    # Retours clients
+    path("retours/", feedback_list, name="feedback_list"),
+
     # PWA
     path("manifest/<slug:slug>.json", pwa_manifest, name="pwa_manifest"),
 

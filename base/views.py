@@ -6,7 +6,7 @@ from django.contrib import messages
 from django.db import transaction
 from django.db.models import Count, Sum, Avg, Max, Prefetch, Q
 from django.db.models.functions import TruncDate, TruncMonth, ExtractHour, ExtractWeekDay
-from django.http import JsonResponse
+from django.http import JsonResponse, Http404
 from django.core.paginator import Paginator
 from django.utils import timezone
 from base.models import Category, Table
@@ -1121,6 +1121,10 @@ def restaurant_settings(request):
         restaurant.phone = request.POST.get("phone", restaurant.phone)
         restaurant.email = request.POST.get("email", restaurant.email)
         restaurant.address = request.POST.get("address", restaurant.address)
+        restaurant.whatsapp_community_url = request.POST.get(
+            "whatsapp_community_url", restaurant.whatsapp_community_url).strip()
+        restaurant.google_place_id = request.POST.get(
+            "google_place_id", restaurant.google_place_id).strip()
 
         opening_hours = {}
         for day in days_of_week:
@@ -1463,6 +1467,20 @@ def claim_waiter_call(request, call_id):
     call.claimed_by = request.user
     call.save(update_fields=['status', 'claimed_by'])
     return JsonResponse({'status': 'ok'})
+
+
+@owner_or_coadmin_required
+def feedback_list(request):
+    restaurant = request.restaurant
+    if not restaurant.is_pro():
+        raise Http404
+    feedbacks = restaurant.feedbacks.all()
+    # marquer comme lus à l'ouverture
+    restaurant.feedbacks.filter(is_read=False).update(is_read=True)
+    return render(request, "admin_user/feedback/list.html", {
+        "restaurant": restaurant,
+        "feedbacks": feedbacks,
+    })
 
 
 def sitemap_view(request):

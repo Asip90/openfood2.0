@@ -32,7 +32,8 @@
     {% if category.items.all %}
 
       <!-- Cards Grid — unifié mobile & desktop -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+      <div class="grid gap-3 grid-cols-1 md:grid-cols-2"
+           :class="sidebarOpen ? 'lg:grid-cols-3 xl:grid-cols-4' : 'lg:grid-cols-4 xl:grid-cols-5'">
         {% for item in category.items.all %}
 
         <div class="bg-white rounded-2xl border border-slate-100 shadow-soft overflow-hidden flex flex-col group hover:shadow-card hover:border-primary/20 transition-all duration-200">
