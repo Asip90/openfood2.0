@@ -1,4 +1,5 @@
 from django.test import TestCase
+from django.urls import reverse
 
 from base.models import ImageGenSettings
 from base.models import Restaurant, MarketingPoster
@@ -169,3 +170,36 @@ class GeneratorTest(TestCase):
         child = generator.refine(parent, "plus lumineux", self.user)
         self.assertEqual(child.parent, parent)
         self.assertEqual(child.user_text, "plus lumineux")
+
+
+def make_pro(resto):
+    from base.models import SubscriptionPlan
+    from django.utils import timezone as tz
+    from datetime import timedelta as td
+    plan = SubscriptionPlan.objects.create(name="Pro", plan_type="pro", price=1)
+    resto.subscription_plan = plan
+    resto.subscription_end = tz.now() + td(days=10)
+    resto.save()
+
+
+class PostersViewGatingTest(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.resto = make_restaurant(self.owner)
+        self.client.force_login(self.owner)
+        _enable_imagegen()
+
+    def _host(self):
+        # Même pattern que SettingsCommunityTest/FeedbackDashboardTest
+        # (base/test_parcours.py) : résolution multi-tenant via HTTP_HOST.
+        return {"HTTP_HOST": f"{self.resto.subdomain}.localhost"}
+
+    def test_studio_forbidden_for_free_plan(self):
+        # non-pro → 404 (mirror sidebar/feedback gating)
+        resp = self.client.get(reverse("posters_studio"), **self._host())
+        self.assertIn(resp.status_code, (302, 404))
+
+    def test_studio_ok_for_pro(self):
+        make_pro(self.resto)
+        resp = self.client.get(reverse("posters_studio"), **self._host())
+        self.assertEqual(resp.status_code, 200)
