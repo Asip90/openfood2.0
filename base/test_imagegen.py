@@ -77,3 +77,33 @@ class PromptBuilderTest(TestCase):
         self.assertIn("image_prompt", out)
         self.assertIn("caption", out)
         self.assertIn("style", out)
+
+
+import base64
+from base.services.imagegen import openrouter
+from base.services.imagegen.errors import ImageGenError
+
+
+class OpenRouterClientTest(TestCase):
+    @patch("base.services.imagegen.openrouter.requests.post")
+    def test_generate_image_returns_bytes_from_b64(self, mock_post):
+        raw = b"PNGDATA"
+        mock_post.return_value = MagicMock(
+            status_code=200,
+            json=lambda: {"data": [{"b64_json": base64.b64encode(raw).decode()}]},
+        )
+        mock_post.return_value.raise_for_status = lambda: None
+        out = openrouter.generate_image("a plate", "openai/gpt-image-1-mini", "1024x1536", "KEY")
+        self.assertEqual(out, raw)
+
+    def test_missing_key_raises(self):
+        with self.assertRaises(ImageGenError):
+            openrouter.generate_image("a plate", "m", "1024x1536", "")
+
+    @patch("base.services.imagegen.openrouter.requests.post")
+    def test_http_error_raises_imagegenerror(self, mock_post):
+        def boom():
+            raise Exception("500")
+        mock_post.return_value = MagicMock(status_code=500, raise_for_status=boom)
+        with self.assertRaises(ImageGenError):
+            openrouter.generate_image("a plate", "m", "1024x1536", "KEY")
