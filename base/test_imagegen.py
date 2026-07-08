@@ -182,6 +182,31 @@ class GeneratorTest(TestCase):
         # aucun poster ne doit rester enregistré après l'échec
         self.assertEqual(self.resto.posters.count(), 0)
 
+    @patch("base.services.imagegen.generator.cloudinary.uploader.upload",
+           return_value={"public_id": "posters/x"})
+    @patch("base.services.imagegen.generator.openrouter.generate_image",
+           side_effect=[ImageGenError("ref 404"), b"PNG"])
+    @patch("base.services.imagegen.generator.prompt_builder.build",
+           return_value={"image_prompt": "p", "caption": "c", "style": "macro"})
+    def test_broken_reference_falls_back_to_no_reference(self, mb, mg, mu):
+        # 1er appel (avec référence) échoue → 2e appel sans référence réussit
+        poster = generator.generate(
+            self.resto, self.user, source_image_url="http://broken/img.jpg")
+        self.assertEqual(poster.caption, "c")
+        self.assertEqual(mg.call_count, 2)
+        # le 2e appel ne passe pas de référence
+        self.assertIsNone(mg.call_args_list[1].kwargs.get("reference_image_url"))
+
+    @patch("base.services.imagegen.generator.openrouter.generate_image",
+           side_effect=ImageGenError("api down"))
+    @patch("base.services.imagegen.generator.prompt_builder.build",
+           return_value={"image_prompt": "p", "caption": "c", "style": "macro"})
+    def test_no_reference_failure_propagates(self, mb, mg):
+        # sans référence, un échec API remonte tel quel (pas de re-essai)
+        with self.assertRaises(ImageGenError):
+            generator.generate(self.resto, self.user)
+        self.assertEqual(mg.call_count, 1)
+
 
 def make_pro(resto):
     from base.models import SubscriptionPlan

@@ -35,10 +35,21 @@ def _run(restaurant, user, menu_item, user_text, source_image_url, parent, exclu
 
         built = prompt_builder.build(
             restaurant, menu_item, user_text, bool(source_image_url), exclude_style)
-        image_bytes = openrouter.generate_image(
-            built["image_prompt"], settings.effective_model(),
-            settings.image_size, settings.openrouter_api_key,
-            reference_image_url=source_image_url)
+        try:
+            image_bytes = openrouter.generate_image(
+                built["image_prompt"], settings.effective_model(),
+                settings.image_size, settings.openrouter_api_key,
+                reference_image_url=source_image_url)
+        except ImageGenError:
+            # Une image de référence cassée/inaccessible (URL 404, format non
+            # supporté…) ne doit pas condamner toute la génération : on réessaie
+            # une fois sans référence (le prompt texte décrit déjà le plat).
+            if not source_image_url:
+                raise
+            image_bytes = openrouter.generate_image(
+                built["image_prompt"], settings.effective_model(),
+                settings.image_size, settings.openrouter_api_key,
+                reference_image_url=None)
 
         try:
             upload = cloudinary.uploader.upload(
