@@ -113,3 +113,27 @@ class CheckoutPhoneTest(TestCase):
         )
         self.assertEqual(resp.status_code, 200)  # ré-affiche le form
         self.assertFalse(Order.objects.filter(restaurant=self.resto).exists())
+
+
+class SettingsCommunityTest(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.resto = make_restaurant(self.owner)
+        self.host = f"{self.resto.subdomain}.localhost"
+        self.client.force_login(self.owner)
+
+    def test_post_saves_whatsapp_and_place_id(self):
+        # request.restaurant est résolu par le middleware via le sous-domaine ;
+        # on poste avec HTTP_HOST pour reproduire la résolution multi-tenant
+        # (même pattern que CheckoutPhoneTest ci-dessus).
+        resp = self.client.post(reverse("restaurant_settings"), {
+            "name": self.resto.name, "email": self.resto.email,
+            "phone": self.resto.phone, "address": self.resto.address,
+            "description": "",
+            "whatsapp_community_url": "https://chat.whatsapp.com/abc",
+            "google_place_id": "ChIJ_test",
+        }, HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 302)
+        self.resto.refresh_from_db()
+        self.assertEqual(self.resto.whatsapp_community_url, "https://chat.whatsapp.com/abc")
+        self.assertEqual(self.resto.google_place_id, "ChIJ_test")

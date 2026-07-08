@@ -193,6 +193,44 @@
             </div>
           </div>
 
+          <div class="px-6">
+            <div class="mt-8 border-t border-slate-200 pt-6">
+              <h3 class="text-sm font-semibold text-slate-700 mb-1">Communauté &amp; avis</h3>
+              <p class="text-xs text-slate-500 mb-4">
+                {% if restaurant.is_pro %}
+                  Affichés au client après sa commande pour le fidéliser.
+                {% else %}
+                  Disponible avec l'offre <strong>Pro</strong>.
+                {% endif %}
+              </p>
+
+              <div class="space-y-4 {% if not restaurant.is_pro %}opacity-50 pointer-events-none{% endif %}">
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
+                    Lien communauté WhatsApp
+                  </label>
+                  <input type="url" name="whatsapp_community_url"
+                         value="{{ restaurant.whatsapp_community_url }}"
+                         placeholder="https://chat.whatsapp.com/..."
+                         class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
+                    Google Place ID
+                  </label>
+                  <input type="text" name="google_place_id"
+                         value="{{ restaurant.google_place_id }}"
+                         placeholder="ChIJ..."
+                         class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                  <a href="https://developers.google.com/maps/documentation/places/web-service/place-id"
+                     target="_blank" class="mt-1 inline-block text-xs text-primary underline">
+                    Comment trouver mon Place ID ?
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
           <!-- Actions formulaire -->
           <div class="px-6 py-4 bg-slate-50 border-t border-slate-100 flex items-center justify-between">
             <button type="reset"

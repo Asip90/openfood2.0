@@ -1121,6 +1121,10 @@ def restaurant_settings(request):
         restaurant.phone = request.POST.get("phone", restaurant.phone)
         restaurant.email = request.POST.get("email", restaurant.email)
         restaurant.address = request.POST.get("address", restaurant.address)
+        restaurant.whatsapp_community_url = request.POST.get(
+            "whatsapp_community_url", restaurant.whatsapp_community_url).strip()
+        restaurant.google_place_id = request.POST.get(
+            "google_place_id", restaurant.google_place_id).strip()
 
         opening_hours = {}
         for day in days_of_week:
