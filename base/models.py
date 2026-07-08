@@ -900,3 +900,28 @@ class ImageGenSettings(models.Model):
 
     def __str__(self):
         return f"ImageGenSettings ({self.effective_model()})"
+
+
+class MarketingPoster(models.Model):
+    """Affiche marketing générée par IA (+ légende), avec chaînes de raffinage."""
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='posters')
+    menu_item = models.ForeignKey(
+        MenuItem, on_delete=models.SET_NULL, null=True, blank=True)
+    image = _CloudinaryField('image', resource_type='image', blank=True)
+    caption = models.TextField(blank=True)
+    prompt_used = models.TextField(blank=True)
+    style = models.CharField(max_length=80, blank=True)
+    user_text = models.CharField(max_length=300, blank=True)
+    parent = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='refinements')
+    created_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Affiche {self.restaurant.name} ({self.style or '—'})"
