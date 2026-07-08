@@ -923,5 +923,15 @@ class MarketingPoster(models.Model):
     class Meta:
         ordering = ['-created_at']
 
+    @property
+    def image_url(self):
+        """URL Cloudinary construite depuis le public_id stocké (comme
+        MenuItemMedia). `self.image.url` n'est pas fiable ici car le champ
+        contient un public_id brut renvoyé par l'upload."""
+        if not self.image:
+            return ''
+        import cloudinary
+        return cloudinary.CloudinaryImage(str(self.image)).build_url()
+
     def __str__(self):
         return f"Affiche {self.restaurant.name} ({self.style or '—'})"

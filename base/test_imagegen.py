@@ -40,6 +40,16 @@ class MarketingPosterModelTest(TestCase):
         self.assertEqual(child.parent, parent)
         self.assertEqual(parent.refinements.first(), child)
 
+    def test_image_url_property(self):
+        resto = make_restaurant(make_user())
+        empty = MarketingPoster.objects.create(restaurant=resto)
+        self.assertEqual(empty.image_url, "")
+        with_img = MarketingPoster.objects.create(
+            restaurant=resto, image="posters/1/abc123")
+        # URL Cloudinary construite depuis le public_id
+        self.assertIn("posters/1/abc123", with_img.image_url)
+        self.assertTrue(with_img.image_url.startswith("http"))
+
 
 from unittest.mock import patch, MagicMock
 import json

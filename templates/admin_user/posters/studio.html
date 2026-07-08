@@ -47,13 +47,13 @@
         {% for p in posters %}
         <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">
           {% if p.image %}
-          <img src="{{ p.image.url }}" alt="Affiche" class="w-full aspect-[3/4] object-cover" />
+          <img src="{{ p.image_url }}" alt="Affiche" class="w-full aspect-[3/4] object-cover" />
           {% endif %}
           <div class="p-3 space-y-2">
             <p class="text-sm text-slate-700 whitespace-pre-line">{{ p.caption }}</p>
             <div class="flex flex-wrap gap-2">
               {% if p.image %}
-              <a href="{{ p.image.url }}" download target="_blank"
+              <a href="{{ p.image_url }}" download target="_blank"
                  class="text-xs rounded-lg bg-slate-800 text-white px-3 py-1">Télécharger</a>
               {% endif %}
               <button type="button" class="text-xs rounded-lg bg-slate-100 px-3 py-1 copy-caption"
