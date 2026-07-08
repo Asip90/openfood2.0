@@ -860,3 +860,43 @@ class CustomerFeedback(models.Model):
 
     def __str__(self):
         return f"Feedback {self.restaurant.name} ({self.rating or '—'})"
+
+
+class ImageGenSettings(models.Model):
+    """Config plateforme (singleton) du générateur d'affiche IA."""
+    MODEL_CHOICES = [
+        ("openai/gpt-image-1-mini", "GPT Image 1 Mini (rapide/éco)"),
+        ("openai/gpt-image-2", "GPT Image 2 (premium)"),
+        ("google/gemini-2.5-flash-image", "Gemini 2.5 Flash Image (nano banana)"),
+        ("black-forest-labs/flux-1.1-pro", "Flux 1.1 Pro"),
+        ("custom", "Autre (saisir l'ID ci-dessous)"),
+    ]
+    is_enabled = models.BooleanField(default=False)
+    openrouter_api_key = models.CharField(max_length=255, blank=True)
+    image_model = models.CharField(
+        max_length=100, choices=MODEL_CHOICES, default="openai/gpt-image-1-mini")
+    image_model_custom = models.CharField(max_length=200, blank=True)
+    image_size = models.CharField(max_length=20, default="1024x1536")
+    daily_quota_per_restaurant = models.PositiveIntegerField(default=5)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Paramètres génération d'image"
+        verbose_name_plural = "Paramètres génération d'image"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def effective_model(self):
+        if self.image_model == "custom" and self.image_model_custom:
+            return self.image_model_custom
+        return self.image_model
+
+    def __str__(self):
+        return f"ImageGenSettings ({self.effective_model()})"
