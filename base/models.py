@@ -128,7 +128,11 @@ class Restaurant(models.Model):
     # Customization
     primary_color = models.CharField(max_length=7, default='#FF6B6B')
     secondary_color = models.CharField(max_length=7, default='#4ECDC4')
-    
+
+    # Communauté & avis (bloc rétention — offre Pro)
+    whatsapp_community_url = models.URLField(blank=True, default='')
+    google_place_id = models.CharField(max_length=255, blank=True, default='')
+
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
     
@@ -170,6 +174,21 @@ class Restaurant(models.Model):
         from base.services.subscription import get_effective_plan
         plan = get_effective_plan(self)
         return bool(plan and plan.remove_branding)
+
+    def is_pro(self):
+        """Vrai si le plan effectif est Pro ou Max."""
+        from base.services.subscription import get_effective_plan
+        plan = get_effective_plan(self)
+        return bool(plan and plan.plan_type in ('pro', 'max'))
+
+    @property
+    def google_review_url(self):
+        if not self.google_place_id:
+            return ''
+        return (
+            "https://search.google.com/local/writereview?placeid="
+            + self.google_place_id
+        )
 
     def __str__(self):
         return self.name
@@ -821,3 +840,23 @@ class ActivityLog(models.Model):
 
     def __str__(self):
         return f"{self.user_name} · {self.action} · {self.created_at:%d/%m %H:%M}"
+
+
+class CustomerFeedback(models.Model):
+    """Retour privé d'un client (canal 'un souci ?' de la page de succès)."""
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='feedbacks')
+    order = models.ForeignKey(
+        Order, on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='feedbacks')
+    rating = models.PositiveSmallIntegerField(null=True, blank=True)
+    message = models.TextField(blank=True)
+    phone = models.CharField(max_length=20, blank=True)
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"Feedback {self.restaurant.name} ({self.rating or '—'})"
