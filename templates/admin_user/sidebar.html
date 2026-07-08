@@ -12,6 +12,7 @@
   {% url 'activity_list'        as url_activity     %}
   {% url 'subscription_status'  as url_subscription %}
   {% url 'customers_list'       as url_customers    %}
+  {% url 'feedback_list'        as url_feedback     %}
 {% endif %}
 
 {% with current=request.path %}
@@ -116,6 +117,21 @@
     {% trans "Clients" %}
   </span>
 </a>
+
+{% if restaurant.is_pro %}
+<a href="{{ url_feedback }}"
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
+          {% if current == url_feedback %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <i class="ri-chat-smile-2-line text-lg flex-shrink-0"></i>
+  <span class="truncate flex items-center gap-2" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    {% trans "Retours" %}
+    {% if unread_feedback_count %}
+    <span class="rounded-full bg-rose-500 text-white text-xs px-2 leading-5">{{ unread_feedback_count }}</span>
+    {% endif %}
+  </span>
+</a>
+{% endif %}
 
 <a href="{{ url_custom }}"
    class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150

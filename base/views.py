@@ -1469,6 +1469,18 @@ def claim_waiter_call(request, call_id):
     return JsonResponse({'status': 'ok'})
 
 
+@owner_or_coadmin_required
+def feedback_list(request):
+    restaurant = request.restaurant
+    feedbacks = restaurant.feedbacks.all()
+    # marquer comme lus à l'ouverture
+    restaurant.feedbacks.filter(is_read=False).update(is_read=True)
+    return render(request, "admin_user/feedback/list.html", {
+        "restaurant": restaurant,
+        "feedbacks": feedbacks,
+    })
+
+
 def sitemap_view(request):
     return render(request, "sitemap.xml", {
         "base_url": request.build_absolute_uri("/").rstrip("/"),

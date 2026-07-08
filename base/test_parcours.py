@@ -185,3 +185,20 @@ class SubmitFeedbackTest(TestCase):
         self.client.post(url, {"rating": "1", "message": "B"}, HTTP_HOST=self.host)
         self.assertEqual(
             CustomerFeedback.objects.filter(order=self.order).count(), 1)
+
+
+class FeedbackDashboardTest(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.resto = make_restaurant(self.owner)
+        self.host = f"{self.resto.subdomain}.localhost"
+        self.client.force_login(self.owner)
+        CustomerFeedback.objects.create(
+            restaurant=self.resto, rating=3, message="Bof", phone="+2290197000000")
+
+    def test_feedback_list_shows_items_and_marks_read(self):
+        resp = self.client.get(reverse("feedback_list"), HTTP_HOST=self.host)
+        self.assertEqual(resp.status_code, 200)
+        self.assertContains(resp, "Bof")
+        self.assertFalse(
+            CustomerFeedback.objects.filter(restaurant=self.resto, is_read=False).exists())

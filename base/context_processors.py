@@ -11,9 +11,13 @@ def restaurant_context(request):
     if user is None or not user.is_authenticated:
         return ctx
     restaurant, role = get_user_restaurant(user)
+    unread_feedback_count = 0
+    if restaurant is not None:
+        unread_feedback_count = restaurant.feedbacks.filter(is_read=False).count()
     ctx.update({
         'restaurant': restaurant,
         'user_role': role,
+        'unread_feedback_count': unread_feedback_count,
     })
     return ctx
 
