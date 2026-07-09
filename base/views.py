@@ -869,6 +869,7 @@ def menu_update(request, pk):
         menu_item.name = request.POST.get("name")
         menu_item.price = request.POST.get("price")
         menu_item.description = request.POST.get("description")
+        menu_item.featured_label = request.POST.get("featured_label", "").strip()
 
         category_id = request.POST.get("category")
         if category_id:
@@ -960,6 +961,15 @@ def change_menu_status(request, pk):
     menu_item = get_object_or_404(MenuItem, pk=pk, restaurant=restaurant)
     menu_item.is_available = not menu_item.is_available
     menu_item.save()
+    return redirect("menus_list")
+
+
+@restaurant_required(allowed_roles=['owner', 'coadmin', 'cuisinier'])
+def change_menu_featured(request, pk):
+    restaurant = request.restaurant
+    menu_item = get_object_or_404(MenuItem, pk=pk, restaurant=restaurant)
+    menu_item.is_featured = not menu_item.is_featured
+    menu_item.save(update_fields=["is_featured"])
     return redirect("menus_list")
 
 

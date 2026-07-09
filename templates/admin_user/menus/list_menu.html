@@ -133,6 +133,15 @@
                 <span class="hidden sm:inline">{% if item.is_available %}{% trans "Active" %}{% else %}{% trans "Inactive" %}{% endif %}</span>
               </button>
 
+              <!-- Toggle mise en avant -->
+              <a href="{% url 'menu_toggle_featured' item.id %}"
+                 title="{% if item.is_featured %}Retirer de la une{% else %}Mettre à la une{% endif %}"
+                 class="inline-flex items-center gap-1 px-2 py-1 rounded-lg text-xs font-semibold
+                        {% if item.is_featured %}bg-amber-100 text-amber-700{% else %}bg-slate-50 text-slate-500 hover:bg-amber-50 hover:text-amber-600{% endif %}">
+                <i class="ri-star-{% if item.is_featured %}fill{% else %}line{% endif %} text-sm"></i>
+                <span class="hidden sm:inline">{% if item.is_featured %}À la une{% else %}Vedette{% endif %}</span>
+              </a>
+
               <!-- Modifier -->
               <a href="{% url 'menu_update' item.id %}"
                  class="flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-semibold bg-slate-100 text-slate-600 hover:bg-primary/10 hover:text-primary transition-colors">
