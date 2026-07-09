@@ -240,7 +240,11 @@ class MenuItem(models.Model):
     # Stock
     is_available = models.BooleanField(default=True)
     preparation_time = models.IntegerField(help_text="Temps en minutes", default=15)
-    
+
+    # Mise en avant (menu du jour / vedette / promo)
+    is_featured = models.BooleanField(default=False)
+    featured_label = models.CharField(max_length=30, blank=True, default='')
+
     order = models.IntegerField(default=0)
     view_count = models.PositiveIntegerField(default=0)
     created_at = models.DateTimeField(auto_now_add=True)
