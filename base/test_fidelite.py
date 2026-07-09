@@ -1,5 +1,8 @@
 from django.test import TestCase
-from base.models import LoyaltyProgram, LoyaltyCard, Order
+from django.urls import reverse
+from django.utils import timezone
+from datetime import timedelta
+from base.models import LoyaltyProgram, LoyaltyCard, Order, SubscriptionPlan
 from base.tests import make_user, make_restaurant
 from base.services import loyalty
 from base.models import Category, MenuItem
@@ -93,3 +96,38 @@ class AccrualTest(TestCase):
         loyalty.award_for_order(o)  # simule l'accrual déclenché au paiement
         self.assertEqual(
             LoyaltyCard.objects.get(restaurant=self.resto, phone="+2290100000000").stamps, 1)
+
+
+def make_pro(resto):
+    plan = SubscriptionPlan.objects.create(name="Pro", plan_type="pro", price=1)
+    resto.subscription_plan = plan
+    resto.subscription_end = timezone.now() + timedelta(days=10)
+    resto.save()
+
+
+class LoyaltyDashboardTest(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.resto = make_restaurant(self.owner)
+        self.client.force_login(self.owner)
+        _prog(self.resto, required=3)
+
+    def _host(self):
+        return {"HTTP_HOST": f"{self.resto.subdomain}.localhost"}
+
+    def test_non_pro_forbidden(self):
+        resp = self.client.get(reverse("loyalty_dashboard"), **self._host())
+        self.assertIn(resp.status_code, (302, 404))
+
+    def test_pro_lists_and_redeems(self):
+        make_pro(self.resto)
+        card = LoyaltyCard.objects.create(
+            restaurant=self.resto, phone="+2290100000000", stamps=3)
+        resp = self.client.get(reverse("loyalty_dashboard"), **self._host())
+        self.assertEqual(resp.status_code, 200)
+        resp2 = self.client.post(
+            reverse("loyalty_redeem", args=[card.id]), **self._host())
+        self.assertEqual(resp2.status_code, 302)
+        card.refresh_from_db()
+        self.assertEqual(card.stamps, 0)
+        self.assertEqual(card.rewards_redeemed, 1)

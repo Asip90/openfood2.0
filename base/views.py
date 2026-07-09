@@ -1534,6 +1534,38 @@ def reputation_view(request):
 
 
 @owner_or_coadmin_required
+def loyalty_dashboard(request):
+    restaurant = request.restaurant
+    if not restaurant.is_pro():
+        raise Http404()
+    from base.models import LoyaltyProgram
+    prog = LoyaltyProgram.objects.filter(restaurant=restaurant).first()
+    required = prog.stamps_required if prog else 0
+    cards = list(restaurant.loyalty_cards.all())
+    for c in cards:
+        c.reward_available = required and c.stamps >= required
+    return render(request, "admin_user/loyalty/index.html", {
+        "restaurant": restaurant, "program": prog, "cards": cards,
+    })
+
+
+@owner_or_coadmin_required
+@require_POST
+def loyalty_redeem(request, card_id):
+    restaurant = request.restaurant
+    if not restaurant.is_pro():
+        raise Http404()
+    from base.models import LoyaltyCard
+    from base.services import loyalty
+    card = get_object_or_404(LoyaltyCard, id=card_id, restaurant=restaurant)
+    if loyalty.redeem(card):
+        messages.success(request, f"Récompense enregistrée pour {card.phone}.")
+    else:
+        messages.error(request, "Pas assez de tampons.")
+    return redirect("loyalty_dashboard")
+
+
+@owner_or_coadmin_required
 def posters_studio(request):
     restaurant = request.restaurant
     if not restaurant.is_pro():
