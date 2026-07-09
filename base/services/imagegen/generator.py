@@ -1,6 +1,7 @@
 """Orchestration : quota → affiche « en cours » → (thread) prompt (Mistral)
 → image (OpenRouter) → Cloudinary → statut « terminée »/« échec »."""
 import threading
+from datetime import timedelta
 from io import BytesIO
 
 import cloudinary.uploader
@@ -17,6 +18,15 @@ def _used_today(restaurant):
     return MarketingPoster.objects.filter(
         restaurant=restaurant, created_at__date=timezone.localdate()
     ).exclude(status='failed').count()
+
+
+def expire_stale(restaurant, minutes=15):
+    """Marque « échec » les affiches restées « en cours » trop longtemps
+    (thread interrompu par un redémarrage serveur) — évite un skeleton figé."""
+    cutoff = timezone.now() - timedelta(minutes=minutes)
+    MarketingPoster.objects.filter(
+        restaurant=restaurant, status='generating', created_at__lt=cutoff
+    ).update(status='failed')
 
 
 def remaining_quota(restaurant):

@@ -1574,6 +1574,7 @@ def posters_studio(request):
     from base.models import ImageGenSettings, MenuItem
     from base.services.imagegen import generator
     settings = ImageGenSettings.load()
+    generator.expire_stale(restaurant)
     return render(request, "admin_user/posters/studio.html", {
         "restaurant": restaurant,
         "enabled": settings.is_enabled,
@@ -1663,6 +1664,8 @@ def posters_status(request):
     """Statut JSON des affiches récentes (pour le polling skeleton)."""
     if not request.restaurant.is_pro():
         raise Http404()
+    from base.services.imagegen import generator
+    generator.expire_stale(request.restaurant)
     posters = request.restaurant.posters.all()[:60]
     return JsonResponse({"posters": [
         {
