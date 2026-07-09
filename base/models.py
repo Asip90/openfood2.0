@@ -864,11 +864,15 @@ class CustomerFeedback(models.Model):
 
 class ImageGenSettings(models.Model):
     """Config plateforme (singleton) du générateur d'affiche IA."""
+    # Modèles vérifiés disponibles sur l'API image d'OpenRouter (2026-07).
+    # Flux n'y est PAS proposé. gpt-image-1-mini = le moins cher (~$0.0085/img).
     MODEL_CHOICES = [
-        ("openai/gpt-image-1-mini", "GPT Image 1 Mini (rapide/éco)"),
-        ("openai/gpt-image-2", "GPT Image 2 (premium)"),
+        ("openai/gpt-image-1-mini", "GPT Image 1 Mini (le moins cher ~$0.009)"),
+        ("openai/gpt-5-image-mini", "GPT-5 Image Mini (~$0.033)"),
+        ("google/gemini-3.1-flash-lite-image", "Gemini 3.1 Flash Lite (~$0.034)"),
         ("google/gemini-2.5-flash-image", "Gemini 2.5 Flash Image (nano banana)"),
-        ("black-forest-labs/flux-1.1-pro", "Flux 1.1 Pro"),
+        ("google/gemini-3-pro-image", "Gemini 3 Pro Image (premium)"),
+        ("openai/gpt-5-image", "GPT-5 Image (premium)"),
         ("custom", "Autre (saisir l'ID ci-dessous)"),
     ]
     is_enabled = models.BooleanField(default=False)
