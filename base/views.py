@@ -20,6 +20,8 @@ from django.views.decorators.http import require_GET, require_POST
 from django.views.decorators.csrf import csrf_exempt
 from base.services.subscription import get_effective_plan
 from base.ratelimit import rate_limit
+from base.services.reputation import google_places
+from base.services.reputation.google_places import ReputationError
 import logging
 
 logger = logging.getLogger(__name__)
@@ -1490,6 +1492,31 @@ def feedback_list(request):
     return render(request, "admin_user/feedback/list.html", {
         "restaurant": restaurant,
         "feedbacks": feedbacks,
+    })
+
+
+@owner_or_coadmin_required
+def reputation_view(request):
+    restaurant = request.restaurant
+    if not restaurant.is_pro():
+        raise Http404()
+    from base.models import ReputationSettings
+    settings = ReputationSettings.load()
+    data, error = None, ""
+    place_id_set = bool(restaurant.google_place_id)
+    if settings.is_enabled and place_id_set:
+        try:
+            data = google_places.get_reviews(
+                restaurant.google_place_id, settings.google_api_key,
+                settings.cache_hours)
+        except ReputationError as exc:
+            error = str(exc)
+    return render(request, "admin_user/reputation/index.html", {
+        "restaurant": restaurant,
+        "enabled": settings.is_enabled,
+        "place_id_set": place_id_set,
+        "data": data,
+        "error": error,
     })
 
 

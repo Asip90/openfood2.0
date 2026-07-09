@@ -62,3 +62,46 @@ class GetReviewsTest(TestCase):
         mget.return_value = MagicMock(status_code=500, raise_for_status=boom)
         with self.assertRaises(ReputationError):
             google_places.get_reviews("PID", "KEY", 12)
+
+
+from django.urls import reverse
+from base.models import SubscriptionPlan
+from base.tests import make_user, make_restaurant
+from django.utils import timezone
+from datetime import timedelta
+
+
+def make_pro(resto):
+    plan = SubscriptionPlan.objects.create(name="Pro", plan_type="pro", price=1)
+    resto.subscription_plan = plan
+    resto.subscription_end = timezone.now() + timedelta(days=10)
+    resto.save()
+
+
+class ReputationViewTest(TestCase):
+    def setUp(self):
+        self.owner = make_user()
+        self.resto = make_restaurant(self.owner)
+        self.client.force_login(self.owner)
+        s = ReputationSettings.load()
+        s.is_enabled = True
+        s.google_api_key = "KEY"
+        s.save()
+
+    def _host(self):
+        # Même pattern que PostersViewGatingTest (base/test_imagegen.py) :
+        # résolution multi-tenant via HTTP_HOST.
+        return {"HTTP_HOST": f"{self.resto.subdomain}.localhost"}
+
+    def test_non_pro_forbidden(self):
+        resp = self.client.get(reverse("reputation"), **self._host())
+        self.assertIn(resp.status_code, (302, 404))
+
+    @patch("base.views.google_places.get_reviews",
+           return_value={"rating": 4.5, "total": 10, "maps_uri": "", "reviews": []})
+    def test_pro_renders(self, mget):
+        make_pro(self.resto)
+        self.resto.google_place_id = "PID"
+        self.resto.save()
+        resp = self.client.get(reverse("reputation"), **self._host())
+        self.assertEqual(resp.status_code, 200)

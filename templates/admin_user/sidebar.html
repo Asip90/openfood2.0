@@ -14,6 +14,7 @@
   {% url 'customers_list'       as url_customers    %}
   {% url 'feedback_list'        as url_feedback     %}
   {% url 'posters_studio'       as url_posters      %}
+  {% url 'reputation'           as url_reputation   %}
 {% endif %}
 
 {% with current=request.path %}
@@ -140,6 +141,15 @@
           {% if current == url_posters %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
   <span>🎨</span>
   {% trans "Affiches" %}
+</a>
+{% endif %}
+
+{% if restaurant.is_pro %}
+<a href="{{ url_reputation }}"
+   class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm
+          {% if current == url_reputation %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
+  <span>⭐</span>
+  {% trans "Réputation" %}
 </a>
 {% endif %}
 

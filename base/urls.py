@@ -98,6 +98,9 @@ urlpatterns = [
     # Retours clients
     path("retours/", feedback_list, name="feedback_list"),
 
+    # Réputation (avis Google)
+    path("reputation/", reputation_view, name="reputation"),
+
     # Affiches (générateur IA)
     path("affiches/", posters_studio, name="posters_studio"),
     path("affiches/generer/", posters_generate, name="posters_generate"),
