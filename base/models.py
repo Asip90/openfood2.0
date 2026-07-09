@@ -110,8 +110,8 @@ class Restaurant(models.Model):
     email = models.EmailField()
     
     # Images
-    logo = models.ImageField(upload_to='restaurants/logos/', blank=True)
-    cover_image = models.ImageField(upload_to='restaurants/covers/', blank=True)
+    logo = models.ImageField(upload_to='restaurants/logos/', max_length=255, blank=True)
+    cover_image = models.ImageField(upload_to='restaurants/covers/', max_length=255, blank=True)
     
     # Horaires
     opening_hours = models.JSONField(default=dict, blank=True)
@@ -199,7 +199,7 @@ class Category(models.Model):
     name = models.CharField(max_length=100)
     slug = models.SlugField(blank=True)
     description = models.TextField(blank=True)
-    image = models.ImageField(upload_to='categories/', blank=True)
+    image = models.ImageField(upload_to='categories/', max_length=255, blank=True)
     order = models.IntegerField(default=0)
     is_active = models.BooleanField(default=True)
     
@@ -228,7 +228,7 @@ class MenuItem(models.Model):
     discount_price = models.DecimalField(max_digits=10, decimal_places=2, null=True, blank=True)
     
     # Images
-    image = models.ImageField(upload_to='menu_items/', blank=True)
+    image = models.ImageField(upload_to='menu_items/', max_length=255, blank=True)
     
     # Info
     ingredients = models.TextField(blank=True)
@@ -687,11 +687,13 @@ class RestaurantCustomization(models.Model):
     # 🖼️ Branding
     logo = models.ImageField(
         upload_to="restaurants/customization/logos/",
+        max_length=255,
         blank=True,
         null=True
     )
     cover_image = models.ImageField(
         upload_to="restaurants/customization/covers/",
+        max_length=255,
         blank=True,
         null=True
     )
@@ -726,7 +728,7 @@ class QRSettings(models.Model):
     bg_gradient_from  = models.CharField(max_length=7, default='#f97316')
     bg_gradient_to    = models.CharField(max_length=7, default='#ea580c')
     bg_gradient_angle = models.IntegerField(default=135)
-    bg_image          = models.ImageField(upload_to='qr_backgrounds/', blank=True, null=True)
+    bg_image          = models.ImageField(upload_to='qr_backgrounds/', max_length=255, blank=True, null=True)
     qr_color          = models.CharField(max_length=7, default='#000000')
     show_logo         = models.BooleanField(default=False)
     output_size       = models.IntegerField(default=600)
@@ -927,7 +929,14 @@ class MarketingPoster(models.Model):
         related_name='refinements')
     created_by = models.ForeignKey(
         'accounts.User', on_delete=models.SET_NULL, null=True, blank=True)
+    STATUS_CHOICES = [
+        ('generating', 'En cours'),
+        ('done', 'Terminée'),
+        ('failed', 'Échec'),
+    ]
+    status = models.CharField(max_length=12, choices=STATUS_CHOICES, default='done')
     created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ['-created_at']

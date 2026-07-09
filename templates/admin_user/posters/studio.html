@@ -11,12 +11,12 @@
     </div>
   {% endif %}
 
-  <form method="post" action="{% url 'posters_generate' %}" enctype="multipart/form-data"
+  <form id="gen-form" method="post" action="{% url 'posters_generate' %}" enctype="multipart/form-data"
         class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
     {% csrf_token %}
     <div class="flex items-center justify-between">
       <h2 class="font-semibold text-slate-800">Générer une affiche</h2>
-      <span class="text-xs text-slate-500">{{ remaining }} génération(s) restante(s) aujourd'hui</span>
+      <span class="text-xs text-slate-500"><span id="remaining">{{ remaining }}</span> génération(s) restante(s) aujourd'hui</span>
     </div>
     <div>
       <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Plat</label>
@@ -40,7 +40,7 @@
              class="w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-slate-700" />
       <p class="text-xs text-slate-400 mt-1">Vos propres photos/affiches pour guider le style et le rendu.</p>
     </div>
-    <button type="submit" {% if not enabled or remaining == 0 %}disabled{% endif %}
+    <button id="gen-btn" type="submit" {% if not enabled %}disabled{% endif %}
             class="rounded-xl bg-primary px-5 py-2 text-white text-sm font-semibold disabled:opacity-50">
       Générer
     </button>
@@ -48,48 +48,170 @@
 
   <div>
     <h2 class="font-semibold text-slate-800 mb-3">Vos affiches</h2>
-    {% if not posters %}
-      <p class="text-sm text-slate-500">Aucune affiche pour l'instant.</p>
-    {% else %}
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-        {% for p in posters %}
-        <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">
-          {% if p.image %}
+    <p id="empty-msg" class="text-sm text-slate-500 {% if posters %}hidden{% endif %}">Aucune affiche pour l'instant.</p>
+    <div id="gallery" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+      {% for p in posters %}
+      <div class="poster-card rounded-2xl border border-slate-200 bg-white overflow-hidden"
+           data-poster-id="{{ p.id }}" data-status="{{ p.status }}">
+        {% if p.status == 'generating' %}
+          <div class="w-full aspect-[3/4] bg-slate-100 animate-pulse flex items-center justify-center">
+            <span class="text-xs text-slate-400">Génération en cours…</span>
+          </div>
+          <div class="p-3"><div class="h-3 bg-slate-100 rounded animate-pulse w-3/4"></div></div>
+        {% elif p.status == 'failed' %}
+          <div class="w-full aspect-[3/4] bg-rose-50 flex items-center justify-center">
+            <span class="text-xs text-rose-500">Échec de la génération</span>
+          </div>
+          <div class="p-3"><p class="text-xs text-slate-400">Réessayez une nouvelle génération.</p></div>
+        {% else %}
           <img src="{{ p.image_url }}" alt="Affiche" class="w-full aspect-[3/4] object-cover" />
-          {% endif %}
           <div class="p-3 space-y-2">
             <p class="text-sm text-slate-700 whitespace-pre-line">{{ p.caption }}</p>
             <div class="flex flex-wrap gap-2">
-              {% if p.image %}
               <a href="{{ p.image_url }}" download target="_blank"
                  class="text-xs rounded-lg bg-slate-800 text-white px-3 py-1">Télécharger</a>
-              {% endif %}
               <button type="button" class="text-xs rounded-lg bg-slate-100 px-3 py-1 copy-caption"
                       data-caption="{{ p.caption }}">Copier la légende</button>
             </div>
-            <form method="post" action="{% url 'posters_refine' p.id %}" class="flex gap-2 pt-1">
+            <form method="post" action="{% url 'posters_refine' p.id %}" class="refine-form flex gap-2 pt-1">
               {% csrf_token %}
               <input type="text" name="instructions" placeholder="Raffiner : plus lumineux…"
                      class="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-xs" />
-              <button type="submit" {% if remaining == 0 %}disabled{% endif %}
-                      class="text-xs rounded-lg bg-primary text-white px-3 py-1 disabled:opacity-50">↻</button>
+              <button type="submit" class="text-xs rounded-lg bg-primary text-white px-3 py-1">Raffiner</button>
             </form>
           </div>
-        </div>
-        {% endfor %}
+        {% endif %}
       </div>
-    {% endif %}
+      {% endfor %}
+    </div>
   </div>
 </div>
 
 <script>
-document.querySelectorAll('.copy-caption').forEach(function (b) {
-  b.addEventListener('click', function () {
+(function () {
+  var gallery = document.getElementById('gallery');
+  var emptyMsg = document.getElementById('empty-msg');
+  var genForm = document.getElementById('gen-form');
+  var refineUrl = "{% url 'posters_refine' 0 %}";   // .../affiches/0/raffiner/
+  var statusUrl = "{% url 'posters_status' %}";
+  var pollTimer = null;
+
+  function csrf() {
+    var el = genForm.querySelector('[name=csrfmiddlewaretoken]');
+    return el ? el.value : '';
+  }
+  function esc(s) {
+    var d = document.createElement('div'); d.textContent = s || ''; return d.innerHTML;
+  }
+
+  function cardHTML(p) {
+    if (p.status === 'generating') {
+      return '<div class="w-full aspect-[3/4] bg-slate-100 animate-pulse flex items-center justify-center">'
+           + '<span class="text-xs text-slate-400">Génération en cours…</span></div>'
+           + '<div class="p-3"><div class="h-3 bg-slate-100 rounded animate-pulse w-3/4"></div></div>';
+    }
+    if (p.status === 'failed') {
+      return '<div class="w-full aspect-[3/4] bg-rose-50 flex items-center justify-center">'
+           + '<span class="text-xs text-rose-500">Échec de la génération</span></div>'
+           + '<div class="p-3"><p class="text-xs text-slate-400">Réessayez une nouvelle génération.</p></div>';
+    }
+    var refAction = refineUrl.replace('/0/', '/' + p.id + '/');
+    return '<img src="' + p.image_url + '" alt="Affiche" class="w-full aspect-[3/4] object-cover" />'
+      + '<div class="p-3 space-y-2">'
+      + '<p class="text-sm text-slate-700 whitespace-pre-line">' + esc(p.caption) + '</p>'
+      + '<div class="flex flex-wrap gap-2">'
+      + '<a href="' + p.image_url + '" download target="_blank" class="text-xs rounded-lg bg-slate-800 text-white px-3 py-1">Télécharger</a>'
+      + '<button type="button" class="text-xs rounded-lg bg-slate-100 px-3 py-1 copy-caption" data-caption="' + esc(p.caption) + '">Copier la légende</button>'
+      + '</div>'
+      + '<form method="post" action="' + refAction + '" class="refine-form flex gap-2 pt-1">'
+      + '<input type="hidden" name="csrfmiddlewaretoken" value="' + csrf() + '">'
+      + '<input type="text" name="instructions" placeholder="Raffiner : plus lumineux…" class="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-xs">'
+      + '<button type="submit" class="text-xs rounded-lg bg-primary text-white px-3 py-1">Raffiner</button>'
+      + '</form></div>';
+  }
+
+  function prependSkeleton(id) {
+    if (emptyMsg) emptyMsg.classList.add('hidden');
+    var card = document.createElement('div');
+    card.className = 'poster-card rounded-2xl border border-slate-200 bg-white overflow-hidden';
+    card.setAttribute('data-poster-id', id);
+    card.setAttribute('data-status', 'generating');
+    card.innerHTML = cardHTML({ status: 'generating' });
+    gallery.insertBefore(card, gallery.firstChild);
+    ensurePolling();
+  }
+
+  function hasGenerating() {
+    return gallery.querySelector('.poster-card[data-status="generating"]') !== null;
+  }
+
+  function refreshStatuses() {
+    if (!hasGenerating()) { stopPolling(); return; }
+    fetch(statusUrl, { headers: { 'X-Requested-With': 'XMLHttpRequest' } })
+      .then(function (r) { return r.json(); })
+      .then(function (data) {
+        (data.posters || []).forEach(function (p) {
+          var card = gallery.querySelector('.poster-card[data-poster-id="' + p.id + '"]');
+          if (card && card.getAttribute('data-status') !== p.status) {
+            card.setAttribute('data-status', p.status);
+            card.innerHTML = cardHTML(p);
+          }
+        });
+        if (!hasGenerating()) stopPolling();
+      })
+      .catch(function () {});
+  }
+  function ensurePolling() { if (!pollTimer) pollTimer = setInterval(refreshStatuses, 3000); }
+  function stopPolling() { if (pollTimer) { clearInterval(pollTimer); pollTimer = null; } }
+
+  // Copier la légende (délégué)
+  gallery.addEventListener('click', function (e) {
+    var b = e.target.closest('.copy-caption');
+    if (!b) return;
     navigator.clipboard.writeText(b.dataset.caption || '').then(function () {
       var t = b.textContent; b.textContent = 'Copié';
       setTimeout(function () { b.textContent = t; }, 1500);
     });
   });
-});
+
+  // Soumission génération en AJAX (pas de rechargement de page)
+  genForm.addEventListener('submit', function (e) {
+    e.preventDefault();
+    var btn = document.getElementById('gen-btn');
+    btn.disabled = true;
+    fetch(genForm.action, {
+      method: 'POST', body: new FormData(genForm),
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function (r) { return r.json().then(function (j) { return { ok: r.ok, j: j }; }); })
+      .then(function (res) {
+        btn.disabled = false;
+        if (res.j && res.j.ok) {
+          prependSkeleton(res.j.id);
+          genForm.querySelector('[name=user_text]').value = '';
+          var f = genForm.querySelector('[name=reference_images]'); if (f) f.value = '';
+        } else {
+          alert((res.j && res.j.error) || 'Échec de la génération.');
+        }
+      }).catch(function () { btn.disabled = false; alert('Erreur réseau.'); });
+  });
+
+  // Soumission raffinage en AJAX (délégué)
+  gallery.addEventListener('submit', function (e) {
+    var form = e.target.closest('.refine-form');
+    if (!form) return;
+    e.preventDefault();
+    fetch(form.action, {
+      method: 'POST', body: new FormData(form),
+      headers: { 'X-Requested-With': 'XMLHttpRequest' }
+    }).then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (j && j.ok) { prependSkeleton(j.id); form.querySelector('[name=instructions]').value = ''; }
+        else { alert((j && j.error) || 'Échec du raffinage.'); }
+      }).catch(function () { alert('Erreur réseau.'); });
+  });
+
+  // Au chargement : si des affiches sont déjà « en cours » (autre session), on suit.
+  if (hasGenerating()) ensurePolling();
+})();
 </script>
 {% endblock %}

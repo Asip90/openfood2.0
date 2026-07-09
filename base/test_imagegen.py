@@ -186,11 +186,20 @@ class GeneratorTest(TestCase):
     @patch("base.services.imagegen.generator.openrouter.generate_image", return_value=b"PNG")
     @patch("base.services.imagegen.generator.prompt_builder.build",
            return_value={"image_prompt": "p", "caption": "c", "style": "macro"})
-    def test_upload_failure_raises_imagegenerror(self, mb, mg, mu):
+    def test_upload_failure_marks_poster_failed(self, mb, mg, mu):
         with self.assertRaises(ImageGenError):
             generator.generate(self.resto, self.user)
-        # aucun poster ne doit rester enregistré après l'échec
-        self.assertEqual(self.resto.posters.count(), 0)
+        # l'affiche reste en base au statut « échec » (et ne consomme pas le quota)
+        poster = self.resto.posters.get()
+        self.assertEqual(poster.status, "failed")
+        self.assertEqual(generator.remaining_quota(self.resto), 5)
+
+    @patch("base.services.imagegen.generator._spawn")
+    def test_start_async_creates_generating_poster(self, mspawn):
+        poster = generator.start_async(self.resto, self.user, user_text="promo")
+        self.assertEqual(poster.status, "generating")
+        self.assertEqual(poster.user_text, "promo")
+        mspawn.assert_called_once()
 
     @patch("base.services.imagegen.generator.cloudinary.uploader.upload",
            return_value={"public_id": "posters/x"})

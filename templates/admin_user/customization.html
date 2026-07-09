@@ -435,6 +435,10 @@
                 <p class="text-xs text-slate-500 mt-1">Télécharger un logo</p>
                 <p class="text-xs text-slate-400">PNG, JPG · 200×200 px · max 5 MB</p>
               </label>
+              <div id="logo-selected" class="hidden mt-2 flex items-center gap-2">
+                <img id="logo-thumb" alt="" class="h-10 w-10 rounded-lg object-cover border border-slate-200">
+                <span id="logo-filename" class="text-xs text-primary font-medium truncate"></span>
+              </div>
             </div>
 
             <!-- Couverture -->
@@ -459,6 +463,10 @@
                 <p class="text-xs text-slate-500 mt-1">Télécharger une couverture</p>
                 <p class="text-xs text-slate-400">PNG, JPG · 1200×400 px · max 5 MB</p>
               </label>
+              <div id="cover-selected" class="hidden mt-2 flex items-center gap-2">
+                <img id="cover-thumb" alt="" class="h-10 w-16 rounded-lg object-cover border border-slate-200">
+                <span id="cover-filename" class="text-xs text-primary font-medium truncate"></span>
+              </div>
             </div>
           </div>
         </div>
@@ -778,6 +786,7 @@ function removeCover() {
 /* ── Preview images uploadées ── */
 function previewLogo(input) {
   if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
   const r = new FileReader();
   r.onload = e => {
     let existing = document.getElementById('phoneLogo');
@@ -789,11 +798,16 @@ function previewLogo(input) {
       if (ph) ph.parentNode.replaceChild(existing, ph);
     }
     existing.src = e.target.result;
+    const sel = document.getElementById('logo-selected');
+    document.getElementById('logo-thumb').src = e.target.result;
+    document.getElementById('logo-filename').textContent = file.name;
+    if (sel) sel.classList.remove('hidden');
   };
-  r.readAsDataURL(input.files[0]);
+  r.readAsDataURL(file);
 }
 function previewCover(input) {
   if (!input.files || !input.files[0]) return;
+  const file = input.files[0];
   const r = new FileReader();
   r.onload = e => {
     let existing = document.getElementById('phoneCover');
@@ -805,8 +819,12 @@ function previewCover(input) {
       if (ph) ph.parentNode.replaceChild(existing, ph);
     }
     existing.src = e.target.result;
+    const sel = document.getElementById('cover-selected');
+    document.getElementById('cover-thumb').src = e.target.result;
+    document.getElementById('cover-filename').textContent = file.name;
+    if (sel) sel.classList.remove('hidden');
   };
-  r.readAsDataURL(input.files[0]);
+  r.readAsDataURL(file);
 }
 
 /* ── Drag & drop zones ── */

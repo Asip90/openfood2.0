@@ -1620,11 +1620,17 @@ def posters_generate(request):
         except Exception:
             continue
 
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     try:
-        generator.generate(restaurant, request.user, menu_item=menu_item,
-                            user_text=user_text, source_image_urls=source_urls)
-        messages.success(request, "Affiche générée.")
+        poster = generator.start_async(
+            restaurant, request.user, menu_item=menu_item,
+            user_text=user_text, source_image_urls=source_urls)
+        if is_ajax:
+            return JsonResponse({"ok": True, "id": poster.id})
+        messages.success(request, "Génération lancée.")
     except ImageGenError as exc:
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": str(exc)}, status=400)
         messages.error(request, f"Échec : {exc}")
     return redirect("posters_studio")
 
@@ -1639,12 +1645,34 @@ def posters_refine(request, poster_id):
     poster = get_object_or_404(
         MarketingPoster, id=poster_id, restaurant=request.restaurant)
     instructions = request.POST.get("instructions", "").strip()
+    is_ajax = request.headers.get("X-Requested-With") == "XMLHttpRequest"
     try:
-        generator.refine(poster, instructions, request.user)
-        messages.success(request, "Nouvelle version générée.")
+        child = generator.start_refine_async(poster, instructions, request.user)
+        if is_ajax:
+            return JsonResponse({"ok": True, "id": child.id})
+        messages.success(request, "Nouvelle version en cours.")
     except ImageGenError as exc:
+        if is_ajax:
+            return JsonResponse({"ok": False, "error": str(exc)}, status=400)
         messages.error(request, f"Échec : {exc}")
     return redirect("posters_studio")
+
+
+@owner_or_coadmin_required
+def posters_status(request):
+    """Statut JSON des affiches récentes (pour le polling skeleton)."""
+    if not request.restaurant.is_pro():
+        raise Http404()
+    posters = request.restaurant.posters.all()[:60]
+    return JsonResponse({"posters": [
+        {
+            "id": p.id,
+            "status": p.status,
+            "image_url": p.image_url if p.status == "done" else "",
+            "caption": p.caption if p.status == "done" else "",
+        }
+        for p in posters
+    ]})
 
 
 def sitemap_view(request):

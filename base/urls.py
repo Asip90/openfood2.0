@@ -108,6 +108,7 @@ urlpatterns = [
     # Affiches (générateur IA)
     path("affiches/", posters_studio, name="posters_studio"),
     path("affiches/generer/", posters_generate, name="posters_generate"),
+    path("affiches/statut/", posters_status, name="posters_status"),
     path("affiches/<int:poster_id>/raffiner/", posters_refine, name="posters_refine"),
 
     # PWA
