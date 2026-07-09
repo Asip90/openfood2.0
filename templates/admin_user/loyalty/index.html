@@ -1,0 +1,33 @@
+{% extends "admin_user/base.html" %}
+{% load i18n %}
+{% block title %}Fidélité — {{ restaurant.name }}{% endblock %}
+{% block page_title %}Fidélité{% endblock %}
+{% block content %}
+<div class="p-4 space-y-4">
+  {% if not program or not program.is_enabled %}
+    <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600">
+      Activez la carte de fidélité dans <a href="{% url 'restaurant_settings' %}" class="text-primary underline">Paramètres</a>.
+    </div>
+  {% endif %}
+  {% if not cards %}
+    <p class="text-sm text-slate-500">Aucune carte pour l'instant.</p>
+  {% else %}
+    <div class="space-y-2">
+      {% for c in cards %}
+      <div class="rounded-xl border border-slate-200 bg-white p-3 flex items-center justify-between">
+        <div>
+          <p class="font-semibold text-slate-800">{{ c.phone }}</p>
+          <p class="text-xs text-slate-500">{{ c.stamps }}{% if program %}/{{ program.stamps_required }}{% endif %} tampons · {{ c.rewards_redeemed }} récompense(s) donnée(s)</p>
+        </div>
+        {% if c.reward_available %}
+        <form method="post" action="{% url 'loyalty_redeem' c.id %}">
+          {% csrf_token %}
+          <button type="submit" class="text-xs rounded-lg bg-indigo-600 text-white px-3 py-1.5 font-semibold">🎁 Récompense donnée</button>
+        </form>
+        {% endif %}
+      </div>
+      {% endfor %}
+    </div>
+  {% endif %}
+</div>
+{% endblock %}

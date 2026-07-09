@@ -83,6 +83,18 @@
     {% if is_pro %}
     <div class="w-full space-y-4 mb-4">
 
+      {% if loyalty %}
+      <div class="rounded-2xl bg-indigo-50 border border-indigo-100 p-4 text-center">
+        {% if loyalty.reward_available %}
+          <p class="font-semibold text-indigo-800">🎁 Récompense disponible !</p>
+          <p class="text-sm text-indigo-700 mt-1">{{ loyalty.reward_label }} — montrez ce message au resto.</p>
+        {% else %}
+          <p class="font-semibold text-indigo-800">Carte de fidélité</p>
+          <p class="text-sm text-indigo-700 mt-1">{{ loyalty.stamps }}/{{ loyalty.required }} tampons — encore {{ loyalty.remaining }} pour : {{ loyalty.reward_label }}</p>
+        {% endif %}
+      </div>
+      {% endif %}
+
       {% if whatsapp_url %}
       <div class="rounded-2xl bg-emerald-50 border border-emerald-100 p-4 text-center">
         <p class="font-semibold text-emerald-800">Rejoignez notre communauté</p>

@@ -1138,6 +1138,17 @@ def restaurant_settings(request):
         restaurant.google_place_id = request.POST.get(
             "google_place_id", restaurant.google_place_id).strip()
 
+        if restaurant.is_pro():
+            from base.models import LoyaltyProgram
+            prog, _ = LoyaltyProgram.objects.get_or_create(restaurant=restaurant)
+            prog.is_enabled = request.POST.get("loyalty_enabled") == "on"
+            try:
+                prog.stamps_required = max(1, int(request.POST.get("stamps_required", 10)))
+            except (TypeError, ValueError):
+                prog.stamps_required = 10
+            prog.reward_label = request.POST.get("reward_label", "").strip() or "1 récompense"
+            prog.save()
+
         opening_hours = {}
         for day in days_of_week:
             open_key = f"{day}_ouverture"
@@ -1156,10 +1167,13 @@ def restaurant_settings(request):
         except Exception as e:
             messages.error(request, f"Une erreur est survenue : {str(e)}")
 
+    from base.models import LoyaltyProgram
+
     context = {
         "restaurant": restaurant,
         "schedules": schedules,
         "hours": hours,
+        "loyalty": LoyaltyProgram.objects.filter(restaurant=restaurant).first(),
     }
 
     return render(request, "admin_user/settings.html", context)
@@ -1518,6 +1532,38 @@ def reputation_view(request):
         "data": data,
         "error": error,
     })
+
+
+@owner_or_coadmin_required
+def loyalty_dashboard(request):
+    restaurant = request.restaurant
+    if not restaurant.is_pro():
+        raise Http404()
+    from base.models import LoyaltyProgram
+    prog = LoyaltyProgram.objects.filter(restaurant=restaurant).first()
+    required = prog.stamps_required if prog else 0
+    cards = list(restaurant.loyalty_cards.all())
+    for c in cards:
+        c.reward_available = required and c.stamps >= required
+    return render(request, "admin_user/loyalty/index.html", {
+        "restaurant": restaurant, "program": prog, "cards": cards,
+    })
+
+
+@owner_or_coadmin_required
+@require_POST
+def loyalty_redeem(request, card_id):
+    restaurant = request.restaurant
+    if not restaurant.is_pro():
+        raise Http404()
+    from base.models import LoyaltyCard
+    from base.services import loyalty
+    card = get_object_or_404(LoyaltyCard, id=card_id, restaurant=restaurant)
+    if loyalty.redeem(card):
+        messages.success(request, f"Récompense enregistrée pour {card.phone}.")
+    else:
+        messages.error(request, "Pas assez de tampons.")
+    return redirect("loyalty_dashboard")
 
 
 @owner_or_coadmin_required

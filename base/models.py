@@ -512,6 +512,7 @@ class Order(models.Model):
     is_paid = models.BooleanField(default=False)
     paid_at = models.DateTimeField(null=True, blank=True)
     paid_by_name = models.CharField(max_length=150, blank=True, default='')
+    loyalty_awarded = models.BooleanField(default=False)
 
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -967,3 +968,33 @@ class ReputationSettings(models.Model):
 
     def __str__(self):
         return f"ReputationSettings (enabled={self.is_enabled})"
+
+
+class LoyaltyProgram(models.Model):
+    """Programme de fidélité (carte à tampons) d'un restaurant."""
+    restaurant = models.OneToOneField(
+        Restaurant, on_delete=models.CASCADE, related_name='loyalty')
+    is_enabled = models.BooleanField(default=False)
+    stamps_required = models.PositiveIntegerField(default=10)
+    reward_label = models.CharField(max_length=100, default='1 récompense')
+    updated_at = models.DateTimeField(auto_now=True)
+
+    def __str__(self):
+        return f"Fidélité {self.restaurant.name}"
+
+
+class LoyaltyCard(models.Model):
+    """Carte à tampons d'un client (identifié par téléphone) chez un resto."""
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='loyalty_cards')
+    phone = models.CharField(max_length=20)
+    stamps = models.PositiveIntegerField(default=0)
+    rewards_redeemed = models.PositiveIntegerField(default=0)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        unique_together = ('restaurant', 'phone')
+        ordering = ['-stamps']
+
+    def __str__(self):
+        return f"Carte {self.phone} ({self.stamps} tampons)"

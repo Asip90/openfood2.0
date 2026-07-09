@@ -9,6 +9,7 @@ from django.db.models import Avg, F, Prefetch, Sum
 
 from base.models import Category, MenuItem, Order, OrderItem, RestaurantCustomization, AISettings, CustomerPushSubscription
 from base.ratelimit import rate_limit
+from base.services import loyalty
 from base.services.ai.assistant import ask, is_assistant_available
 from customer.utils import get_client_context
 
@@ -322,6 +323,7 @@ def order_confirmation(request, public_token):
         "table": order.table,
         "table_token": table_token,
         "is_pro": is_pro,
+        "loyalty": loyalty.progress(resto, order.customer_phone) if is_pro else None,
         "whatsapp_url": resto.whatsapp_community_url if is_pro else "",
         "google_review_url": resto.google_review_url if is_pro else "",
         "feedback_submitted": order.feedbacks.exists(),

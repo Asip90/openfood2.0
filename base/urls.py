@@ -98,6 +98,10 @@ urlpatterns = [
     # Retours clients
     path("retours/", feedback_list, name="feedback_list"),
 
+    # Fidélité (carte de tampons)
+    path("fidelite/", loyalty_dashboard, name="loyalty_dashboard"),
+    path("fidelite/<int:card_id>/redeem/", loyalty_redeem, name="loyalty_redeem"),
+
     # Réputation (avis Google)
     path("reputation/", reputation_view, name="reputation"),
 

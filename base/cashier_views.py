@@ -7,6 +7,7 @@ from django.views.decorators.http import require_POST
 
 from base.decorators import restaurant_required
 from base.models import Order, Table
+from base.services import loyalty
 
 # Statuts considérés comme « à encaisser » (une commande annulée ne se paie pas)
 BILLABLE_STATUSES = ("pending", "confirmed", "preparing", "ready", "delivered")
@@ -109,6 +110,7 @@ def mark_order_paid(request, order_id):
         order.paid_at = timezone.now()
         order.paid_by_name = _paid_by_name(request.user)
         order.save(update_fields=["is_paid", "paid_at", "paid_by_name"])
+        loyalty.award_for_order(order)
         messages.success(request, f"Commande #{order.order_number[-6:]} encaissée ({int(order.total)} FCFA).")
     return redirect(request.META.get("HTTP_REFERER") or "cashier")
 
@@ -146,6 +148,7 @@ def mark_table_paid(request, table_id):
         o.paid_at = now
         o.paid_by_name = name
         o.save(update_fields=["is_paid", "paid_at", "paid_by_name"])
+        loyalty.award_for_order(o)
         total += int(o.total or 0)
         n += 1
     if n:
