@@ -75,6 +75,13 @@ def client_menu(request, table_token):
         ).aggregate(avg=Avg("preparation_time"))["avg"]
     )
 
+    featured_items = list(
+        MenuItem.objects.filter(
+            restaurant=restaurant, is_available=True, is_featured=True
+        ).order_by("order", "name")[:6]
+    )
+    featured_ids = {it.id for it in featured_items}
+
     context = {
         "restaurant": restaurant,
         "table": table,
@@ -90,6 +97,8 @@ def client_menu(request, table_token):
         "popular_ids": popular_ids,
         "avg_prep": int(round(avg_prep)) if avg_prep else None,
         "opening_hours_json": json.dumps(restaurant.opening_hours or {}),
+        "featured_items": featured_items,
+        "featured_ids": featured_ids,
     }
 
     return render(request, "customer/menu.html", context)

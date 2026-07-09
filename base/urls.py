@@ -63,6 +63,7 @@ urlpatterns = [
     path("menus/create/", menu_create, name="menu_create"),
     path("menus/ai-description/", menu_ai_description, name="menu_ai_description"),
     path("menus/<int:pk>/change-availability/", change_menu_status, name="menu_toggle_availability"),
+    path("menus/<int:pk>/toggle-featured/", change_menu_featured, name="menu_toggle_featured"),
 
     # Tables
     path("tables/", tables_list, name="tables_list"),

@@ -163,6 +163,15 @@
         <p id="aiDescError" class="hidden text-xs text-red-500 mt-1"></p>
       </div>
 
+      <div>
+        <label class="block text-sm font-medium text-slate-700 mb-1">Libellé « à la une » (optionnel)</label>
+        <input type="text" name="featured_label" maxlength="30"
+               value="{{ menu_item.featured_label }}"
+               placeholder="ex : Menu du jour, Coup de cœur, Promo"
+               class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+        <p class="text-xs text-slate-400 mt-1">Affiché sur la carte du plat mis à la une.</p>
+      </div>
+
       <!-- Actions -->
       <div class="flex gap-3 pt-1">
         <a href="{% url 'menus_list' %}"
