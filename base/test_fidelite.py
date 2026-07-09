@@ -75,3 +75,21 @@ class LoyaltyServiceTest(TestCase):
         self.assertTrue(p["reward_available"])
         other_resto = make_restaurant(make_user(email="other@test.com"))
         self.assertIsNone(loyalty.progress(other_resto, "+2290100000000"))
+
+
+from base.cashier_views import mark_order_paid  # noqa (import sanity)
+
+
+class AccrualTest(TestCase):
+    def setUp(self):
+        self.resto = make_restaurant(make_user())
+        _prog(self.resto, required=10)
+
+    def test_paying_order_awards_stamp(self):
+        from base.models import LoyaltyCard
+        o = Order.objects.create(
+            restaurant=self.resto, customer_phone="+2290100000000",
+            status="ready", total=1000)
+        loyalty.award_for_order(o)  # simule l'accrual déclenché au paiement
+        self.assertEqual(
+            LoyaltyCard.objects.get(restaurant=self.resto, phone="+2290100000000").stamps, 1)

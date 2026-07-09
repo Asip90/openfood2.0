@@ -229,6 +229,31 @@
                 </div>
               </div>
             </div>
+
+            <div class="mt-8 border-t border-slate-200 pt-6">
+              <h3 class="text-sm font-semibold text-slate-700 mb-1">Carte de fidélité</h3>
+              <p class="text-xs text-slate-500 mb-4">
+                {% if restaurant.is_pro %}1 tampon par commande payée. Récompense au seuil atteint.
+                {% else %}Disponible avec l'offre <strong>Pro</strong>.{% endif %}
+              </p>
+              <div class="space-y-4 {% if not restaurant.is_pro %}opacity-50 pointer-events-none{% endif %}">
+                <label class="flex items-center gap-2 text-sm">
+                  <input type="checkbox" name="loyalty_enabled" {% if loyalty.is_enabled %}checked{% endif %}>
+                  Activer la carte de fidélité
+                </label>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Tampons requis</label>
+                  <input type="number" name="stamps_required" min="1" value="{{ loyalty.stamps_required|default:10 }}"
+                         class="w-32 rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                </div>
+                <div>
+                  <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Récompense</label>
+                  <input type="text" name="reward_label" maxlength="100" value="{{ loyalty.reward_label|default:'1 récompense' }}"
+                         placeholder="ex : 1 plat offert"
+                         class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+                </div>
+              </div>
+            </div>
           </div>
 
           <!-- Actions formulaire -->

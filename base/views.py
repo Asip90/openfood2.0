@@ -1138,6 +1138,16 @@ def restaurant_settings(request):
         restaurant.google_place_id = request.POST.get(
             "google_place_id", restaurant.google_place_id).strip()
 
+        from base.models import LoyaltyProgram
+        prog, _ = LoyaltyProgram.objects.get_or_create(restaurant=restaurant)
+        prog.is_enabled = request.POST.get("loyalty_enabled") == "on"
+        try:
+            prog.stamps_required = max(1, int(request.POST.get("stamps_required", 10)))
+        except (TypeError, ValueError):
+            prog.stamps_required = 10
+        prog.reward_label = request.POST.get("reward_label", "").strip() or "1 récompense"
+        prog.save()
+
         opening_hours = {}
         for day in days_of_week:
             open_key = f"{day}_ouverture"
@@ -1156,10 +1166,13 @@ def restaurant_settings(request):
         except Exception as e:
             messages.error(request, f"Une erreur est survenue : {str(e)}")
 
+    from base.models import LoyaltyProgram
+
     context = {
         "restaurant": restaurant,
         "schedules": schedules,
         "hours": hours,
+        "loyalty": LoyaltyProgram.objects.filter(restaurant=restaurant).first(),
     }
 
     return render(request, "admin_user/settings.html", context)
