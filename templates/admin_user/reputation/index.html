@@ -1,0 +1,53 @@
+{% extends "admin_user/base.html" %}
+{% block title %}Réputation — {{ restaurant.name }}{% endblock %}
+{% block page_title %}Réputation{% endblock %}
+{% block content %}
+<div class="p-4 space-y-5">
+  {% if not enabled %}
+    <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 text-sm text-amber-800">
+      L'affichage des avis Google est momentanément indisponible.
+    </div>
+  {% elif not place_id_set %}
+    <div class="rounded-xl bg-slate-50 border border-slate-200 p-4 text-sm text-slate-600">
+      Renseignez votre <strong>Google Place ID</strong> dans
+      <a href="{% url 'restaurant_settings' %}" class="text-primary underline">Paramètres</a>
+      pour afficher vos avis.
+    </div>
+  {% elif error %}
+    <div class="rounded-xl bg-rose-50 border border-rose-100 p-4 text-sm text-rose-700">
+      Impossible de charger les avis pour le moment.
+    </div>
+  {% elif data %}
+    <div class="rounded-2xl border border-slate-200 bg-white p-4 flex items-center justify-between">
+      <div>
+        <div class="text-3xl font-black text-slate-900">
+          {{ data.rating|default:"—" }} <span class="text-amber-400">★</span>
+        </div>
+        <div class="text-xs text-slate-500">{{ data.total }} avis Google</div>
+      </div>
+      {% if data.maps_uri %}
+      <a href="{{ data.maps_uri }}" target="_blank" rel="noopener"
+         class="text-sm rounded-xl bg-slate-800 text-white px-4 py-2">Voir sur Google</a>
+      {% endif %}
+    </div>
+
+    <div class="space-y-3">
+      {% for r in data.reviews %}
+      <div class="rounded-2xl border border-slate-200 bg-white p-4">
+        <div class="flex items-center justify-between">
+          <span class="font-semibold text-slate-800">{{ r.author }}</span>
+          <span class="text-amber-500 text-sm">
+            {% for _ in "12345"|make_list %}{% if forloop.counter <= r.rating %}★{% else %}☆{% endif %}{% endfor %}
+          </span>
+        </div>
+        {% if r.text %}<p class="mt-2 text-sm text-slate-700">{{ r.text }}</p>{% endif %}
+        <p class="mt-1 text-xs text-slate-400">{{ r.relative_time }}</p>
+      </div>
+      {% empty %}
+      <p class="text-sm text-slate-500">Aucun avis pour l'instant.</p>
+      {% endfor %}
+    </div>
+    <p class="text-xs text-slate-400">Avis fournis par Google.</p>
+  {% endif %}
+</div>
+{% endblock %}

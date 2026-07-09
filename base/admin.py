@@ -12,7 +12,8 @@ from .models import (
     OrderItem,
     Payment,
     AISettings,
-    ImageGenSettings
+    ImageGenSettings,
+    ReputationSettings
 )
 
 # =========================
@@ -231,6 +232,28 @@ class ImageGenSettingsAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return not ImageGenSettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+# =========================
+# REPUTATION SETTINGS
+# =========================
+class ReputationSettingsForm(forms.ModelForm):
+    class Meta:
+        model = ReputationSettings
+        fields = "__all__"
+        widgets = {"google_api_key": forms.PasswordInput(render_value=True)}
+
+
+@admin.register(ReputationSettings)
+class ReputationSettingsAdmin(admin.ModelAdmin):
+    form = ReputationSettingsForm
+    list_display = ("is_enabled", "cache_hours", "updated_at")
+
+    def has_add_permission(self, request):
+        return not ReputationSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False

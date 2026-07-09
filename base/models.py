@@ -943,3 +943,27 @@ class MarketingPoster(models.Model):
 
     def __str__(self):
         return f"Affiche {self.restaurant.name} ({self.style or '—'})"
+
+
+class ReputationSettings(models.Model):
+    """Config plateforme (singleton) pour l'affichage des avis Google."""
+    is_enabled = models.BooleanField(default=False)
+    google_api_key = models.CharField(max_length=255, blank=True)
+    cache_hours = models.PositiveIntegerField(default=12)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Paramètres réputation (avis Google)"
+        verbose_name_plural = "Paramètres réputation (avis Google)"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def __str__(self):
+        return f"ReputationSettings (enabled={self.is_enabled})"
