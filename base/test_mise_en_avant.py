@@ -1,6 +1,6 @@
 from django.test import TestCase
 from django.urls import reverse
-from base.models import Category, MenuItem
+from base.models import Category, MenuItem, Table
 from base.tests import make_user, make_restaurant
 
 
@@ -50,3 +50,24 @@ class FeaturedToggleTest(TestCase):
              "featured_label": "Coup de cœur"}, **self._host())
         self.item.refresh_from_db()
         self.assertEqual(self.item.featured_label, "Coup de cœur")
+
+
+class ClientMenuFeaturedContextTest(TestCase):
+    def setUp(self):
+        self.resto = make_restaurant(make_user())
+        self.table = Table.objects.create(restaurant=self.resto, number=1, capacity=4)
+
+    def _host(self):
+        return {"HTTP_HOST": f"{self.resto.subdomain}.localhost"}
+
+    def test_featured_available_item_in_context(self):
+        feat = make_item(self.resto, name="Vedette", is_featured=True)
+        # plat vedette mais indisponible → exclu
+        make_item(self.resto, name="Caché", is_featured=True, is_available=False)
+        resp = self.client.get(
+            reverse("client_menu", args=[self.table.token]), **self._host())
+        self.assertEqual(resp.status_code, 200)
+        featured = list(resp.context["featured_items"])
+        self.assertIn(feat, featured)
+        self.assertEqual(len(featured), 1)
+        self.assertIn(feat.id, resp.context["featured_ids"])

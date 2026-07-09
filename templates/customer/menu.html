@@ -146,6 +146,43 @@
     </div>
     {% endif %}
 
+    {% if featured_items %}
+    <section class="mb-5">
+      <div class="flex items-center gap-2 mb-3">
+        <i class="ri-star-fill text-amber-400"></i>
+        <h2 class="text-slate-900 font-black text-base">À la une</h2>
+      </div>
+      <div class="flex gap-3 overflow-x-auto pb-1 -mx-1 px-1">
+        {% for item in featured_items %}
+        {% with thumb=item|first_image_url pct=item|discount_pct %}
+        <div class="flex-shrink-0 w-40 rounded-2xl overflow-hidden bg-white shadow-sm border border-amber-100 cursor-pointer"
+             @click="openModal({{ item|item_json }})">
+          <div class="relative h-28 bg-slate-100">
+            {% if thumb %}
+            <img src="{{ thumb }}" alt="{{ item.name }}" loading="lazy" class="w-full h-full object-cover" />
+            {% endif %}
+            <div class="absolute top-2 left-2 flex items-center gap-1 flex-wrap">
+              <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full bg-amber-400 text-white shadow-sm">
+                {{ item.featured_label|default:"À la une" }}
+              </span>
+              {% if pct %}
+              <span class="text-[10px] font-black px-1.5 py-0.5 rounded-full text-white shadow-sm bg-red-500">-{{ pct }}%</span>
+              {% endif %}
+            </div>
+          </div>
+          <div class="px-2.5 py-2">
+            <h3 class="font-bold text-slate-900 text-sm leading-snug truncate">{{ item.name }}</h3>
+            <p class="text-primary font-black text-sm mt-0.5">
+              {% if item.discount_price %}{{ item.discount_price|floatformat:0 }}{% else %}{{ item.price|floatformat:0 }}{% endif %} FCFA
+            </p>
+          </div>
+        </div>
+        {% endwith %}
+        {% endfor %}
+      </div>
+    </section>
+    {% endif %}
+
     {% for category in categories %}
     <section x-show="activeCategory === 'all' || activeCategory === '{{ category.id }}'">
 
@@ -189,6 +226,11 @@
             {% endif %}
             <!-- Badges sur l'image -->
             <div class="absolute top-2 left-2 flex items-center gap-1 flex-wrap">
+              {% if item.id in featured_ids %}
+              <span class="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded-full bg-amber-400 text-white shadow-sm">
+                <i class="ri-star-fill"></i>Vedette
+              </span>
+              {% endif %}
               {% if item.id in popular_ids %}
               <span class="inline-flex items-center gap-1 text-[10px] font-black px-1.5 py-0.5 rounded-full bg-white/95 text-slate-900 shadow-sm">
                 <i class="ri-fire-fill text-orange-500"></i>Populaire
