@@ -1601,15 +1601,28 @@ def posters_generate(request):
     if mid:
         menu_item = MenuItem.objects.filter(id=mid, restaurant=restaurant).first()
     user_text = request.POST.get("user_text", "").strip()
-    source_url = None
+
+    # Références = image du plat sélectionné + images uploadées par le resto.
+    source_urls = []
     if menu_item and menu_item.image:
         try:
-            source_url = menu_item.image.url
+            source_urls.append(menu_item.image.url)
         except Exception:
-            source_url = None
+            pass
+    import cloudinary.uploader
+    for f in request.FILES.getlist("reference_images")[:4]:
+        try:
+            up = cloudinary.uploader.upload(
+                f, folder=f"posters/{restaurant.id}/refs", resource_type="image")
+            url = up.get("secure_url") or up.get("url")
+            if url:
+                source_urls.append(url)
+        except Exception:
+            continue
+
     try:
         generator.generate(restaurant, request.user, menu_item=menu_item,
-                            user_text=user_text, source_image_url=source_url)
+                            user_text=user_text, source_image_urls=source_urls)
         messages.success(request, "Affiche générée.")
     except ImageGenError as exc:
         messages.error(request, f"Échec : {exc}")

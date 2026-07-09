@@ -27,29 +27,30 @@ def _check(settings, restaurant):
         raise QuotaExceeded("Quota quotidien atteint")
 
 
-def _run(restaurant, user, menu_item, user_text, source_image_url, parent, exclude_style):
+def _run(restaurant, user, menu_item, user_text, source_image_urls, parent, exclude_style):
     with transaction.atomic():
         Restaurant.objects.select_for_update().filter(pk=restaurant.pk).first()
         settings = ImageGenSettings.load()
         _check(settings, restaurant)
 
+        refs = [u for u in (source_image_urls or []) if u]
         built = prompt_builder.build(
-            restaurant, menu_item, user_text, bool(source_image_url), exclude_style)
+            restaurant, menu_item, user_text, bool(refs), exclude_style)
         try:
             image_bytes = openrouter.generate_image(
                 built["image_prompt"], settings.effective_model(),
                 settings.image_size, settings.openrouter_api_key,
-                reference_image_url=source_image_url)
+                reference_image_urls=refs)
         except ImageGenError:
             # Une image de référence cassée/inaccessible (URL 404, format non
             # supporté…) ne doit pas condamner toute la génération : on réessaie
             # une fois sans référence (le prompt texte décrit déjà le plat).
-            if not source_image_url:
+            if not refs:
                 raise
             image_bytes = openrouter.generate_image(
                 built["image_prompt"], settings.effective_model(),
                 settings.image_size, settings.openrouter_api_key,
-                reference_image_url=None)
+                reference_image_urls=None)
 
         try:
             upload = cloudinary.uploader.upload(
@@ -75,18 +76,18 @@ def _run(restaurant, user, menu_item, user_text, source_image_url, parent, exclu
         return poster
 
 
-def generate(restaurant, user, menu_item=None, user_text="", source_image_url=None):
-    return _run(restaurant, user, menu_item, user_text, source_image_url,
+def generate(restaurant, user, menu_item=None, user_text="", source_image_urls=None):
+    return _run(restaurant, user, menu_item, user_text, source_image_urls,
                 parent=None, exclude_style=None)
 
 
 def refine(poster, new_instructions, user):
-    ref_url = None
+    ref_urls = []
     if poster.image:
         try:
-            ref_url = poster.image.url
+            ref_urls = [poster.image_url]
         except Exception:
-            ref_url = None
+            ref_urls = []
     return _run(
         poster.restaurant, user, poster.menu_item, new_instructions,
-        source_image_url=ref_url, parent=poster, exclude_style=None)
+        source_image_urls=ref_urls, parent=poster, exclude_style=None)

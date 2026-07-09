@@ -8,17 +8,18 @@ from .errors import ImageGenError
 API_URL = "https://openrouter.ai/api/v1/images"
 
 
-def generate_image(prompt, model, size, api_key, reference_image_url=None):
+def generate_image(prompt, model, size, api_key, reference_image_urls=None):
     if not api_key:
         raise ImageGenError("Clé API OpenRouter manquante")
 
     payload = {"model": model, "prompt": prompt, "size": size}
-    if reference_image_url:
+    refs = [u for u in (reference_image_urls or []) if u]
+    if refs:
         # Format confirmé : tableau d'objets typés (style contenu OpenAI).
         # Les modèles d'édition (GPT Image, Gemini) l'exploitent ; un
-        # text-to-image pur peut l'ignorer.
+        # text-to-image pur peut l'ignorer. Plusieurs références possibles.
         payload["input_references"] = [
-            {"type": "image_url", "image_url": {"url": reference_image_url}}
+            {"type": "image_url", "image_url": {"url": u}} for u in refs
         ]
 
     headers = {

@@ -22,7 +22,7 @@
         {% if c.reward_available %}
         <form method="post" action="{% url 'loyalty_redeem' c.id %}">
           {% csrf_token %}
-          <button type="submit" class="text-xs rounded-lg bg-indigo-600 text-white px-3 py-1.5 font-semibold">🎁 Récompense donnée</button>
+          <button type="submit" class="text-xs rounded-lg bg-indigo-600 text-white px-3 py-1.5 font-semibold">Récompense donnée</button>
         </form>
         {% endif %}
       </div>

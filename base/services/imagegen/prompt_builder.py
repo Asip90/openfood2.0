@@ -10,7 +10,7 @@ SYSTEM = (
     "d'un plat et d'un restaurant, tu produis (1) un PROMPT en anglais pour un "
     "modèle de génération d'image, décrivant une photo de plat ultra "
     "appétissante, et (2) une LÉGENDE courte en français, émotionnelle et "
-    "percutante, prête à copier pour WhatsApp/réseaux (avec 1-3 emojis). "
+    "percutante, prête à copier pour WhatsApp/réseaux, SANS aucun emoji. "
     "Tu DOIS adopter le style visuel imposé ci-dessous. "
     "Réponds UNIQUEMENT en JSON : "
     '{"image_prompt": "...", "caption": "...", "style": "<style_key>"}.'
@@ -46,7 +46,7 @@ def _fallback(restaurant, menu_item, style):
         "image_prompt": (
             f"professional appetizing food photography of {name}, "
             f"{style['brief']}, high detail, mouth-watering"),
-        "caption": f"{name} vous attend chez {restaurant.name} ! 😋",
+        "caption": f"{name} vous attend chez {restaurant.name} !",
         "style": style["key"],
     }
 

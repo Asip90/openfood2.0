@@ -201,11 +201,11 @@ class GeneratorTest(TestCase):
     def test_broken_reference_falls_back_to_no_reference(self, mb, mg, mu):
         # 1er appel (avec référence) échoue → 2e appel sans référence réussit
         poster = generator.generate(
-            self.resto, self.user, source_image_url="http://broken/img.jpg")
+            self.resto, self.user, source_image_urls=["http://broken/img.jpg"])
         self.assertEqual(poster.caption, "c")
         self.assertEqual(mg.call_count, 2)
         # le 2e appel ne passe pas de référence
-        self.assertIsNone(mg.call_args_list[1].kwargs.get("reference_image_url"))
+        self.assertIsNone(mg.call_args_list[1].kwargs.get("reference_image_urls"))
 
     @patch("base.services.imagegen.generator.openrouter.generate_image",
            side_effect=ImageGenError("api down"))

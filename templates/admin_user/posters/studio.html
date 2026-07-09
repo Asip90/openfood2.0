@@ -11,7 +11,7 @@
     </div>
   {% endif %}
 
-  <form method="post" action="{% url 'posters_generate' %}"
+  <form method="post" action="{% url 'posters_generate' %}" enctype="multipart/form-data"
         class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
     {% csrf_token %}
     <div class="flex items-center justify-between">
@@ -32,9 +32,17 @@
       <input type="text" name="user_text" maxlength="300" placeholder="ex : promo -20% ce week-end"
              class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
     </div>
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">
+        Images de référence (optionnel, max 4)
+      </label>
+      <input type="file" name="reference_images" accept="image/*" multiple
+             class="w-full text-sm text-slate-500 file:mr-3 file:rounded-lg file:border-0 file:bg-slate-100 file:px-3 file:py-1.5 file:text-slate-700" />
+      <p class="text-xs text-slate-400 mt-1">Vos propres photos/affiches pour guider le style et le rendu.</p>
+    </div>
     <button type="submit" {% if not enabled or remaining == 0 %}disabled{% endif %}
             class="rounded-xl bg-primary px-5 py-2 text-white text-sm font-semibold disabled:opacity-50">
-      🎨 Générer
+      Générer
     </button>
   </form>
 
@@ -78,7 +86,7 @@
 document.querySelectorAll('.copy-caption').forEach(function (b) {
   b.addEventListener('click', function () {
     navigator.clipboard.writeText(b.dataset.caption || '').then(function () {
-      var t = b.textContent; b.textContent = 'Copié ✓';
+      var t = b.textContent; b.textContent = 'Copié';
       setTimeout(function () { b.textContent = t; }, 1500);
     });
   });

@@ -138,27 +138,37 @@
 
 {% if restaurant.is_pro %}
 <a href="{{ url_posters }}"
-   class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
           {% if current == url_posters %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
-  <span>🎨</span>
-  {% trans "Affiches" %}
+  <i class="ri-image-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    {% trans "Affiches" %}
+  </span>
 </a>
 {% endif %}
 
 {% if restaurant.is_pro %}
 <a href="{{ url_reputation }}"
-   class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
           {% if current == url_reputation %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
-  <span>⭐</span>
-  {% trans "Réputation" %}
+  <i class="ri-star-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    {% trans "Réputation" %}
+  </span>
 </a>
 {% endif %}
 
 {% if restaurant.is_pro %}
 <a href="{{ url_loyalty }}"
-   class="flex items-center gap-3 rounded-xl px-3 py-2 text-sm
+   class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-150
           {% if current == url_loyalty %}bg-primary text-white shadow-glow{% else %}text-slate-400 hover:bg-white/8 hover:text-white{% endif %}">
-  <span>🎟️</span>{% trans "Fidélité" %}
+  <i class="ri-coupon-line text-lg flex-shrink-0"></i>
+  <span class="truncate" x-show="sidebarOpen !== false"
+        x-transition:enter="transition duration-150" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+    {% trans "Fidélité" %}
+  </span>
 </a>
 {% endif %}
 
