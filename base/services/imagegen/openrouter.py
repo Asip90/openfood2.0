@@ -26,7 +26,8 @@ def generate_image(prompt, model, size, api_key, reference_image_url=None):
         "Content-Type": "application/json",
     }
     try:
-        resp = requests.post(API_URL, json=payload, headers=headers, timeout=60)
+        # La génération d'image peut dépasser une minute selon le modèle/résolution.
+        resp = requests.post(API_URL, json=payload, headers=headers, timeout=180)
         resp.raise_for_status()
         data = resp.json()
     except Exception as exc:  # réseau, HTTP != 2xx, JSON invalide
