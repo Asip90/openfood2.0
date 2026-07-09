@@ -37,9 +37,17 @@ def _order(resto, phone="+2290100000000"):
     return Order.objects.create(restaurant=resto, customer_phone=phone)
 
 
+def make_pro(resto):
+    plan = SubscriptionPlan.objects.create(name="Pro", plan_type="pro", price=1)
+    resto.subscription_plan = plan
+    resto.subscription_end = timezone.now() + timedelta(days=10)
+    resto.save()
+
+
 class LoyaltyServiceTest(TestCase):
     def setUp(self):
         self.resto = make_restaurant(make_user())
+        make_pro(self.resto)
 
     def test_award_credits_one_stamp_idempotent(self):
         _prog(self.resto)
@@ -86,6 +94,7 @@ from base.cashier_views import mark_order_paid  # noqa (import sanity)
 class AccrualTest(TestCase):
     def setUp(self):
         self.resto = make_restaurant(make_user())
+        make_pro(self.resto)
         _prog(self.resto, required=10)
 
     def test_paying_order_awards_stamp(self):
@@ -98,11 +107,14 @@ class AccrualTest(TestCase):
             LoyaltyCard.objects.get(restaurant=self.resto, phone="+2290100000000").stamps, 1)
 
 
-def make_pro(resto):
-    plan = SubscriptionPlan.objects.create(name="Pro", plan_type="pro", price=1)
-    resto.subscription_plan = plan
-    resto.subscription_end = timezone.now() + timedelta(days=10)
-    resto.save()
+class LoyaltyProGateTest(TestCase):
+    def test_non_pro_award_and_progress_blocked(self):
+        resto = make_restaurant(make_user())
+        _prog(resto, required=3)
+        o = _order(resto)
+        self.assertIsNone(loyalty.award_for_order(o))
+        self.assertEqual(LoyaltyCard.objects.filter(restaurant=resto).count(), 0)
+        self.assertIsNone(loyalty.progress(resto, "+2290100000000"))
 
 
 class LoyaltyDashboardTest(TestCase):

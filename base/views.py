@@ -1138,15 +1138,16 @@ def restaurant_settings(request):
         restaurant.google_place_id = request.POST.get(
             "google_place_id", restaurant.google_place_id).strip()
 
-        from base.models import LoyaltyProgram
-        prog, _ = LoyaltyProgram.objects.get_or_create(restaurant=restaurant)
-        prog.is_enabled = request.POST.get("loyalty_enabled") == "on"
-        try:
-            prog.stamps_required = max(1, int(request.POST.get("stamps_required", 10)))
-        except (TypeError, ValueError):
-            prog.stamps_required = 10
-        prog.reward_label = request.POST.get("reward_label", "").strip() or "1 récompense"
-        prog.save()
+        if restaurant.is_pro():
+            from base.models import LoyaltyProgram
+            prog, _ = LoyaltyProgram.objects.get_or_create(restaurant=restaurant)
+            prog.is_enabled = request.POST.get("loyalty_enabled") == "on"
+            try:
+                prog.stamps_required = max(1, int(request.POST.get("stamps_required", 10)))
+            except (TypeError, ValueError):
+                prog.stamps_required = 10
+            prog.reward_label = request.POST.get("reward_label", "").strip() or "1 récompense"
+            prog.save()
 
         opening_hours = {}
         for day in days_of_week:

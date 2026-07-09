@@ -1,8 +1,12 @@
 """Logique carte de fidélité (tampons)."""
-from base.models import LoyaltyProgram, LoyaltyCard
+from django.db import transaction
+from django.db.models import F
+from base.models import LoyaltyProgram, LoyaltyCard, Order
 
 
 def program_for(restaurant):
+    if not restaurant.is_pro():
+        return None
     prog = LoyaltyProgram.objects.filter(restaurant=restaurant).first()
     if prog is None or not prog.is_enabled:
         return None
@@ -16,23 +20,27 @@ def award_for_order(order):
     prog = program_for(order.restaurant)
     if prog is None:
         return None
+    claimed = Order.objects.filter(pk=order.pk, loyalty_awarded=False).update(loyalty_awarded=True)
+    if not claimed:
+        return None
+    order.loyalty_awarded = True
     card, _ = LoyaltyCard.objects.get_or_create(
         restaurant=order.restaurant, phone=order.customer_phone)
-    card.stamps += 1
-    card.save(update_fields=["stamps", "updated_at"])
-    order.loyalty_awarded = True
-    order.save(update_fields=["loyalty_awarded"])
+    LoyaltyCard.objects.filter(pk=card.pk).update(stamps=F('stamps') + 1)
+    card.refresh_from_db()
     return card
 
 
 def redeem(card):
-    prog = LoyaltyProgram.objects.filter(restaurant=card.restaurant).first()
-    required = prog.stamps_required if prog else 0
-    if not required or card.stamps < required:
-        return False
-    card.stamps -= required
-    card.rewards_redeemed += 1
-    card.save(update_fields=["stamps", "rewards_redeemed", "updated_at"])
+    with transaction.atomic():
+        card = LoyaltyCard.objects.select_for_update().get(pk=card.pk)
+        prog = LoyaltyProgram.objects.filter(restaurant=card.restaurant).first()
+        required = prog.stamps_required if prog else 0
+        if not required or card.stamps < required:
+            return False
+        card.stamps -= required
+        card.rewards_redeemed += 1
+        card.save(update_fields=["stamps", "rewards_redeemed", "updated_at"])
     return True
 
 
