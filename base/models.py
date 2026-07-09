@@ -860,3 +860,82 @@ class CustomerFeedback(models.Model):
 
     def __str__(self):
         return f"Feedback {self.restaurant.name} ({self.rating or '—'})"
+
+
+class ImageGenSettings(models.Model):
+    """Config plateforme (singleton) du générateur d'affiche IA."""
+    # Modèles vérifiés disponibles sur l'API image d'OpenRouter (2026-07).
+    # Flux n'y est PAS proposé. gpt-image-1-mini = le moins cher (~$0.0085/img).
+    MODEL_CHOICES = [
+        ("openai/gpt-image-1-mini", "GPT Image 1 Mini (le moins cher ~$0.009)"),
+        ("openai/gpt-5-image-mini", "GPT-5 Image Mini (~$0.033)"),
+        ("google/gemini-3.1-flash-lite-image", "Gemini 3.1 Flash Lite (~$0.034)"),
+        ("google/gemini-2.5-flash-image", "Gemini 2.5 Flash Image (nano banana)"),
+        ("google/gemini-3-pro-image", "Gemini 3 Pro Image (premium)"),
+        ("openai/gpt-5-image", "GPT-5 Image (premium)"),
+        ("custom", "Autre (saisir l'ID ci-dessous)"),
+    ]
+    is_enabled = models.BooleanField(default=False)
+    openrouter_api_key = models.CharField(max_length=255, blank=True)
+    image_model = models.CharField(
+        max_length=100, choices=MODEL_CHOICES, default="openai/gpt-image-1-mini")
+    image_model_custom = models.CharField(max_length=200, blank=True)
+    image_size = models.CharField(max_length=20, default="1024x1536")
+    daily_quota_per_restaurant = models.PositiveIntegerField(default=5)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        verbose_name = "Paramètres génération d'image"
+        verbose_name_plural = "Paramètres génération d'image"
+
+    def save(self, *args, **kwargs):
+        self.pk = 1
+        super().save(*args, **kwargs)
+
+    @classmethod
+    def load(cls):
+        obj, _ = cls.objects.get_or_create(pk=1)
+        return obj
+
+    def effective_model(self):
+        if self.image_model == "custom" and self.image_model_custom:
+            return self.image_model_custom
+        return self.image_model
+
+    def __str__(self):
+        return f"ImageGenSettings ({self.effective_model()})"
+
+
+class MarketingPoster(models.Model):
+    """Affiche marketing générée par IA (+ légende), avec chaînes de raffinage."""
+    restaurant = models.ForeignKey(
+        Restaurant, on_delete=models.CASCADE, related_name='posters')
+    menu_item = models.ForeignKey(
+        MenuItem, on_delete=models.SET_NULL, null=True, blank=True)
+    image = _CloudinaryField('image', resource_type='image', blank=True)
+    caption = models.TextField(blank=True)
+    prompt_used = models.TextField(blank=True)
+    style = models.CharField(max_length=80, blank=True)
+    user_text = models.CharField(max_length=300, blank=True)
+    parent = models.ForeignKey(
+        'self', on_delete=models.SET_NULL, null=True, blank=True,
+        related_name='refinements')
+    created_by = models.ForeignKey(
+        'accounts.User', on_delete=models.SET_NULL, null=True, blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    @property
+    def image_url(self):
+        """URL Cloudinary construite depuis le public_id stocké (comme
+        MenuItemMedia). `self.image.url` n'est pas fiable ici car le champ
+        contient un public_id brut renvoyé par l'upload."""
+        if not self.image:
+            return ''
+        import cloudinary
+        return cloudinary.CloudinaryImage(str(self.image)).build_url()
+
+    def __str__(self):
+        return f"Affiche {self.restaurant.name} ({self.style or '—'})"

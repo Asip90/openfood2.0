@@ -1,0 +1,87 @@
+{% extends "admin_user/base.html" %}
+{% load static %}
+{% block title %}Affiches — {{ restaurant.name }}{% endblock %}
+{% block page_title %}Affiches marketing{% endblock %}
+{% block content %}
+<div class="p-4 space-y-6">
+
+  {% if not enabled %}
+    <div class="rounded-xl bg-amber-50 border border-amber-100 p-4 text-sm text-amber-800">
+      La génération d'affiches est momentanément indisponible.
+    </div>
+  {% endif %}
+
+  <form method="post" action="{% url 'posters_generate' %}"
+        class="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+    {% csrf_token %}
+    <div class="flex items-center justify-between">
+      <h2 class="font-semibold text-slate-800">Générer une affiche</h2>
+      <span class="text-xs text-slate-500">{{ remaining }} génération(s) restante(s) aujourd'hui</span>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Plat</label>
+      <select name="menu_item" class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm">
+        <option value="">— Aucun (affiche générique) —</option>
+        {% for it in menu_items %}
+        <option value="{{ it.id }}">{{ it.name }}</option>
+        {% endfor %}
+      </select>
+    </div>
+    <div>
+      <label class="block text-xs font-semibold uppercase tracking-wide text-slate-500 mb-1">Angle / offre (optionnel)</label>
+      <input type="text" name="user_text" maxlength="300" placeholder="ex : promo -20% ce week-end"
+             class="w-full rounded-xl border border-slate-200 px-3 py-2 text-sm" />
+    </div>
+    <button type="submit" {% if not enabled or remaining == 0 %}disabled{% endif %}
+            class="rounded-xl bg-primary px-5 py-2 text-white text-sm font-semibold disabled:opacity-50">
+      🎨 Générer
+    </button>
+  </form>
+
+  <div>
+    <h2 class="font-semibold text-slate-800 mb-3">Vos affiches</h2>
+    {% if not posters %}
+      <p class="text-sm text-slate-500">Aucune affiche pour l'instant.</p>
+    {% else %}
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        {% for p in posters %}
+        <div class="rounded-2xl border border-slate-200 bg-white overflow-hidden">
+          {% if p.image %}
+          <img src="{{ p.image_url }}" alt="Affiche" class="w-full aspect-[3/4] object-cover" />
+          {% endif %}
+          <div class="p-3 space-y-2">
+            <p class="text-sm text-slate-700 whitespace-pre-line">{{ p.caption }}</p>
+            <div class="flex flex-wrap gap-2">
+              {% if p.image %}
+              <a href="{{ p.image_url }}" download target="_blank"
+                 class="text-xs rounded-lg bg-slate-800 text-white px-3 py-1">Télécharger</a>
+              {% endif %}
+              <button type="button" class="text-xs rounded-lg bg-slate-100 px-3 py-1 copy-caption"
+                      data-caption="{{ p.caption }}">Copier la légende</button>
+            </div>
+            <form method="post" action="{% url 'posters_refine' p.id %}" class="flex gap-2 pt-1">
+              {% csrf_token %}
+              <input type="text" name="instructions" placeholder="Raffiner : plus lumineux…"
+                     class="flex-1 rounded-lg border border-slate-200 px-2 py-1 text-xs" />
+              <button type="submit" {% if remaining == 0 %}disabled{% endif %}
+                      class="text-xs rounded-lg bg-primary text-white px-3 py-1 disabled:opacity-50">↻</button>
+            </form>
+          </div>
+        </div>
+        {% endfor %}
+      </div>
+    {% endif %}
+  </div>
+</div>
+
+<script>
+document.querySelectorAll('.copy-caption').forEach(function (b) {
+  b.addEventListener('click', function () {
+    navigator.clipboard.writeText(b.dataset.caption || '').then(function () {
+      var t = b.textContent; b.textContent = 'Copié ✓';
+      setTimeout(function () { b.textContent = t; }, 1500);
+    });
+  });
+});
+</script>
+{% endblock %}

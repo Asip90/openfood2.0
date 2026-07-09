@@ -97,6 +97,11 @@ urlpatterns = [
     # Retours clients
     path("retours/", feedback_list, name="feedback_list"),
 
+    # Affiches (générateur IA)
+    path("affiches/", posters_studio, name="posters_studio"),
+    path("affiches/generer/", posters_generate, name="posters_generate"),
+    path("affiches/<int:poster_id>/raffiner/", posters_refine, name="posters_refine"),
+
     # PWA
     path("manifest/<slug:slug>.json", pwa_manifest, name="pwa_manifest"),
 

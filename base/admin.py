@@ -11,7 +11,8 @@ from .models import (
     Order,
     OrderItem,
     Payment,
-    AISettings
+    AISettings,
+    ImageGenSettings
 )
 
 # =========================
@@ -206,6 +207,30 @@ class AISettingsAdmin(admin.ModelAdmin):
 
     def has_add_permission(self, request):
         return not AISettings.objects.exists()
+
+    def has_delete_permission(self, request, obj=None):
+        return False
+
+
+# =========================
+# IMAGE GEN SETTINGS
+# =========================
+class ImageGenSettingsForm(forms.ModelForm):
+    class Meta:
+        model = ImageGenSettings
+        fields = "__all__"
+        widgets = {
+            "openrouter_api_key": forms.PasswordInput(render_value=True),
+        }
+
+
+@admin.register(ImageGenSettings)
+class ImageGenSettingsAdmin(admin.ModelAdmin):
+    form = ImageGenSettingsForm
+    list_display = ("effective_model", "is_enabled", "daily_quota_per_restaurant", "updated_at")
+
+    def has_add_permission(self, request):
+        return not ImageGenSettings.objects.exists()
 
     def has_delete_permission(self, request, obj=None):
         return False

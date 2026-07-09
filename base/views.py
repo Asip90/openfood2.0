@@ -1483,6 +1483,74 @@ def feedback_list(request):
     })
 
 
+@owner_or_coadmin_required
+def posters_studio(request):
+    restaurant = request.restaurant
+    if not restaurant.is_pro():
+        raise Http404()
+    from base.models import ImageGenSettings, MenuItem
+    from base.services.imagegen import generator
+    settings = ImageGenSettings.load()
+    return render(request, "admin_user/posters/studio.html", {
+        "restaurant": restaurant,
+        "enabled": settings.is_enabled,
+        "menu_items": MenuItem.objects.filter(restaurant=restaurant),
+        "posters": restaurant.posters.all()[:60],
+        "remaining": generator.remaining_quota(restaurant),
+    })
+
+
+def _guard_pro(request):
+    if not request.restaurant.is_pro():
+        raise Http404()
+
+
+@owner_or_coadmin_required
+@require_POST
+def posters_generate(request):
+    _guard_pro(request)
+    from base.models import MenuItem
+    from base.services.imagegen import generator
+    from base.services.imagegen.errors import ImageGenError
+    restaurant = request.restaurant
+    menu_item = None
+    mid = request.POST.get("menu_item")
+    if mid:
+        menu_item = MenuItem.objects.filter(id=mid, restaurant=restaurant).first()
+    user_text = request.POST.get("user_text", "").strip()
+    source_url = None
+    if menu_item and menu_item.image:
+        try:
+            source_url = menu_item.image.url
+        except Exception:
+            source_url = None
+    try:
+        generator.generate(restaurant, request.user, menu_item=menu_item,
+                            user_text=user_text, source_image_url=source_url)
+        messages.success(request, "Affiche générée.")
+    except ImageGenError as exc:
+        messages.error(request, f"Échec : {exc}")
+    return redirect("posters_studio")
+
+
+@owner_or_coadmin_required
+@require_POST
+def posters_refine(request, poster_id):
+    _guard_pro(request)
+    from base.models import MarketingPoster
+    from base.services.imagegen import generator
+    from base.services.imagegen.errors import ImageGenError
+    poster = get_object_or_404(
+        MarketingPoster, id=poster_id, restaurant=request.restaurant)
+    instructions = request.POST.get("instructions", "").strip()
+    try:
+        generator.refine(poster, instructions, request.user)
+        messages.success(request, "Nouvelle version générée.")
+    except ImageGenError as exc:
+        messages.error(request, f"Échec : {exc}")
+    return redirect("posters_studio")
+
+
 def sitemap_view(request):
     return render(request, "sitemap.xml", {
         "base_url": request.build_absolute_uri("/").rstrip("/"),
